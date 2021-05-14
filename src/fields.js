@@ -7,20 +7,19 @@ import { Field } from './Field.js';
 
 const rand = Math.random;
 const animationDelay = 0;
-const SCALE_FACTOR = 10;
+const SCALE_FACTOR = 3;
 
 async function update(field) {
 
     await field.calculate();
     field.drawFrame();
+    field.scaleFactor += 0.0001;
 
     setTimeout(update.bind(null, field), animationDelay);
 }
 
-function init() {
-    const f = new Field(document.getElementById('cnv'), SCALE_FACTOR);
-
-    for (let i = 0; i < 500; i++) {
+function initStars(f) {
+    for (let i = 0; i < 1000; i++) {
         const chance = rand();
         const xpos = Math.round(rand() * f.width);
         const ypos = Math.round(rand() * f.height);
@@ -29,10 +28,10 @@ function init() {
 
         if (chance > 0.9) {
             particle = new Star(xpos, ypos);
-            particle.m = rand() * 10000000 + 10000;
+            particle.m = rand() * 10000000 + 100000;
         } else {
             particle = new Planet(xpos, ypos);
-            particle.m = rand() * 10 + 1;
+            particle.m = rand() * 1000 + 1;
         }
 
         particle.dx = rand() * 0.2 - 0.1;
@@ -40,6 +39,12 @@ function init() {
 
         f.add(particle);
     }
+}
+
+function init() {
+    const f = new Field(document.getElementById('cnv'), SCALE_FACTOR);
+
+    initStars(f);
 
     f.drawFrame();
 
