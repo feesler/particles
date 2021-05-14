@@ -41,10 +41,33 @@ function initStars(f) {
     }
 }
 
+function initParticles(f) {
+    for (let i = 0; i < 1000; i++) {
+        const chance = rand();
+        const xpos = Math.round(rand() * f.width);
+        const ypos = Math.round(rand() * f.height);
+
+        let particle;
+
+        if (chance > 0.7) {
+            particle = new Proton(xpos, ypos);
+        } else {
+            particle = new Electron(xpos, ypos);
+        }
+
+        particle.dx = rand() * 0.2 - 0.1;
+        particle.dy = rand() * 0.2 - 0.1;
+
+        f.add(particle);
+    }
+}
+
+
 function init() {
     const f = new Field(document.getElementById('cnv'), SCALE_FACTOR);
 
-    initStars(f);
+    //initStars(f);
+    initParticles(f);
 
     f.drawFrame();
 
