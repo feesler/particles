@@ -3,8 +3,7 @@ import { Particle } from './Particle.js';
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
 const MAX_SPEED = 20;
-const dt = 1;
-
+const dt = 0.1;
 
 export class Field {
     constructor(canvasElem, scaleFactor) {
@@ -21,6 +20,19 @@ export class Field {
         this.scaleFactor = scaleFactor;
     }
 
+    drawFrameByCircles() {
+        this.context2d.clearRect(0, 0, this.width, this.height);
+        this.context2d.fillStyle = 'white';
+        this.context2d.strokeStyle = 'white';
+        this.context2d.lineWidth = 0.5;
+
+        for (const particle of this.particles) {
+            this.context2d.beginPath();
+            this.context2d.arc(particle.x, particle.y, 0.5, 0, Math.PI * 2, true);
+            this.context2d.stroke();
+        }
+    }
+
     putPixel(frame, x, y, r, g, b, a) {
         const rx = Math.round(x);
         const ry = Math.round(y);
@@ -32,7 +44,7 @@ export class Field {
         frame.data[ind + 3] = a;
     }
 
-    drawFrame() {
+    drawFrameByPixels() {
         const frame = this.context2d.createImageData(this.width, this.height);
 
         for (const particle of this.particles) {
@@ -47,6 +59,10 @@ export class Field {
         }
 
         this.context2d.putImageData(frame, 0, 0);
+    }
+
+    drawFrame() {
+        this.drawFrameByPixels();
     }
 
     /* Add particle */
