@@ -13,7 +13,7 @@ async function update(field) {
 
     await field.calculate();
     field.drawFrame();
-    field.scaleFactor += 0.0001;
+    //field.scaleFactor += 0.0001;
 
     setTimeout(update.bind(null, field), animationDelay);
 }
@@ -62,16 +62,73 @@ function initParticles(f) {
     }
 }
 
+function initSpeedTest(f) {
+    let star;
+
+    star = new Star(10, 10);
+    star.dx = 0.1;
+    f.add(star);
+
+    star = new Star(10, 100);
+    star.dx = 1;
+    f.add(star);
+
+    star = new Star(10, 200);
+    star.dx = 10;
+    f.add(star);
+
+    star = new Star(10, 300);
+    star.dx = 100;
+    f.add(star);
+}
+
+function testMassVelocity(f) {
+    const frame = f.context2d.createImageData(f.width, f.height);
+
+
+    for (let x = 1, v = 1; x < 100; x += 1, v *= 10) {
+        let y = x;
+        let yf = f.height / 2 - y;
+
+        f.putPixel(frame,
+            x,
+            yf,
+            128,
+            255,
+            128,
+            255,
+        );
+
+        y = Math.log(1 / v);
+        yf = f.height / 2 - y;
+        f.putPixel(frame,
+            x,
+            yf,
+            255,
+            128,
+            80,
+            255,
+        );
+    }
+
+    f.context2d.putImageData(frame, 0, 0);
+}
+
 
 function init() {
     const f = new Field(document.getElementById('cnv'), SCALE_FACTOR);
 
     //initStars(f);
-    initParticles(f);
+    //initParticles(f);
+    testMassVelocity(f);
+    /*
+        initSpeedTest(f);
 
-    f.drawFrame();
 
-    setTimeout(update.bind(null, f), animationDelay);
+        f.drawFrame();
+
+        setTimeout(update.bind(null, f), animationDelay);
+    */
 }
 
 document.addEventListener('DOMContentLoaded', init);
