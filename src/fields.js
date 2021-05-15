@@ -6,14 +6,15 @@ import { Planet } from './Planet.js';
 import { Field } from './Field.js';
 
 const rand = Math.random;
-const animationDelay = 0;
-const SCALE_FACTOR = 3;
+const animationDelay = 10;
+const INITIAL_SCALE = 1;
+const SCALE_STEP = 0;
 
 async function update(field) {
 
     await field.calculate();
     field.drawFrame();
-    //field.scaleFactor += 0.0001;
+    field.scaleFactor += SCALE_STEP;
 
     setTimeout(update.bind(null, field), animationDelay);
 }
@@ -62,73 +63,50 @@ function initParticles(f) {
     }
 }
 
-function initSpeedTest(f) {
-    let star;
+function initVelocityTest(f) {
+    f.add(new Star(f.width - 300, f.height / 2, 10000000000));
 
-    star = new Star(10, 10);
-    star.dx = 0.1;
-    f.add(star);
-
-    star = new Star(10, 100);
-    star.dx = 1;
-    f.add(star);
-
-    star = new Star(10, 200);
-    star.dx = 10;
-    f.add(star);
-
-    star = new Star(10, 300);
-    star.dx = 100;
-    f.add(star);
+    f.add(new Star(10, 10, 1000));
+    f.add(new Star(10, 100, 10000));
+    f.add(new Star(10, 200, 100000));
+    f.add(new Star(10, 300, 1000000));
 }
 
-function testMassVelocity(f) {
+function drawMaxVelocity(f) {
     const frame = f.context2d.createImageData(f.width, f.height);
+    const yF = (y) => f.height - y;
 
+    const MAX_SPEED = 300;
+    const scaleFactor = 3;
+    const c = MAX_SPEED / scaleFactor;
+    const relVelocity = (velocity) => c * Math.tanh(velocity / c);
 
-    for (let x = 1, v = 1; x < 100; x += 1, v *= 10) {
-        let y = x;
-        let yf = f.height / 2 - y;
-
-        f.putPixel(frame,
-            x,
-            yf,
-            128,
-            255,
-            128,
-            255,
-        );
-
-        y = Math.log(1 / v);
-        yf = f.height / 2 - y;
-        f.putPixel(frame,
-            x,
-            yf,
-            255,
-            128,
-            80,
-            255,
-        );
+    for (let x = 0; x < 1000; x += 1) {
+        let v = x;
+        f.putPixel(frame, x, yF(v), 128, 255, 128, 255);
+        f.putPixel(frame, x, yF(c), 128, 255, 128, 255);
+        let y = relVelocity(v);
+        f.putPixel(frame, x, yF(y), 255, 128, 80, 255);
     }
 
     f.context2d.putImageData(frame, 0, 0);
 }
 
-
 function init() {
-    const f = new Field(document.getElementById('cnv'), SCALE_FACTOR);
+    const f = new Field(document.getElementById('cnv'), INITIAL_SCALE);
 
-    //initStars(f);
-    //initParticles(f);
-    testMassVelocity(f);
-    /*
-        initSpeedTest(f);
-
+    if (1) {
+        drawMaxVelocity(f);
+    } else {
+        //initStars(f);
+        //initParticles(f);
+        initVelocityTest(f);
 
         f.drawFrame();
 
         setTimeout(update.bind(null, f), animationDelay);
-    */
+    }
+
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -2,8 +2,8 @@ import { Particle } from './Particle.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
-const MAX_SPEED = 20;
-const dt = 0.1;
+const MAX_SPEED = 200;
+const dt = 0.01;
 
 export class Field {
     constructor(canvasElem, scaleFactor) {
@@ -146,33 +146,26 @@ export class Field {
         return res;
     }
 
+    relVelocity(velocity) {
+        const c = MAX_SPEED / this.scaleFactor;
+        return c * Math.tanh(velocity / c);
+    }
+
     async applyForce(particle, force) {
         const q = particle;
         const f = force;
 
-        const pv = Math.min(MAX_SPEED, q.speed());
-        let L2 = 1 - (pv * pv) / (MAX_SPEED * MAX_SPEED);
-        let L = Math.sqrt(L2);
-        if (L == 0) {
-            L = 0.000001;
-        }
-        let mass = q.m / L2;
-        if (mass == 0) {
-            mass = 0.000001;
-        }
-
-        let ax = f.x / mass;
-        let ay = f.y / mass;
+        let ax = f.x / q.m;
+        let ay = f.y / q.m;
         if (Number.isNaN(ax) || Number.isNaN(ay)) {
             throw new Errro('Invalid values');
         }
 
-        let dx = (q.dx + ax * dt);
-        let dy = (q.dy + ay * dt);
+        let dx = this.relVelocity(q.dx + ax * dt);
+        let dy = this.relVelocity(q.dy + ay * dt);
         if (Number.isNaN(dx) || Number.isNaN(dy)) {
             throw new Errro('Invalid values');
         }
-
 
         let newx = q.x + dx;
         const loss = 0.1;
