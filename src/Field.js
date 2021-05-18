@@ -4,6 +4,10 @@ import { Vector } from './Vector.js';
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
 const MAX_SPEED = 200;
+const DEPTH = 500;
+
+const ALPHA = -Math.PI / 8;
+const BETA = Math.PI / 8;
 
 export class Field {
     constructor(canvasElem, scaleFactor, timeStep) {
@@ -13,8 +17,21 @@ export class Field {
 
         this.canvas = canvasElem;
         this.context2d = this.canvas.getContext('2d');
-        this.height = parseInt(this.canvas.getAttribute('height'));
-        this.width = parseInt(this.canvas.getAttribute('width'));
+        this.frameWidth = parseInt(this.canvas.getAttribute('width'));
+        this.frameHeight = parseInt(this.canvas.getAttribute('height'));
+
+        this.depth = DEPTH;
+
+        this.xShift = 0;
+        this.yShift = 0;
+
+        const spaceTest = new Vector(0, 0, this.depth);
+        const x = this.xF(spaceTest);
+        const y = this.yF(spaceTest);
+        this.yShift = Math.ceil(Math.abs(y));
+
+        this.width = this.frameWidth - Math.ceil(Math.abs(x));
+        this.height = this.frameHeight - this.yShift;
 
         this.particles = [];
         this.setScaleFactor(scaleFactor);
@@ -22,7 +39,7 @@ export class Field {
     }
 
     drawFrameByCircles() {
-        this.context2d.clearRect(0, 0, this.width, this.height);
+        this.context2d.clearRect(0, 0, this.frameWidth, this.frameHeight);
         this.context2d.fillStyle = 'white';
         this.context2d.strokeStyle = 'white';
         this.context2d.lineWidth = 0.5;
@@ -37,7 +54,7 @@ export class Field {
     putPixel(frame, x, y, r, g, b, a) {
         const rx = Math.round(x);
         const ry = Math.round(y);
-        let ind = ry * (this.width * 4) + rx * 4;
+        let ind = ry * (this.frameWidth * 4) + rx * 4;
 
         frame.data[ind] = r;
         frame.data[ind + 1] = g;
@@ -45,17 +62,27 @@ export class Field {
         frame.data[ind + 3] = a;
     }
 
+    xF(v) {
+        return this.xShift + v.x * Math.cos(BETA) + v.z * Math.sin(BETA);
+    }
+
+    yF(v) {
+        return this.yShift + v.y * Math.cos(ALPHA) + v.z * Math.sin(ALPHA);
+    }
+
     drawFrameByPixels() {
-        const frame = this.context2d.createImageData(this.width, this.height);
+        const frame = this.context2d.createImageData(this.frameWidth, this.frameHeight);
+
+        this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
         for (const particle of this.particles) {
             this.putPixel(frame,
-                particle.pos.x,
-                particle.pos.y,
+                this.xF(particle.pos),
+                this.yF(particle.pos),
                 particle.color.r,
                 particle.color.g,
                 particle.color.b,
-                255,
+                Math.round(255 * (this.depth / particle.pos.z)),
             );
         }
 
@@ -81,8 +108,8 @@ export class Field {
     }
 
     async force(particle) {
-        const MIN_DISTANCE = 0.0001;
-        const res = new Vector(0, 0);
+        const MIN_DISTANCE = 0.00001;
+        const res = new Vector(0, 0, 0);
 
         for (let nq of this.particles) {
             if (nq == particle) {
@@ -94,13 +121,15 @@ export class Field {
 
             let dx = dist.x * this.scaleFactor;
             let dy = dist.y * this.scaleFactor;
+            let dz = dist.z * this.scaleFactor;
 
-            let d2 = dx * dx + dy * dy;
+            let d2 = dx * dx + dy * dy + dz * dz;
             let d = Math.max(Math.sqrt(d2), MIN_DISTANCE);
 
-            const cosa = (dx / d) * orientation.x;
-            const cosb = (dy / d) * orientation.y;
-            if (isNaN(cosa) || isNaN(cosb)) {
+            const cosA = (dx / d) * orientation.x;
+            const cosB = (dy / d) * orientation.y;
+            const cosC = (dz / d) * orientation.z;
+            if (isNaN(cosA) || isNaN(cosB) || isNaN(cosC)) {
                 throw new Error('Invalid value');
             }
 
@@ -112,13 +141,15 @@ export class Field {
 
             let emForce = 0;
             emForce = K * forceSign * Math.abs(particle.charge * nq.charge) / d2;
-            res.x += (emForce * cosa);
-            res.y += (emForce * cosb);
+            res.x += (emForce * cosA);
+            res.y += (emForce * cosB);
+            res.z += (emForce * cosC);
 
             let gForce = 0;
             gForce = G * Math.abs(particle.m * nq.m) / d2;
-            res.x += (gForce * cosa);
-            res.y += (gForce * cosb);
+            res.x += (gForce * cosA);
+            res.y += (gForce * cosB);
+            res.z += (gForce * cosC);
         }
 
         return res;
@@ -135,44 +166,58 @@ export class Field {
 
         let ax = f.x / q.m;
         let ay = f.y / q.m;
-        if (Number.isNaN(ax) || Number.isNaN(ay)) {
+        let az = f.z / q.m;
+        if (Number.isNaN(ax) || Number.isNaN(ay) || Number.isNaN(az)) {
             throw new Errro('Invalid values');
         }
 
         let dx = this.relVelocity(q.velocity.x + ax * dt);
         let dy = this.relVelocity(q.velocity.y + ay * dt);
-        if (Number.isNaN(dx) || Number.isNaN(dy)) {
-            throw new Errro('Invalid values');
+        let dz = this.relVelocity(q.velocity.z + az * dt);
+        if (Number.isNaN(dx) || Number.isNaN(dy) || Number.isNaN(dz)) {
+            throw new Error('Invalid values');
         }
 
-        let newx = q.pos.x + dx;
         const loss = 0.1;
 
-        if (newx < 0) {
-            newx = -(q.pos.x + dx);
+        let newX = q.pos.x + dx;
+        if (newX < 0) {
+            newX = -(q.pos.x + dx);
             dx = -dx * loss;
-        } else if (newx > this.width) {
-            newx = this.width - (newx - this.width);
+        } else if (newX > this.width) {
+            newX = this.width - (newX - this.width);
             dx = -dx * loss;
         }
 
-        let newy = q.pos.y + dy;
-        if (newy < 0) {
-            newy = -(q.pos.y + dy);
+        let newY = q.pos.y + dy;
+        if (newY < 0) {
+            newY = -(q.pos.y + dy);
             dy = -dy * loss;
-        } else if (newy > this.height) {
-            newy = this.height - (newy - this.height);
+        } else if (newY > this.height) {
+            newY = this.height - (newY - this.height);
             dy = -dy * loss;
         }
 
-        q.pos.x = newx;
-        q.pos.y = newy;
+        let newZ = q.pos.z + dz;
+        if (newZ < 0) {
+            newZ = -(q.pos.z + dz);
+            dz = -dz * loss;
+        } else if (newZ > this.depth) {
+            newZ = this.depth - (newZ - this.depth);
+            dz = -dz * loss;
+        }
+
+        q.pos.x = newX;
+        q.pos.y = newY;
+        q.pos.z = newZ;
 
         q.velocity.x = dx;
         q.velocity.y = dy;
+        q.velocity.z = dz;
 
         q.force.x += f.x;
         q.force.y += f.y;
+        q.force.z += f.z;
     }
 
     async applyForces(forces) {

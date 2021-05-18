@@ -1,4 +1,4 @@
-import { Particle } from './Particle.js';
+import { Vector } from './Vector.js';
 import { Proton } from './Proton.js';
 import { Electron } from './Electron.js';
 import { Star } from './Star.js';
@@ -27,19 +27,20 @@ async function update(field) {
 function initStars(f) {
     for (let i = 0; i < 1000; i++) {
         const chance = rand();
-        const xpos = Math.round(rand() * f.width);
-        const ypos = Math.round(rand() * f.height);
+        const xPos = Math.round(rand() * f.width);
+        const yPos = Math.round(rand() * f.height);
+        const zPos = Math.round(rand() * f.depth);
 
         let particle;
 
         if (chance > 0.9) {
-            particle = new Star(xpos, ypos, 1000000000);
+            particle = new Star(xPos, yPos, zPos, 1000000000);
         } else if (chance > 0.7) {
             const mass = rand() * 10000000 + 100000;
-            particle = new Star(xpos, ypos, mass);
+            particle = new Star(xPos, yPos, zPos, mass);
         } else {
-            particle = new Planet(xpos, ypos);
-            particle.m = rand() * 1000 + 1;
+            const mass = rand() * 1000 + 1;
+            particle = new Planet(xPos, yPos, zPos, mass);
         }
 
         f.add(particle);
@@ -49,15 +50,16 @@ function initStars(f) {
 function initParticles(f) {
     for (let i = 0; i < 1000; i++) {
         const chance = rand();
-        const xpos = Math.round(rand() * f.width);
-        const ypos = Math.round(rand() * f.height);
+        const xPos = Math.round(rand() * f.width);
+        const yPos = Math.round(rand() * f.height);
+        const zPos = Math.round(rand() * f.depth);
 
         let particle;
 
         if (chance > 0.7) {
-            particle = new Proton(xpos, ypos);
+            particle = new Proton(xPos, yPos, zPos);
         } else {
-            particle = new Electron(xpos, ypos);
+            particle = new Electron(xPos, yPos, zPos);
         }
 
         particle.dx = rand() * 0.2 - 0.1;
@@ -68,12 +70,25 @@ function initParticles(f) {
 }
 
 function initVelocityTest(f) {
-    f.add(new Star(f.width - 300, f.height / 2, 10000000000));
+    f.add(new Star(f.width - 300, f.height / 2, 300, 10000000000));
 
-    f.add(new Star(10, 10, 1000));
-    f.add(new Star(10, 100, 10000));
-    f.add(new Star(10, 200, 100000));
-    f.add(new Star(10, 300, 1000000));
+    f.add(new Star(10, 10, 10, 1000));
+    f.add(new Star(10, 100, 100, 10000));
+    f.add(new Star(10, 200, 200, 100000));
+    f.add(new Star(10, 300, 300, 1000000));
+}
+
+function initDepthTest(f) {
+    const D = 1;
+
+    f.add(new Star(D, D, D));
+    f.add(new Star(f.width - D, D, D));
+    f.add(new Star(D, f.height - D, D));
+    f.add(new Star(D, D, f.depth - D));
+    f.add(new Star(D, f.height - D, f.depth - D));
+    f.add(new Star(f.width - D, D, f.depth - D));
+    f.add(new Star(f.width - D, f.height - D, D));
+    f.add(new Star(f.width - D, f.height - D, f.depth - D));
 }
 
 function drawMaxVelocity(f) {
@@ -96,17 +111,81 @@ function drawMaxVelocity(f) {
     f.context2d.putImageData(frame, 0, 0);
 }
 
+function draw3D(canvas) {
+    let ALPHA = -Math.PI / 8;
+    let BETA = Math.PI / 8;
+    const yF = (v) => v.y * Math.cos(ALPHA) + v.z * Math.sin(ALPHA);
+    const xF = (v) => v.x * Math.cos(BETA) + v.z * Math.sin(BETA);
+
+    const CUBE_X = 100;
+    const CUBE_Y = 100;
+    const CUBE_Z = 0;
+    const CUBE_WIDTH = 200;
+    const CUBE_HEIGHT = 100;
+    const CUBE_DEPTH = 200;
+
+    const vertices = [
+        new Vector(CUBE_X, CUBE_Y, CUBE_Z),
+        new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y, CUBE_Z),
+        new Vector(CUBE_X, CUBE_Y + CUBE_HEIGHT, CUBE_Z),
+        new Vector(CUBE_X, CUBE_Y, CUBE_Z + CUBE_DEPTH),
+        new Vector(CUBE_X, CUBE_Y + CUBE_HEIGHT, CUBE_Z + CUBE_DEPTH),
+        new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y, CUBE_Z + CUBE_DEPTH),
+        new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y + CUBE_HEIGHT, CUBE_Z),
+        new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y + CUBE_HEIGHT, CUBE_Z + CUBE_DEPTH),
+    ];
+
+    const draw3dFrame = () => {
+        const frame = canvas.context2d.createImageData(canvas.width, canvas.height);
+        for (const vert of vertices) {
+            let x = xF(vert);
+            let y = yF(vert);
+
+            canvas.putPixel(frame, x, y, 255, 255, 255, (vert.z > CUBE_Z) ? 128 : 255);
+        }
+
+        canvas.context2d.putImageData(frame, 0, 0);
+    };
+
+    const update3dFrame = () => {
+        ALPHA += 0.1;
+        draw3dFrame();
+        setTimeout(() => update3dFrame(), 100);
+    };
+
+    draw3dFrame();
+    //setTimeout(() => update3dFrame(), 100);
+}
+
 function init() {
-    const f = new Field(document.getElementById('cnv'), INITIAL_SCALE, dt);
+    const canvas = {
+        elem: document.getElementById('cnv'),
+        putPixel: function (frame, x, y, r, g, b, a) {
+            const rx = Math.round(x);
+            const ry = Math.round(y);
+            let ind = ry * (this.width * 4) + rx * 4;
+
+            frame.data[ind] = r;
+            frame.data[ind + 1] = g;
+            frame.data[ind + 2] = b;
+            frame.data[ind + 3] = a;
+        },
+    };
+    canvas.context2d = canvas.elem.getContext('2d');
+    canvas.height = parseInt(canvas.elem.getAttribute('height'));
+    canvas.width = parseInt(canvas.elem.getAttribute('width'));
 
     scaleFactorElem = document.getElementById('scalefactor');
 
     if (0) {
-        drawMaxVelocity(f);
+        //drawMaxVelocity(f);
+        draw3D(canvas);
     } else {
+        const f = new Field(canvas.elem, INITIAL_SCALE, dt);
         initStars(f);
         //initParticles(f);
         //initVelocityTest(f);
+        //initDepthTest(f);
 
         f.drawFrame();
 
