@@ -8,13 +8,17 @@ import { Field } from './Field.js';
 const rand = Math.random;
 const animationDelay = 10;
 const INITIAL_SCALE = 1;
-const SCALE_STEP = 0;
+const SCALE_STEP = 0.01;
+
+let scaleFactorElem = null;
 
 async function update(field) {
 
     await field.calculate();
     field.drawFrame();
     field.scaleFactor += SCALE_STEP;
+
+    scaleFactorElem.textContent = field.scaleFactor;
 
     setTimeout(update.bind(null, field), animationDelay);
 }
@@ -94,6 +98,8 @@ function drawMaxVelocity(f) {
 
 function init() {
     const f = new Field(document.getElementById('cnv'), INITIAL_SCALE);
+
+    scaleFactorElem = document.getElementById('scalefactor');
 
     if (1) {
         drawMaxVelocity(f);

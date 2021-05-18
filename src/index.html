@@ -4,10 +4,29 @@
 html {
     background-color: black;
 }
+
+.container {
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.date-value {
+    display: flex;
+    flex-flow: column nowrap;
+    color: #dddddd;
+}
 </style>
 </head>
 <body>
-<canvas id="cnv" width="1500" height="800"></canvas>
+<div class="container">
+    <canvas id="cnv" width="1500" height="800"></canvas>
+    <div class="data-section">
+        <div class="date-value">
+            <label>Scale factor</label>
+            <span id="scalefactor"></span>
+        </div>
+    </div>
+</div>
 <script type="module" src="./fields.js"></script>
 </body>
 </html>
