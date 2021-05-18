@@ -3,10 +3,9 @@ import { Particle } from './Particle.js';
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
 const MAX_SPEED = 200;
-const dt = 0.1;
 
 export class Field {
-    constructor(canvasElem, scaleFactor) {
+    constructor(canvasElem, scaleFactor, timeStep) {
         if (!canvasElem) {
             throw new Error('Invalid canvas');
         }
@@ -18,6 +17,7 @@ export class Field {
 
         this.particles = [];
         this.scaleFactor = scaleFactor;
+        this.timeStep = timeStep;
     }
 
     drawFrameByCircles() {
@@ -154,6 +154,7 @@ export class Field {
     async applyForce(particle, force) {
         const q = particle;
         const f = force;
+        const dt = this.timeStep;
 
         let ax = f.x / q.m;
         let ay = f.y / q.m;

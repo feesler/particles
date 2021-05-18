@@ -9,6 +9,7 @@ const rand = Math.random;
 const animationDelay = 10;
 const INITIAL_SCALE = 0.1;
 const SCALE_STEP = 0.01;
+const dt = 0.1;
 
 let scaleFactorElem = null;
 
@@ -96,7 +97,7 @@ function drawMaxVelocity(f) {
 }
 
 function init() {
-    const f = new Field(document.getElementById('cnv'), INITIAL_SCALE);
+    const f = new Field(document.getElementById('cnv'), INITIAL_SCALE, dt);
 
     scaleFactorElem = document.getElementById('scalefactor');
 
