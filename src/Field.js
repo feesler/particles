@@ -1,4 +1,5 @@
 import { Particle } from './Particle.js';
+import { Vector } from './Vector.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
@@ -28,7 +29,7 @@ export class Field {
 
         for (const particle of this.particles) {
             this.context2d.beginPath();
-            this.context2d.arc(particle.x, particle.y, 0.5, 0, Math.PI * 2, true);
+            this.context2d.arc(particle.pos.x, particle.pos.y, 0.5, 0, Math.PI * 2, true);
             this.context2d.stroke();
         }
     }
@@ -49,8 +50,8 @@ export class Field {
 
         for (const particle of this.particles) {
             this.putPixel(frame,
-                particle.x,
-                particle.y,
+                particle.pos.x,
+                particle.pos.y,
                 particle.color.r,
                 particle.color.g,
                 particle.color.b,
@@ -76,26 +77,26 @@ export class Field {
 
     /* Looped distance by x axis */
     dX(A, B) {
-        return Math.abs(A.x - B.x) * this.scaleFactor;
+        return Math.abs(A.pos.x - B.pos.x) * this.scaleFactor;
     }
 
     /* Orientation by x axis */
     oX(A, B) {
-        return (A.x < B.x) ? 1 : -1;
+        return (A.pos.x < B.pos.x) ? 1 : -1;
     }
 
     /* Distance by y axis */
     dY(A, B) {
-        return Math.abs(A.y - B.y) * this.scaleFactor;
+        return Math.abs(A.pos.y - B.pos.y) * this.scaleFactor;
     }
 
     /* Orientation by y axis */
     oY(A, B) {
-        return (A.y < B.y) ? 1 : -1;
+        return (A.pos.y < B.pos.y) ? 1 : -1;
     }
 
     async force(particle) {
-        let res = { x: 0, y: 0 };
+        let res = new Vector(0, 0);
 
         for (let nq of this.particles) {
             if (nq == particle) {
@@ -162,40 +163,40 @@ export class Field {
             throw new Errro('Invalid values');
         }
 
-        let dx = this.relVelocity(q.dx + ax * dt);
-        let dy = this.relVelocity(q.dy + ay * dt);
+        let dx = this.relVelocity(q.velocity.x + ax * dt);
+        let dy = this.relVelocity(q.velocity.y + ay * dt);
         if (Number.isNaN(dx) || Number.isNaN(dy)) {
             throw new Errro('Invalid values');
         }
 
-        let newx = q.x + dx;
+        let newx = q.pos.x + dx;
         const loss = 0.1;
 
         if (newx < 0) {
-            newx = -(q.x + dx);
+            newx = -(q.pos.x + dx);
             dx = -dx * loss;
         } else if (newx > this.width) {
             newx = this.width - (newx - this.width);
             dx = -dx * loss;
         }
 
-        let newy = q.y + dy;
+        let newy = q.pos.y + dy;
         if (newy < 0) {
-            newy = -(q.y + dy);
+            newy = -(q.pos.y + dy);
             dy = -dy * loss;
         } else if (newy > this.height) {
             newy = this.height - (newy - this.height);
             dy = -dy * loss;
         }
 
-        q.x = newx;
-        q.y = newy;
+        q.pos.x = newx;
+        q.pos.y = newy;
 
-        q.dx = dx;
-        q.dy = dy;
+        q.velocity.x = dx;
+        q.velocity.y = dy;
 
-        q.fx += f.x;
-        q.fy += f.y;
+        q.force.x += f.x;
+        q.force.y += f.y;
     }
 
     async applyForces(forces) {

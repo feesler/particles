@@ -1,11 +1,11 @@
+import { Vector } from './Vector.js';
+
 export class Particle {
     constructor(x, y, charge, m) {
-        this.x = x;
-        this.y = y;
-        this.fx = 0;
-        this.fy = 0;
-        this.dx = 0;
-        this.dy = 0;
+        this.pos = new Vector(x, y);
+        this.force = new Vector(0, 0);
+        this.velocity = new Vector(0, 0);
+
         this.m = m;
         this.charge = charge;
 

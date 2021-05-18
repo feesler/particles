@@ -101,7 +101,7 @@ function init() {
 
     scaleFactorElem = document.getElementById('scalefactor');
 
-    if (1) {
+    if (0) {
         drawMaxVelocity(f);
     } else {
         initStars(f);
