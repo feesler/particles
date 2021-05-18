@@ -7,7 +7,7 @@ import { Field } from './Field.js';
 
 const rand = Math.random;
 const animationDelay = 10;
-const INITIAL_SCALE = 1;
+const INITIAL_SCALE = 0.1;
 const SCALE_STEP = 0.01;
 
 let scaleFactorElem = null;
@@ -32,15 +32,14 @@ function initStars(f) {
         let particle;
 
         if (chance > 0.9) {
-            particle = new Star(xpos, ypos);
-            particle.m = rand() * 10000000 + 100000;
+            particle = new Star(xpos, ypos, 1000000000);
+        } else if (chance > 0.7) {
+            const mass = rand() * 10000000 + 100000;
+            particle = new Star(xpos, ypos, mass);
         } else {
             particle = new Planet(xpos, ypos);
             particle.m = rand() * 1000 + 1;
         }
-
-        particle.dx = rand() * 0.2 - 0.1;
-        particle.dy = rand() * 0.2 - 0.1;
 
         f.add(particle);
     }
@@ -104,9 +103,9 @@ function init() {
     if (1) {
         drawMaxVelocity(f);
     } else {
-        //initStars(f);
+        initStars(f);
         //initParticles(f);
-        initVelocityTest(f);
+        //initVelocityTest(f);
 
         f.drawFrame();
 

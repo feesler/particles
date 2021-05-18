@@ -3,7 +3,7 @@ import { Particle } from './Particle.js';
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
 const MAX_SPEED = 200;
-const dt = 0.01;
+const dt = 0.1;
 
 export class Field {
     constructor(canvasElem, scaleFactor) {
