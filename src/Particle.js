@@ -13,14 +13,24 @@ export class Particle {
     }
 
     speed() {
-        return Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+        return Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
     }
 
     attract(particle) {
-        if (!(particle instanceof Particle)) {
-            throw new Error('Invalid particle');
-        }
-
         return Math.sign(this.charge) != Math.sign(particle.charge);
+    }
+
+    distanceTo(particle) {
+        const dx = Math.abs(this.pos.x - particle.pos.x);
+        const dy = Math.abs(this.pos.y - particle.pos.y);
+
+        return new Vector(dx, dy);
+    }
+
+    orientationTo(particle) {
+        const ox = (this.pos.x < particle.pos.x) ? 1 : -1;
+        const oy = (this.pos.y < particle.pos.y) ? 1 : -1;
+
+        return new Vector(ox, oy);
     }
 }

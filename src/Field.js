@@ -75,56 +75,28 @@ export class Field {
         this.particles.push(q);
     }
 
-    /* Looped distance by x axis */
-    dX(A, B) {
-        return Math.abs(A.pos.x - B.pos.x) * this.scaleFactor;
-    }
-
-    /* Orientation by x axis */
-    oX(A, B) {
-        return (A.pos.x < B.pos.x) ? 1 : -1;
-    }
-
-    /* Distance by y axis */
-    dY(A, B) {
-        return Math.abs(A.pos.y - B.pos.y) * this.scaleFactor;
-    }
-
-    /* Orientation by y axis */
-    oY(A, B) {
-        return (A.pos.y < B.pos.y) ? 1 : -1;
-    }
-
     async force(particle) {
-        let res = new Vector(0, 0);
+        const MIN_DISTANCE = 0.0001;
+        const res = new Vector(0, 0);
 
         for (let nq of this.particles) {
             if (nq == particle) {
                 continue;
             }
 
-            let dx = this.dX(particle, nq);
-            let dy = this.dY(particle, nq);
+            const dist = particle.distanceTo(nq);
+            const orientation = particle.orientationTo(nq);
 
-            if (dx == 0) {
-                dx = 0.0001;
-            }
-            if (dy == 0) {
-                dy = 0.0001;
-            }
+            let dx = dist.x * this.scaleFactor;
+            let dy = dist.y * this.scaleFactor;
 
             let d2 = dx * dx + dy * dy;
-            let d = Math.sqrt(d2);
-            let cosa = dx / d;
-            let cosb = dy / d;
+            let d = Math.max(Math.sqrt(d2), MIN_DISTANCE);
 
-            const orientX = this.oX(particle, nq);
-            const orientY = this.oY(particle, nq);
-            cosa *= orientX;
-            cosb *= orientY;
-
+            const cosa = (dx / d) * orientation.x;
+            const cosb = (dy / d) * orientation.y;
             if (isNaN(cosa) || isNaN(cosb)) {
-                throw new Error('ffuuu');
+                throw new Error('Invalid value');
             }
 
             let forceSign = 1;
