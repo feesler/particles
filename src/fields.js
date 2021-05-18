@@ -17,7 +17,7 @@ async function update(field) {
 
     await field.calculate();
     field.drawFrame();
-    field.scaleFactor += SCALE_STEP;
+    field.setScaleFactor(field.scaleFactor + SCALE_STEP);
 
     scaleFactorElem.textContent = field.scaleFactor;
 

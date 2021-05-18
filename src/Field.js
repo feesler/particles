@@ -17,7 +17,7 @@ export class Field {
         this.width = parseInt(this.canvas.getAttribute('width'));
 
         this.particles = [];
-        this.scaleFactor = scaleFactor;
+        this.setScaleFactor(scaleFactor);
         this.timeStep = timeStep;
     }
 
@@ -64,6 +64,11 @@ export class Field {
 
     drawFrame() {
         this.drawFrameByPixels();
+    }
+
+    setScaleFactor(scaleFactor) {
+        this.scaleFactor = scaleFactor;
+        this.maxVelocity = MAX_SPEED / scaleFactor;
     }
 
     /* Add particle */
@@ -120,8 +125,7 @@ export class Field {
     }
 
     relVelocity(velocity) {
-        const c = MAX_SPEED / this.scaleFactor;
-        return c * Math.tanh(velocity / c);
+        return this.maxVelocity * Math.tanh(velocity / this.maxVelocity);
     }
 
     async applyForce(particle, force) {
