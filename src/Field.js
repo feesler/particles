@@ -163,6 +163,22 @@ export class Field {
         return this.maxVelocity * Math.tanh(velocity / this.maxVelocity);
     }
 
+    borderCondition(pos, delta, maxRange) {
+        const loss = 0.1;
+        const result = { pos, delta };
+
+        result.pos += delta;
+        if (result.pos < 0 || result.pos > maxRange) {
+            result.pos *= -1;
+            if (result.pos < 0) {
+                result.pos += maxRange * 2;
+            }
+            result.delta *= -loss;
+        }
+
+        return result;
+    }
+
     async applyForce(particle, force) {
         const q = particle;
         const f = force;
@@ -182,42 +198,17 @@ export class Field {
             throw new Error('Invalid values');
         }
 
-        const loss = 0.1;
+        const newX = this.borderCondition(q.pos.x, dx, this.width);
+        const newY = this.borderCondition(q.pos.y, dy, this.height);
+        const newZ = this.borderCondition(q.pos.z, dz, this.depth);
 
-        let newX = q.pos.x + dx;
-        if (newX < 0) {
-            newX = -(q.pos.x + dx);
-            dx = -dx * loss;
-        } else if (newX > this.width) {
-            newX = this.width - (newX - this.width);
-            dx = -dx * loss;
-        }
+        q.pos.x = newX.pos;
+        q.pos.y = newY.pos;
+        q.pos.z = newZ.pos;
 
-        let newY = q.pos.y + dy;
-        if (newY < 0) {
-            newY = -(q.pos.y + dy);
-            dy = -dy * loss;
-        } else if (newY > this.height) {
-            newY = this.height - (newY - this.height);
-            dy = -dy * loss;
-        }
-
-        let newZ = q.pos.z + dz;
-        if (newZ < 0) {
-            newZ = -(q.pos.z + dz);
-            dz = -dz * loss;
-        } else if (newZ > this.depth) {
-            newZ = this.depth - (newZ - this.depth);
-            dz = -dz * loss;
-        }
-
-        q.pos.x = newX;
-        q.pos.y = newY;
-        q.pos.z = newZ;
-
-        q.velocity.x = dx;
-        q.velocity.y = dy;
-        q.velocity.z = dz;
+        q.velocity.x = newX.delta;
+        q.velocity.y = newY.delta;
+        q.velocity.z = newZ.delta;
 
         q.force.x += f.x;
         q.force.y += f.y;
