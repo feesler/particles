@@ -112,14 +112,19 @@ export class Field {
     }
 
     async force(particle) {
-        const MIN_DISTANCE = 0.00001;
+        const MIN_DISTANCE = 0.5;
+
+        if (particle.removed) {
+            return;
+        }
+
         const res = particle.force;
         res.x = 0;
         res.y = 0;
         res.z = 0;
 
         for (let nq of this.particles) {
-            if (nq == particle) {
+            if (nq == particle || nq.removed) {
                 continue;
             }
 
@@ -131,7 +136,11 @@ export class Field {
             let dz = dist.z * this.scaleFactor;
 
             let d2 = dx * dx + dy * dy + dz * dz;
-            let d = Math.max(Math.sqrt(d2), MIN_DISTANCE);
+            let d = Math.sqrt(d2);
+            if (d < MIN_DISTANCE / this.scaleFactor) {
+                this.collide(particle, nq);
+                continue;
+            }
 
             const cosA = (dx / d) * orientation.x;
             const cosB = (dy / d) * orientation.y;
@@ -158,6 +167,16 @@ export class Field {
             res.y += (gForce * cosB);
             res.z += (gForce * cosC);
         }
+    }
+
+    collide(particleA, particleB) {
+        particleA.m += particleB.m;
+
+        particleA.velocity.x = this.relVelocity(particleA.velocity.x + particleB.velocity.x);
+        particleA.velocity.y = this.relVelocity(particleA.velocity.y + particleB.velocity.y);
+        particleA.velocity.z = this.relVelocity(particleA.velocity.z + particleB.velocity.z);
+
+        particleB.removed = true;
     }
 
     relVelocity(velocity) {
@@ -214,6 +233,7 @@ export class Field {
 
     async calculate() {
         await Promise.all(this.particles.map((p) => this.force(p)));
+        this.particles = this.particles.filter((p) => !p.removed);
         await Promise.all(this.particles.map((p) => this.applyForce(p)));
     }
 }

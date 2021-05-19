@@ -10,6 +10,7 @@ export class Particle {
         this.charge = charge;
 
         this.color = { r: 0xFF, g: 0xFF, b: 0xFF };
+        this.removed = false;
     }
 
     speed() {

@@ -12,6 +12,7 @@ let SCALE_STEP = 0.01;
 const dt = 0.1;
 
 let scaleFactorElem = null;
+let countElem = null;
 
 async function update(field) {
 
@@ -20,12 +21,17 @@ async function update(field) {
     field.setScaleFactor(field.scaleFactor + SCALE_STEP);
 
     scaleFactorElem.textContent = field.scaleFactor;
+    countElem.textContent = field.particles.length;
 
     setTimeout(update.bind(null, field), animationDelay);
 }
 
 function initStars(f) {
-    for (let i = 0; i < 1000; i++) {
+    f.setScaleFactor(0.1);
+    f.setTimeStep(0.1);
+    SCALE_STEP = 0.001;
+
+    for (let i = 0; i < 1500; i++) {
         const chance = rand();
         const xPos = Math.round(rand() * f.width);
         const yPos = Math.round(rand() * f.height);
@@ -86,6 +92,9 @@ function initPlanetarySystem(f) {
 }
 
 function initParticles(f) {
+    f.setScaleFactor(1);
+    SCALE_STEP = 0;
+
     for (let i = 0; i < 1000; i++) {
         const chance = rand();
         const xPos = Math.round(rand() * f.width);
@@ -100,8 +109,9 @@ function initParticles(f) {
             particle = new Electron(xPos, yPos, zPos);
         }
 
-        particle.dx = rand() * 0.2 - 0.1;
-        particle.dy = rand() * 0.2 - 0.1;
+        particle.velocity.x = rand() * 0.2 - 0.1;
+        particle.velocity.y = rand() * 0.2 - 0.1;
+        particle.velocity.z = rand() * 0.2 - 0.1;
 
         f.add(particle);
     }
@@ -214,6 +224,7 @@ function init() {
     canvas.width = parseInt(canvas.elem.getAttribute('width'));
 
     scaleFactorElem = document.getElementById('scalefactor');
+    countElem = document.getElementById('particlescount');
 
     if (0) {
         //drawMaxVelocity(f);
@@ -221,8 +232,8 @@ function init() {
     } else {
         const f = new Field(canvas.elem, INITIAL_SCALE, dt);
         //initPlanetarySystem(f);
-        initStars(f);
-        //initParticles(f);
+        //initStars(f);
+        initParticles(f);
         //initVelocityTest(f);
         //initDepthTest(f);
 
