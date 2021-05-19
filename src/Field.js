@@ -113,7 +113,10 @@ export class Field {
 
     async force(particle) {
         const MIN_DISTANCE = 0.00001;
-        const res = new Vector(0, 0, 0);
+        const res = particle.force;
+        res.x = 0;
+        res.y = 0;
+        res.z = 0;
 
         for (let nq of this.particles) {
             if (nq == particle) {
@@ -155,8 +158,6 @@ export class Field {
             res.y += (gForce * cosB);
             res.z += (gForce * cosC);
         }
-
-        return res;
     }
 
     relVelocity(velocity) {
@@ -179,21 +180,21 @@ export class Field {
         return result;
     }
 
-    async applyForce(particle, force) {
+    async applyForce(particle) {
         const q = particle;
-        const f = force;
+        const f = particle.force;
         const dt = this.timeStep;
 
-        let ax = f.x / q.m;
-        let ay = f.y / q.m;
-        let az = f.z / q.m;
+        const ax = f.x / q.m;
+        const ay = f.y / q.m;
+        const az = f.z / q.m;
         if (Number.isNaN(ax) || Number.isNaN(ay) || Number.isNaN(az)) {
             throw new Errro('Invalid values');
         }
 
-        let dx = this.relVelocity(q.velocity.x + ax * dt);
-        let dy = this.relVelocity(q.velocity.y + ay * dt);
-        let dz = this.relVelocity(q.velocity.z + az * dt);
+        const dx = this.relVelocity(q.velocity.x + ax * dt);
+        const dy = this.relVelocity(q.velocity.y + ay * dt);
+        const dz = this.relVelocity(q.velocity.z + az * dt);
         if (Number.isNaN(dx) || Number.isNaN(dy) || Number.isNaN(dz)) {
             throw new Error('Invalid values');
         }
@@ -209,25 +210,10 @@ export class Field {
         q.velocity.x = newX.delta;
         q.velocity.y = newY.delta;
         q.velocity.z = newZ.delta;
-
-        q.force.x += f.x;
-        q.force.y += f.y;
-        q.force.z += f.z;
-    }
-
-    async applyForces(forces) {
-        const tasks = this.particles.map((particle, ind) =>
-            this.applyForce(particle, forces[ind])
-        );
-
-        await Promise.all(tasks);
     }
 
     async calculate() {
-        const tasks = this.particles.map(q => this.force(q));
-
-        const forces = await Promise.all(tasks);
-
-        await this.applyForces(forces);
+        await Promise.all(this.particles.map((p) => this.force(p)));
+        await Promise.all(this.particles.map((p) => this.applyForce(p)));
     }
 }
