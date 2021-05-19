@@ -6,8 +6,8 @@ const G = 6.67 * 0.00001;
 const MAX_SPEED = 200;
 const DEPTH = 500;
 
-const ALPHA = -Math.PI / 8;
-const BETA = Math.PI / 8;
+const ALPHA = -Math.PI / 8; /* Rotation angle aound x-axis */
+const BETA = Math.PI / 8; /* Rotation angle aound y-axis */
 
 export class Field {
     constructor(canvasElem, scaleFactor, timeStep) {
@@ -35,7 +35,7 @@ export class Field {
 
         this.particles = [];
         this.setScaleFactor(scaleFactor);
-        this.timeStep = timeStep;
+        this.setTimeStep(timeStep);
     }
 
     drawFrameByCircles() {
@@ -96,6 +96,10 @@ export class Field {
     setScaleFactor(scaleFactor) {
         this.scaleFactor = scaleFactor;
         this.maxVelocity = MAX_SPEED / scaleFactor;
+    }
+
+    setTimeStep(timeStep) {
+        this.timeStep = timeStep;
     }
 
     /* Add particle */
