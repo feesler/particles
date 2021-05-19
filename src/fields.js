@@ -8,7 +8,7 @@ import { Field } from './Field.js';
 const rand = Math.random;
 const animationDelay = 10;
 const INITIAL_SCALE = 0.1;
-const SCALE_STEP = 0.01;
+let SCALE_STEP = 0.01;
 const dt = 0.1;
 
 let scaleFactorElem = null;
@@ -45,6 +45,44 @@ function initStars(f) {
 
         f.add(particle);
     }
+}
+
+function initPlanetarySystem(f) {
+    f.setScaleFactor(5);
+    f.setTimeStep(0.1);
+    SCALE_STEP = 0;
+
+    f.add(new Star(f.width / 2, f.height / 2, f.depth / 2, 1.9 * 10000000));
+
+    let xPos, yPos, zPos;
+    let planet;
+    let mass;
+
+    const AU = 150;
+    const EM = 5.9;
+
+
+    planet = new Planet(f.width / 2 + AU * 0.38, f.height / 2, f.depth / 2, EM * 0.382);
+    planet.velocity.z = 0.4;
+    f.add(planet);
+
+    planet = new Planet(f.width / 2 + AU * 0.72, f.height / 2, f.depth / 2, EM * 0.815);
+    planet.velocity.z = 0.3;
+    f.add(planet);
+
+    planet = new Planet(f.width / 2 + AU, f.height / 2, f.depth / 2, EM);
+    planet.velocity.z = 0.5;
+    f.add(planet);
+
+    planet = new Planet(f.width / 2 + AU * 1.52, f.height / 2, f.depth / 2, EM * 0.107);
+    planet.velocity.z = 0.2;
+    f.add(planet);
+
+    planet = new Planet(f.width / 2 + AU * 5.2, f.height / 2, f.depth / 2, EM * 318);
+    planet.velocity.z = 0.1;
+    f.add(planet);
+
+
 }
 
 function initParticles(f) {
@@ -182,6 +220,7 @@ function init() {
         draw3D(canvas);
     } else {
         const f = new Field(canvas.elem, INITIAL_SCALE, dt);
+        //initPlanetarySystem(f);
         initStars(f);
         //initParticles(f);
         //initVelocityTest(f);
