@@ -30,7 +30,7 @@ async function update(field) {
 function initStars(f) {
     f.setScaleFactor(0.1);
     f.setTimeStep(0.1);
-    SCALE_STEP = 0.001;
+    SCALE_STEP = 0.01;
 
     for (let i = 0; i < 1500; i++) {
         const chance = rand();
@@ -161,16 +161,28 @@ function drawMaxVelocity(f) {
 }
 
 function draw3D(canvas) {
-    let ALPHA = -Math.PI / 8;
-    let BETA = Math.PI / 8;
-    const yF = (v) => v.y * Math.cos(ALPHA) + v.z * Math.sin(ALPHA);
-    const xF = (v) => v.x * Math.cos(BETA) + v.z * Math.sin(BETA);
+    let ALPHA = 0.1;//-Math.PI / 8;
+    let BETA = 0;//Math.PI / 8;
+    let GAMMA = 0;
 
+    /* Distance from camera to canvas */
+    const DIST = 500;
+    const Z_SHIFT = 100;
+    const HH = canvas.height / 2;
+    const HW = canvas.width / 2;
+
+    const yF = (v) => HH - DIST * (HH - v.y) / (DIST + v.z + Z_SHIFT);
+    const xF = (v) => HW - DIST * (HW - v.x) / (DIST + v.z + Z_SHIFT);
+
+    /*
+        const yF = (v) => v.y * Math.cos(ALPHA) + v.z * Math.sin(ALPHA);
+        const xF = (v) => canvas.width / 2 + v.x * Math.cos(BETA) + v.z * Math.sin(BETA);
+    */
     const CUBE_X = 100;
     const CUBE_Y = 100;
-    const CUBE_Z = 0;
+    const CUBE_Z = 100;
     const CUBE_WIDTH = 200;
-    const CUBE_HEIGHT = 100;
+    const CUBE_HEIGHT = 200;
     const CUBE_DEPTH = 200;
 
     const vertices = [
@@ -184,26 +196,51 @@ function draw3D(canvas) {
         new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y + CUBE_HEIGHT, CUBE_Z + CUBE_DEPTH),
     ];
 
+    const cubeCenter = new Vector(
+        CUBE_X + CUBE_WIDTH / 2,
+        CUBE_Y + CUBE_HEIGHT / 2,
+        CUBE_Z + CUBE_DEPTH / 2,
+    );
+
     const draw3dFrame = () => {
         const frame = canvas.createFrame();
+
+        vertices.sort((a, b) => b.z - a.z);
+        const maxZ = vertices[0].z;
+
         for (const vert of vertices) {
             let x = xF(vert);
             let y = yF(vert);
 
-            canvas.putPixel(frame, x, y, 255, 255, 255, (vert.z > CUBE_Z) ? 128 : 255);
+
+            canvas.putPixel(frame, x, y, 255, 255, 255, 255 * (vert.z / maxZ));
         }
 
         canvas.drawFrame(frame);
     };
 
+    const rotateCube = (alpha, beta, gamma) => {
+        for (const vert of vertices) {
+            vert.substract(cubeCenter);
+
+            vert.rotateAroundX(alpha);
+            vert.rotateAroundY(beta);
+            vert.rotateAroundZ(gamma);
+
+            vert.add(cubeCenter);
+        }
+    };
+
     const update3dFrame = () => {
-        ALPHA += 0.1;
+        //ALPHA += 0.1;
+        BETA += 0.1;
+        rotateCube(0, 0, 0.1);
         draw3dFrame();
         setTimeout(() => update3dFrame(), 100);
     };
 
     draw3dFrame();
-    //setTimeout(() => update3dFrame(), 100);
+    setTimeout(() => update3dFrame(), 100);
 }
 
 function init() {
@@ -212,14 +249,14 @@ function init() {
     scaleFactorElem = document.getElementById('scalefactor');
     countElem = document.getElementById('particlescount');
 
-    if (0) {
+    if (1) {
         //drawMaxVelocity(f);
         draw3D(canvas);
     } else {
         const f = new Field(canvas, INITIAL_SCALE, dt);
         //initPlanetarySystem(f);
-        //initStars(f);
-        initParticles(f);
+        initStars(f);
+        //initParticles(f);
         //initVelocityTest(f);
         //initDepthTest(f);
 

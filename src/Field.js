@@ -21,13 +21,12 @@ export class Field {
         this.xShift = 0;
         this.yShift = 0;
 
-        const spaceTest = new Vector(0, 0, this.depth);
-        const x = this.xF(spaceTest);
-        const y = this.yF(spaceTest);
-        this.yShift = Math.ceil(Math.abs(y));
-
-        this.width = this.canvas.width - Math.ceil(Math.abs(x));
-        this.height = this.canvas.height - this.yShift;
+        this.width = this.canvas.width;
+        this.height = this.canvas.height;
+        this.HW = this.width / 2;
+        this.HH = this.height / 2;
+        this.DIST = 100;
+        this.Z_SHIFT = 0;
 
         this.particles = [];
         this.setScaleFactor(scaleFactor);
@@ -57,12 +56,12 @@ export class Field {
         }
     }
 
-    xF(v) {
-        return this.xShift + v.x * Math.cos(BETA) + v.z * Math.sin(BETA);
+    yF(v) {
+        return this.HH - this.DIST * (this.HH - v.y) / (this.DIST + v.z + this.Z_SHIFT);
     }
 
-    yF(v) {
-        return this.yShift + v.y * Math.cos(ALPHA) + v.z * Math.sin(ALPHA);
+    xF(v) {
+        return this.HW - this.DIST * (this.HW - v.x) / (this.DIST + v.z + this.Z_SHIFT);
     }
 
     drawFrameByPixels() {
@@ -107,7 +106,7 @@ export class Field {
     }
 
     async force(particle) {
-        const MIN_DISTANCE = 0.5;
+        const MIN_DISTANCE = 0.001;
 
         if (particle.removed) {
             return;
