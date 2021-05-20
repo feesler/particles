@@ -1,3 +1,4 @@
+import { Canvas } from './Canvas.js';
 import { Vector } from './Vector.js';
 import { Proton } from './Proton.js';
 import { Electron } from './Electron.js';
@@ -184,7 +185,7 @@ function draw3D(canvas) {
     ];
 
     const draw3dFrame = () => {
-        const frame = canvas.context2d.createImageData(canvas.width, canvas.height);
+        const frame = canvas.createFrame();
         for (const vert of vertices) {
             let x = xF(vert);
             let y = yF(vert);
@@ -192,7 +193,7 @@ function draw3D(canvas) {
             canvas.putPixel(frame, x, y, 255, 255, 255, (vert.z > CUBE_Z) ? 128 : 255);
         }
 
-        canvas.context2d.putImageData(frame, 0, 0);
+        canvas.drawFrame(frame);
     };
 
     const update3dFrame = () => {
@@ -206,22 +207,7 @@ function draw3D(canvas) {
 }
 
 function init() {
-    const canvas = {
-        elem: document.getElementById('cnv'),
-        putPixel: function (frame, x, y, r, g, b, a) {
-            const rx = Math.round(x);
-            const ry = Math.round(y);
-            let ind = ry * (this.width * 4) + rx * 4;
-
-            frame.data[ind] = r;
-            frame.data[ind + 1] = g;
-            frame.data[ind + 2] = b;
-            frame.data[ind + 3] = a;
-        },
-    };
-    canvas.context2d = canvas.elem.getContext('2d');
-    canvas.height = parseInt(canvas.elem.getAttribute('height'));
-    canvas.width = parseInt(canvas.elem.getAttribute('width'));
+    const canvas = new Canvas(document.getElementById('cnv'));
 
     scaleFactorElem = document.getElementById('scalefactor');
     countElem = document.getElementById('particlescount');
@@ -230,7 +216,7 @@ function init() {
         //drawMaxVelocity(f);
         draw3D(canvas);
     } else {
-        const f = new Field(canvas.elem, INITIAL_SCALE, dt);
+        const f = new Field(canvas, INITIAL_SCALE, dt);
         //initPlanetarySystem(f);
         //initStars(f);
         initParticles(f);

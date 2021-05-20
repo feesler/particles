@@ -10,18 +10,14 @@ const ALPHA = -Math.PI / 8; /* Rotation angle aound x-axis */
 const BETA = Math.PI / 8; /* Rotation angle aound y-axis */
 
 export class Field {
-    constructor(canvasElem, scaleFactor, timeStep) {
-        if (!canvasElem) {
+    constructor(canvas, scaleFactor, timeStep) {
+        if (!canvas) {
             throw new Error('Invalid canvas');
         }
 
-        this.canvas = canvasElem;
-        this.context2d = this.canvas.getContext('2d');
-        this.frameWidth = parseInt(this.canvas.getAttribute('width'));
-        this.frameHeight = parseInt(this.canvas.getAttribute('height'));
+        this.canvas = canvas;
 
         this.depth = DEPTH;
-
         this.xShift = 0;
         this.yShift = 0;
 
@@ -30,8 +26,8 @@ export class Field {
         const y = this.yF(spaceTest);
         this.yShift = Math.ceil(Math.abs(y));
 
-        this.width = this.frameWidth - Math.ceil(Math.abs(x));
-        this.height = this.frameHeight - this.yShift;
+        this.width = this.canvas.width - Math.ceil(Math.abs(x));
+        this.height = this.canvas.height - this.yShift;
 
         this.particles = [];
         this.setScaleFactor(scaleFactor);
@@ -39,27 +35,16 @@ export class Field {
     }
 
     drawFrameByCircles() {
-        this.context2d.clearRect(0, 0, this.frameWidth, this.frameHeight);
-        this.context2d.fillStyle = 'white';
-        this.context2d.strokeStyle = 'white';
-        this.context2d.lineWidth = 0.5;
+        this.canvas.context2d.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.canvas.context2d.fillStyle = 'white';
+        this.canvas.context2d.strokeStyle = 'white';
+        this.canvas.context2d.lineWidth = 0.5;
 
         for (const particle of this.particles) {
-            this.context2d.beginPath();
-            this.context2d.arc(particle.pos.x, particle.pos.y, 0.5, 0, Math.PI * 2, true);
-            this.context2d.stroke();
+            this.canvas.context2d.beginPath();
+            this.canvas.context2d.arc(particle.pos.x, particle.pos.y, 0.5, 0, Math.PI * 2, true);
+            this.canvas.context2d.stroke();
         }
-    }
-
-    putPixel(frame, x, y, r, g, b, a) {
-        const rx = Math.round(x);
-        const ry = Math.round(y);
-        let ind = ry * (this.frameWidth * 4) + rx * 4;
-
-        frame.data[ind] = r;
-        frame.data[ind + 1] = g;
-        frame.data[ind + 2] = b;
-        frame.data[ind + 3] = a;
     }
 
     xF(v) {
@@ -71,12 +56,12 @@ export class Field {
     }
 
     drawFrameByPixels() {
-        const frame = this.context2d.createImageData(this.frameWidth, this.frameHeight);
+        const frame = this.canvas.createFrame();
 
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
         for (const particle of this.particles) {
-            this.putPixel(frame,
+            this.canvas.putPixel(frame,
                 this.xF(particle.pos),
                 this.yF(particle.pos),
                 particle.color.r,
@@ -86,7 +71,7 @@ export class Field {
             );
         }
 
-        this.context2d.putImageData(frame, 0, 0);
+        this.canvas.drawFrame(frame);
     }
 
     drawFrame() {
