@@ -38,11 +38,21 @@ export class Field {
         this.canvas.context2d.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.canvas.context2d.fillStyle = 'white';
         this.canvas.context2d.strokeStyle = 'white';
-        this.canvas.context2d.lineWidth = 0.5;
+        this.canvas.context2d.lineWidth = 1;
 
         for (const particle of this.particles) {
+            this.canvas.context2d.fillStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b})`;
+            this.canvas.context2d.strokeStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b})`;
+
             this.canvas.context2d.beginPath();
-            this.canvas.context2d.arc(particle.pos.x, particle.pos.y, 0.5, 0, Math.PI * 2, true);
+            this.canvas.context2d.arc(
+                this.xF(particle.pos),
+                this.yF(particle.pos),
+                0.5,
+                0,
+                Math.PI * 2,
+                true,
+            );
             this.canvas.context2d.stroke();
         }
     }
