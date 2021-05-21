@@ -5,6 +5,7 @@ import { Electron } from './particles/Electron.js';
 import { Star } from './particles/Star.js';
 import { Planet } from './particles/Planet.js';
 import { Field } from './Field.js';
+import { Box } from './Box.js';
 
 const rand = Math.random;
 const animationDelay = 10;
@@ -223,7 +224,7 @@ function draw3D(canvas) {
     const CUBE_HEIGHT = 100;
     const CUBE_DEPTH = 100;
 
-    const cube = createCube(CUBE_WIDTH, CUBE_HEIGHT, CUBE_DEPTH);
+    const cube = new Box(CUBE_WIDTH, CUBE_HEIGHT, CUBE_DEPTH);
 
     const cubeCenter = new Vector(
         CUBE_X + CUBE_WIDTH / 2,
@@ -234,48 +235,15 @@ function draw3D(canvas) {
     const draw3dFrame = () => {
         const frame = canvas.createFrame();
 
-        let maxZ = 0;
-        for (const vert of cube.vertices) {
-            const v = vert.copy();
-            v.add(cubeCenter);
-            maxZ = Math.max(maxZ, v.z);
-        }
-
-        for (const edge of cube.edges) {
-            const fromVert = cube.vertices[edge[0]].copy();
-            fromVert.add(cubeCenter);
-
-            const toVert = cube.vertices[edge[1]].copy();
-            toVert.add(cubeCenter);
-
-            const midZ = (fromVert.z + toVert.z) / 2;
-            const rC = Math.round(255 * (1 - (midZ / maxZ)));
-
-            const x0 = xF(fromVert);
-            const y0 = yF(fromVert);
-            const x1 = xF(toVert);
-            const y1 = yF(toVert);
-
-            frame.drawLine(x0, y0, x1, y1, rC, rC, rC, 255);
-            frame.putPixel(x0, y0, 0, 255, 0, 255);
-            frame.putPixel(x1, y1, 0, 255, 0, 255);
-        }
+        cube.draw(frame, cubeCenter, xF, yF);
 
         canvas.drawFrame(frame);
-    };
-
-    const rotateCube = (alpha, beta, gamma) => {
-        for (const vert of cube.vertices) {
-            vert.rotateAroundX(alpha);
-            vert.rotateAroundY(beta);
-            vert.rotateAroundZ(gamma);
-        }
     };
 
     const update3dFrame = () => {
         //ALPHA += 0.1;
         BETA += 0.1;
-        rotateCube(0, 0.1, 0);
+        cube.rotate(0, 0.1, 0);
         draw3dFrame();
         setTimeout(() => update3dFrame(), 100);
     };
