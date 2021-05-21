@@ -1,9 +1,9 @@
 import { Canvas } from './Canvas.js';
 import { Vector } from './Vector.js';
-import { Proton } from './Proton.js';
-import { Electron } from './Electron.js';
-import { Star } from './Star.js';
-import { Planet } from './Planet.js';
+import { Proton } from './particles/Proton.js';
+import { Electron } from './particles/Electron.js';
+import { Star } from './particles/Star.js';
+import { Planet } from './particles/Planet.js';
 import { Field } from './Field.js';
 
 const rand = Math.random;

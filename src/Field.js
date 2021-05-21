@@ -1,4 +1,4 @@
-import { Particle } from './Particle.js';
+import { Particle } from './particles/Particle.js';
 import { Vector } from './Vector.js';
 
 const K = 8.9 * 10;
