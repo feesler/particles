@@ -14,8 +14,16 @@ const dt = 0.1;
 
 let scaleFactorElem = null;
 let countElem = null;
+let xRotationText = null;
+let yRotationText = null;
+let zRotationText = null;
+let toggleRunBtn = null;
+let paused = true;
+const autoStart = false;
+let rotation = { alpha: 0, beta: 0, gamma: 0 };
+let field = null;
 
-async function update(field) {
+async function update() {
 
     await field.calculate();
     field.drawFrame();
@@ -24,7 +32,9 @@ async function update(field) {
     scaleFactorElem.textContent = field.scaleFactor;
     countElem.textContent = field.particles.length;
 
-    setTimeout(update.bind(null, field), animationDelay);
+    if (!paused) {
+        setTimeout(update.bind(null, field), animationDelay);
+    }
 }
 
 function initStars(f) {
@@ -243,26 +253,134 @@ function draw3D(canvas) {
     setTimeout(() => update3dFrame(), 100);
 }
 
+function render() {
+    toggleRunBtn.textContent = (paused) ? 'Run' : 'Pause';
+
+    xRotationText.textContent = rotation.alpha.toFixed(2);
+    yRotationText.textContent = rotation.beta.toFixed(2);
+    zRotationText.textContent = rotation.gamma.toFixed(2);
+}
+
+function pause() {
+    if (paused) {
+        return;
+    }
+
+    paused = true;
+    render();
+}
+
+function run() {
+    if (!paused) {
+        return;
+    }
+
+    paused = false;
+    render();
+    update();
+}
+
+function onXRotate(e) {
+    const pausedBefore = paused;
+    pause();
+
+    const val = parseFloat(e.target.value);
+    const delta = val - rotation.alpha;
+    rotation.alpha = val;
+
+    field.rotate(delta, 0, 0);
+    field.drawFrame();
+
+    if (pausedBefore) {
+        render();
+    } else {
+        run();
+    }
+}
+
+function onYRotate(e) {
+    const pausedBefore = paused;
+    pause();
+
+    const val = parseFloat(e.target.value);
+    const delta = val - rotation.beta;
+    rotation.beta = val;
+
+    field.rotate(0, delta, 0);
+    field.drawFrame();
+
+    if (pausedBefore) {
+        render();
+    } else {
+        run();
+    }
+}
+
+function onZRotate(e) {
+    const pausedBefore = paused;
+    pause();
+
+    const val = parseFloat(e.target.value);
+    const delta = val - rotation.gamma;
+    rotation.gamma = val;
+
+    field.rotate(0, 0, delta);
+    field.drawFrame();
+
+    if (pausedBefore) {
+        render();
+    } else {
+        run();
+    }
+}
+
+function onToggleRun() {
+    if (paused) {
+        run();
+    } else {
+        pause();
+    }
+}
+
 function init() {
     const canvas = new Canvas(document.getElementById('cnv'));
 
     scaleFactorElem = document.getElementById('scalefactor');
     countElem = document.getElementById('particlescount');
 
-    if (1) {
+    const xRotationInp = document.getElementById('xRotationInp');
+    xRotationInp.addEventListener('input', onXRotate);
+    xRotationText = document.getElementById('xrotate');
+
+    const yRotationInp = document.getElementById('yRotationInp');
+    yRotationInp.addEventListener('input', onYRotate);
+    yRotationText = document.getElementById('yrotate');
+
+    const zRotationInp = document.getElementById('zRotationInp');
+    zRotationInp.addEventListener('input', onZRotate);
+    zRotationText = document.getElementById('zrotate');
+
+    toggleRunBtn = document.getElementById('toggleRunBtn');
+    toggleRunBtn.addEventListener('click', onToggleRun);
+
+    if (0) {
         //drawMaxVelocity(f);
         draw3D(canvas);
     } else {
-        const f = new Field(canvas, INITIAL_SCALE, dt);
-        //initPlanetarySystem(f);
-        initStars(f);
-        //initParticles(f);
-        //initVelocityTest(f);
-        //initDepthTest(f);
+        field = new Field(canvas, INITIAL_SCALE, dt);
+        //initPlanetarySystem(field);
+        initStars(field);
+        //initParticles(field);
+        //initVelocityTest(field);
+        //initDepthTest(field);
 
-        f.drawFrame();
+        field.drawFrame();
 
-        setTimeout(update.bind(null, f), animationDelay);
+        render();
+
+        if (autoStart) {
+            run();
+        }
     }
 
 }

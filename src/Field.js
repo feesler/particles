@@ -25,6 +25,7 @@ export class Field {
         this.height = this.canvas.height;
         this.HW = this.width / 2;
         this.HH = this.height / 2;
+        this.HD = this.depth / 2;
         this.DIST = 100;
         this.Z_SHIFT = 0;
 
@@ -63,6 +64,26 @@ export class Field {
     xF(v) {
         return this.HW - this.DIST * (this.HW - v.x) / (this.DIST + v.z + this.Z_SHIFT);
     }
+
+    rotateVector(vector, alpha, beta, gamma, center) {
+        vector.substract(center);
+
+        vector.rotateAroundX(alpha);
+        vector.rotateAroundY(beta);
+        vector.rotateAroundZ(gamma);
+
+        vector.add(center);
+    }
+
+    rotate(alpha, beta, gamma) {
+        const center = new Vector(this.HW, this.HH, this.HD);
+
+        for (const particle of this.particles) {
+            this.rotateVector(particle.pos, alpha, beta, gamma, center);
+            this.rotateVector(particle.velocity, alpha, beta, gamma, center);
+            this.rotateVector(particle.force, alpha, beta, gamma, center);
+        }
+    };
 
     drawFrameByPixels() {
         const frame = this.canvas.createFrame();
