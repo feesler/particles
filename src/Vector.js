@@ -26,17 +26,38 @@ export class Vector {
     }
 
     rotateAroundX(angle) {
-        this.y = this.y * Math.cos(angle) - this.z * Math.sin(angle);
-        this.z = this.y * Math.sin(angle) + this.z * Math.cos(angle);
+        if (angle === 0) {
+            return;
+        }
+
+        const Y = this.y;
+        const Z = this.z;
+
+        this.y = Y * Math.cos(angle) - Z * Math.sin(angle);
+        this.z = Y * Math.sin(angle) + Z * Math.cos(angle);
     }
 
     rotateAroundY(angle) {
-        this.x = this.x * Math.cos(angle) + this.z * Math.sin(angle);
-        this.z = -this.x * Math.sin(angle) + this.z * Math.cos(angle);
+        if (angle === 0) {
+            return;
+        }
+
+        const X = this.x;
+        const Z = this.z;
+
+        this.x = X * Math.cos(angle) + Z * Math.sin(angle);
+        this.z = -X * Math.sin(angle) + Z * Math.cos(angle);
     }
 
     rotateAroundZ(angle) {
-        this.x = this.x * Math.cos(angle) - this.y * Math.sin(angle);
-        this.y = this.x * Math.sin(angle) + this.y * Math.cos(angle);
+        if (angle === 0) {
+            return;
+        }
+
+        const X = this.x;
+        const Y = this.y;
+
+        this.x = X * Math.cos(angle) - Y * Math.sin(angle);
+        this.y = X * Math.sin(angle) + Y * Math.cos(angle);
     }
 }
