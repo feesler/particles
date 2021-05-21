@@ -70,7 +70,7 @@ export class Field {
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
         for (const particle of this.particles) {
-            this.canvas.putPixel(frame,
+            frame.putPixel(
                 this.xF(particle.pos),
                 this.yF(particle.pos),
                 particle.color.r,

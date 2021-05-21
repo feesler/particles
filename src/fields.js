@@ -217,7 +217,7 @@ function draw3D(canvas) {
 
             const rC = Math.round(255 * (v.z / maxZ));
 
-            canvas.putPixel(frame, xF(v), yF(v), rC, rC, rC, 255);
+            frame.putPixel(xF(v), yF(v), rC, rC, rC, 255);
         }
 
         canvas.drawFrame(frame);
