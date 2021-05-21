@@ -160,24 +160,36 @@ function drawMaxVelocity(f) {
     f.context2d.putImageData(frame, 0, 0);
 }
 
+function createCube(width, height, depth) {
+    const hw = width / 2;
+    const hh = height / 2;
+    const hd = depth / 2;
+
+    return [
+        new Vector(-hw, -hh, -hd),
+        new Vector(hw, -hh, -hd),
+        new Vector(-hw, hh, -hd),
+        new Vector(-hw, -hh, hd),
+        new Vector(-hw, hh, hd),
+        new Vector(hw, -hh, hd),
+        new Vector(hw, hh, -hd),
+        new Vector(hw, hh, hd),
+    ];
+}
+
 function draw3D(canvas) {
     let ALPHA = 0.1;//-Math.PI / 8;
     let BETA = 0;//Math.PI / 8;
     let GAMMA = 0;
 
-    /* Distance from camera to canvas */
-    const DIST = 500;
-    const Z_SHIFT = 100;
+    const DIST = 1000;       /* Distance from camera to canvas */
+    const Z_SHIFT = 2000;    /* Distance from canvas to z=0 plane */
     const HH = canvas.height / 2;
     const HW = canvas.width / 2;
 
     const yF = (v) => HH - DIST * (HH - v.y) / (DIST + v.z + Z_SHIFT);
     const xF = (v) => HW - DIST * (HW - v.x) / (DIST + v.z + Z_SHIFT);
 
-    /*
-        const yF = (v) => v.y * Math.cos(ALPHA) + v.z * Math.sin(ALPHA);
-        const xF = (v) => canvas.width / 2 + v.x * Math.cos(BETA) + v.z * Math.sin(BETA);
-    */
     const CUBE_X = 100;
     const CUBE_Y = 100;
     const CUBE_Z = 100;
@@ -185,16 +197,7 @@ function draw3D(canvas) {
     const CUBE_HEIGHT = 200;
     const CUBE_DEPTH = 200;
 
-    const vertices = [
-        new Vector(CUBE_X, CUBE_Y, CUBE_Z),
-        new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y, CUBE_Z),
-        new Vector(CUBE_X, CUBE_Y + CUBE_HEIGHT, CUBE_Z),
-        new Vector(CUBE_X, CUBE_Y, CUBE_Z + CUBE_DEPTH),
-        new Vector(CUBE_X, CUBE_Y + CUBE_HEIGHT, CUBE_Z + CUBE_DEPTH),
-        new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y, CUBE_Z + CUBE_DEPTH),
-        new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y + CUBE_HEIGHT, CUBE_Z),
-        new Vector(CUBE_X + CUBE_WIDTH, CUBE_Y + CUBE_HEIGHT, CUBE_Z + CUBE_DEPTH),
-    ];
+    const cube = createCube(CUBE_WIDTH, CUBE_HEIGHT, CUBE_DEPTH);
 
     const cubeCenter = new Vector(
         CUBE_X + CUBE_WIDTH / 2,
@@ -205,36 +208,33 @@ function draw3D(canvas) {
     const draw3dFrame = () => {
         const frame = canvas.createFrame();
 
-        vertices.sort((a, b) => b.z - a.z);
-        const maxZ = vertices[0].z;
+        cube.sort((a, b) => b.z - a.z);
+        const maxZ = cube[0].z;
 
-        for (const vert of vertices) {
-            let x = xF(vert);
-            let y = yF(vert);
+        for (const cubeVertex of cube) {
+            const v = cubeVertex.copy();
+            v.add(cubeCenter);
 
+            const rC = Math.round(255 * (v.z / maxZ));
 
-            canvas.putPixel(frame, x, y, 255, 255, 255, 255 * (vert.z / maxZ));
+            canvas.putPixel(frame, xF(v), yF(v), rC, rC, rC, 255);
         }
 
         canvas.drawFrame(frame);
     };
 
     const rotateCube = (alpha, beta, gamma) => {
-        for (const vert of vertices) {
-            vert.substract(cubeCenter);
-
+        for (const vert of cube) {
             vert.rotateAroundX(alpha);
             vert.rotateAroundY(beta);
             vert.rotateAroundZ(gamma);
-
-            vert.add(cubeCenter);
         }
     };
 
     const update3dFrame = () => {
         //ALPHA += 0.1;
         BETA += 0.1;
-        rotateCube(0, 0, 0.1);
+        rotateCube(0.1, 0.1, 0.1);
         draw3dFrame();
         setTimeout(() => update3dFrame(), 100);
     };
