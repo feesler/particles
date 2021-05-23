@@ -362,7 +362,7 @@ function init() {
     toggleRunBtn = document.getElementById('toggleRunBtn');
     toggleRunBtn.addEventListener('click', onToggleRun);
 
-    if (1) {
+    if (0) {
         //drawMaxVelocity(f);
         draw3D(canvas);
     } else {

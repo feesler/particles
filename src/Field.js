@@ -1,3 +1,4 @@
+import { Box } from './Box.js';
 import { Particle } from './particles/Particle.js';
 import { Vector } from './Vector.js';
 
@@ -28,6 +29,9 @@ export class Field {
         this.HD = this.depth / 2;
         this.DIST = 100;
         this.Z_SHIFT = 0;
+
+        this.box = new Box(this.width, this.height, this.depth);
+        this.center = new Vector(this.HW, this.HH, this.HD);
 
         this.particles = [];
         this.setScaleFactor(scaleFactor);
@@ -76,17 +80,19 @@ export class Field {
     }
 
     rotate(alpha, beta, gamma) {
-        const center = new Vector(this.HW, this.HH, this.HD);
+        this.box.rotate(alpha, beta, gamma);
 
         for (const particle of this.particles) {
-            this.rotateVector(particle.pos, alpha, beta, gamma, center);
-            this.rotateVector(particle.velocity, alpha, beta, gamma, center);
-            this.rotateVector(particle.force, alpha, beta, gamma, center);
+            this.rotateVector(particle.pos, alpha, beta, gamma, this.center);
+            this.rotateVector(particle.velocity, alpha, beta, gamma, this.center);
+            this.rotateVector(particle.force, alpha, beta, gamma, this.center);
         }
     };
 
     drawFrameByPixels() {
         const frame = this.canvas.createFrame();
+
+        this.box.draw(frame, this.center, (v) => this.xF(v), (v) => this.yF(v));
 
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
