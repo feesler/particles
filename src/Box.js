@@ -41,6 +41,13 @@ export class Box {
         }
     }
 
+    getIntersectPoint(A, B) {
+        const t = -A.z / (B.z - A.z);
+        const x = t * (B.x - A.x) + A.x;
+        const y = t * (B.y - A.y) + A.y;
+        return new Vector(x, y, 0);
+    }
+
     draw(frame, shift, xF, yF) {
         let maxZ = 0;
 
@@ -51,11 +58,23 @@ export class Box {
         }
 
         for (const edge of this.edges) {
-            const fromVert = this.vertices[edge[0]].copy();
+            let fromVert = this.vertices[edge[0]].copy();
             fromVert.add(shift);
 
-            const toVert = this.vertices[edge[1]].copy();
+            let toVert = this.vertices[edge[1]].copy();
             toVert.add(shift);
+
+            if (fromVert.z < 0 && toVert.z < 0) {
+                continue;
+            }
+            if (fromVert.z < 0 || toVert.z < 0) {
+                const C = this.getIntersectPoint(fromVert, toVert);
+                if (fromVert.z < 0) {
+                    fromVert = C;
+                } else {
+                    toVert = C;
+                }
+            }
 
             const midZ = (fromVert.z + toVert.z) / 2;
             const rC = Math.round(255 * (1 - (midZ / maxZ)));
