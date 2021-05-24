@@ -66,7 +66,7 @@ function initStars(f) {
 }
 
 function initPlanetarySystem(f) {
-    f.setScaleFactor(5);
+    f.setScaleFactor(2);
     f.setTimeStep(0.1);
     SCALE_STEP = 0;
 
@@ -78,26 +78,27 @@ function initPlanetarySystem(f) {
 
     const AU = 150;
     const EM = 5.9;
+    const V_SCALE = 1;
 
 
     planet = new Planet(f.width / 2 + AU * 0.38, f.height / 2, f.depth / 2, EM * 0.382);
-    planet.velocity.z = 0.4;
+    planet.velocity.y = 0.4 * V_SCALE;
     f.add(planet);
 
     planet = new Planet(f.width / 2 + AU * 0.72, f.height / 2, f.depth / 2, EM * 0.815);
-    planet.velocity.z = 0.3;
+    planet.velocity.y = 0.3 * V_SCALE;
     f.add(planet);
 
     planet = new Planet(f.width / 2 + AU, f.height / 2, f.depth / 2, EM);
-    planet.velocity.z = 0.5;
+    planet.velocity.y = 0.3 * V_SCALE;
     f.add(planet);
 
     planet = new Planet(f.width / 2 + AU * 1.52, f.height / 2, f.depth / 2, EM * 0.107);
-    planet.velocity.z = 0.2;
+    planet.velocity.y = 0.2 * V_SCALE;
     f.add(planet);
 
     planet = new Planet(f.width / 2 + AU * 5.2, f.height / 2, f.depth / 2, EM * 318);
-    planet.velocity.z = 0.1;
+    planet.velocity.y = 0.1 * V_SCALE;
     f.add(planet);
 
 
@@ -130,12 +131,15 @@ function initParticles(f) {
 }
 
 function initVelocityTest(f) {
-    f.add(new Star(f.width - 300, f.height / 2, 300, 10000000000));
+    f.setScaleFactor(5);
+    SCALE_STEP = 0;
 
-    f.add(new Star(10, 10, 10, 1000));
-    f.add(new Star(10, 100, 100, 10000));
-    f.add(new Star(10, 200, 200, 100000));
-    f.add(new Star(10, 300, 300, 1000000));
+    f.add(new Star(f.width / 2, f.height / 2, f.depth / 2, 10000000000));
+
+    f.add(new Star(10, 10, f.depth / 2, 1000));
+    f.add(new Star(10, 100, f.depth / 2, 10000));
+    f.add(new Star(10, 200, f.depth / 2, 100000));
+    f.add(new Star(10, 300, f.depth / 2, 1000000));
 }
 
 function initDepthTest(f) {

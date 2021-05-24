@@ -27,7 +27,7 @@ export class Field {
         this.HW = this.width / 2;
         this.HH = this.height / 2;
         this.HD = this.depth / 2;
-        this.DIST = 100;
+        this.DIST = 1000;
         this.Z_SHIFT = 0;
 
         this.box = new Box(this.width, this.height, this.depth);
@@ -149,25 +149,16 @@ export class Field {
                 continue;
             }
 
-            const dist = particle.distanceTo(nq);
+            const d = particle.distanceTo(nq);
             const orientation = particle.orientationTo(nq);
+            const distLength = d.getLength() * this.scaleFactor;
+            d.divideByScalar(distLength);
+            d.multiply(orientation);
 
-            let dx = dist.x * this.scaleFactor;
-            let dy = dist.y * this.scaleFactor;
-            let dz = dist.z * this.scaleFactor;
-
-            let d2 = dx * dx + dy * dy + dz * dz;
-            let d = Math.sqrt(d2);
-            if (d < MIN_DISTANCE / this.scaleFactor) {
+            const d2 = distLength * distLength;
+            if (distLength < MIN_DISTANCE / this.scaleFactor) {
                 this.collide(particle, nq);
                 continue;
-            }
-
-            const cosA = (dx / d) * orientation.x;
-            const cosB = (dy / d) * orientation.y;
-            const cosC = (dz / d) * orientation.z;
-            if (isNaN(cosA) || isNaN(cosB) || isNaN(cosC)) {
-                throw new Error('Invalid value');
             }
 
             let forceSign = 1;
@@ -176,17 +167,15 @@ export class Field {
                 forceSign = -1;
             }
 
-            let emForce = 0;
-            emForce = K * forceSign * Math.abs(particle.charge * nq.charge) / d2;
-            res.x += (emForce * cosA);
-            res.y += (emForce * cosB);
-            res.z += (emForce * cosC);
+            const emForce = K * forceSign * Math.abs(particle.charge * nq.charge) / d2;
+            res.x += emForce * d.x;
+            res.y += emForce * d.y;
+            res.z += emForce * d.z;
 
-            let gForce = 0;
-            gForce = G * Math.abs(particle.m * nq.m) / d2;
-            res.x += (gForce * cosA);
-            res.y += (gForce * cosB);
-            res.z += (gForce * cosC);
+            const gForce = G * Math.abs(particle.m * nq.m) / d2;
+            res.x += gForce * d.x;
+            res.y += gForce * d.y;
+            res.z += gForce * d.z;
         }
     }
 
@@ -225,23 +214,33 @@ export class Field {
         const f = particle.force;
         const dt = this.timeStep;
 
-        const ax = f.x / q.m;
-        const ay = f.y / q.m;
-        const az = f.z / q.m;
-        if (Number.isNaN(ax) || Number.isNaN(ay) || Number.isNaN(az)) {
-            throw new Errro('Invalid values');
-        }
+        const a = f.copy();
+        const v = q.velocity.copy();
 
-        const dx = this.relVelocity(q.velocity.x + ax * dt);
-        const dy = this.relVelocity(q.velocity.y + ay * dt);
-        const dz = this.relVelocity(q.velocity.z + az * dt);
-        if (Number.isNaN(dx) || Number.isNaN(dy) || Number.isNaN(dz)) {
+        a.divideByScalar(q.m);
+        a.multiplyByScalar(dt);
+
+        if (Number.isNaN(a.x) || Number.isNaN(a.y) || Number.isNaN(a.z)) {
             throw new Error('Invalid values');
         }
 
-        const newX = this.borderCondition(q.pos.x, dx, this.width);
-        const newY = this.borderCondition(q.pos.y, dy, this.height);
-        const newZ = this.borderCondition(q.pos.z, dz, this.depth);
+        v.add(a);
+
+        const totalVelocity = v.getLength();
+        const relativeVelocity = this.relVelocity(totalVelocity);
+
+        if (relativeVelocity < totalVelocity) {
+            v.divideByScalar(totalVelocity);
+            v.multiplyByScalar(relativeVelocity);
+        }
+
+        if (Number.isNaN(v.x) || Number.isNaN(v.y) || Number.isNaN(v.z)) {
+            throw new Error('Invalid values');
+        }
+
+        const newX = this.borderCondition(q.pos.x, v.x, this.width);
+        const newY = this.borderCondition(q.pos.y, v.y, this.height);
+        const newZ = this.borderCondition(q.pos.z, v.z, this.depth);
 
         q.pos.x = newX.pos;
         q.pos.y = newY.pos;

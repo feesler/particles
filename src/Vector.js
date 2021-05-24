@@ -9,6 +9,14 @@ export class Vector {
         return new Vector(this.x, this.y, this.z);
     }
 
+    getLength() {
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
+    }
+
+    getLengthSquare() {
+        return this.x * this.x + this.y * this.y + this.z * this.z;
+    }
+
     product(vector) {
         return this.x * vector.x + this.y * vector.y + this.z * vector.z;
     }
@@ -23,6 +31,34 @@ export class Vector {
         this.x -= vector.x;
         this.y -= vector.y;
         this.z -= vector.z;
+    }
+
+    multiply(vector) {
+        this.x *= vector.x;
+        this.y *= vector.y;
+        this.z *= vector.z;
+    }
+
+    divide(vector) {
+        this.x /= vector.x;
+        this.y /= vector.y;
+        this.z /= vector.z;
+    }
+
+    multiplyByScalar(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+    }
+
+    divideByScalar(scalar) {
+        this.x /= scalar;
+        this.y /= scalar;
+        this.z /= scalar;
+    }
+
+    normalize() {
+        this.divideByScalar(this.getLength());
     }
 
     rotateAroundX(angle) {
