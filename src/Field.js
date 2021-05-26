@@ -70,13 +70,17 @@ export class Field {
     }
 
     rotateVector(vector, alpha, beta, gamma, center) {
-        vector.substract(center);
+        if (center) {
+            vector.substract(center);
+        }
 
         vector.rotateAroundX(alpha);
         vector.rotateAroundY(beta);
         vector.rotateAroundZ(gamma);
 
-        vector.add(center);
+        if (center) {
+            vector.add(center);
+        }
     }
 
     rotate(alpha, beta, gamma) {
@@ -84,8 +88,8 @@ export class Field {
 
         for (const particle of this.particles) {
             this.rotateVector(particle.pos, alpha, beta, gamma, this.center);
-            this.rotateVector(particle.velocity, alpha, beta, gamma, this.center);
-            this.rotateVector(particle.force, alpha, beta, gamma, this.center);
+            this.rotateVector(particle.velocity, alpha, beta, gamma);
+            this.rotateVector(particle.force, alpha, beta, gamma);
         }
     };
 
