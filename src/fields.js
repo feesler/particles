@@ -5,6 +5,7 @@ import { Electron } from './particles/Electron.js';
 import { Star } from './particles/Star.js';
 import { Planet } from './particles/Planet.js';
 import { DarkParticle } from './particles/DarkParticle.js';
+import { Molecule } from './particles/Molecule.js';
 import { Field } from './Field.js';
 import { Box } from './Box.js';
 
@@ -171,6 +172,29 @@ function initPlanetarySystem(f) {
     f.add(planet);
 
 
+}
+
+function initGas(f) {
+    f.setScaleFactor(0.01);
+    SCALE_STEP = 0.001;
+
+    const T = 2;
+
+    for (let i = 0; i < 1000; i++) {
+        const xPos = Math.round(rand() * f.width);
+        const yPos = Math.round(rand() * f.height);
+        const zPos = Math.round(rand() * f.depth);
+
+        let particle;
+
+        particle = new Planet(xPos, yPos, zPos, 10000);
+
+        particle.velocity.x = rand() * T - (T / 2);
+        particle.velocity.y = rand() * T - (T / 2);
+        particle.velocity.z = rand() * T - (T / 2);
+
+        f.add(particle);
+    }
 }
 
 function initParticles(f) {
@@ -437,7 +461,8 @@ function init() {
         field = new Field(canvas, INITIAL_SCALE, dt);
         //initPlanetarySystem(field);
         //initStars(field);
-        initGalaxies(field);
+        //initGalaxies(field);
+        initGas(field);
         //initParticles(field);
         //initVelocityTest(field);
         //initDepthTest(field);
