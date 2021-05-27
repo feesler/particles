@@ -8,6 +8,7 @@ export class Particle {
 
         this.m = m;
         this.charge = charge;
+        this.prevPos = null;
 
         this.color = { r: 0xFF, g: 0xFF, b: 0xFF };
         this.removed = false;

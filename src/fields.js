@@ -224,7 +224,7 @@ function initParticles(f) {
 }
 
 function initVelocityTest(f) {
-    f.setScaleFactor(5);
+    f.setScaleFactor(0.1);
     SCALE_STEP = 0;
 
     f.add(new Star(f.width / 2, f.height / 2, f.depth / 2, 10000000000));
@@ -307,7 +307,7 @@ function draw3D(canvas) {
     let GAMMA = 0;
 
     const DIST = 1000;       /* Distance from camera to canvas */
-    const Z_SHIFT = 100;    /* Distance from canvas to z=0 plane */
+    const Z_SHIFT = 0;    /* Distance from canvas to z=0 plane */
     const HH = canvas.height / 2;
     const HW = canvas.width / 2;
 
@@ -462,9 +462,9 @@ function init() {
         //initPlanetarySystem(field);
         //initStars(field);
         //initGalaxies(field);
-        initGas(field);
+        //initGas(field);
         //initParticles(field);
-        //initVelocityTest(field);
+        initVelocityTest(field);
         //initDepthTest(field);
 
         field.drawFrame();

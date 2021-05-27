@@ -115,14 +115,32 @@ export class Field {
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
         for (const particle of this.particles) {
+            const x = this.xF(particle.pos);
+            const y = this.yF(particle.pos);
+
             frame.putPixel(
-                this.xF(particle.pos),
-                this.yF(particle.pos),
+                x,
+                y,
                 particle.color.r,
                 particle.color.g,
                 particle.color.b,
                 Math.round(255 * (this.depth / particle.pos.z)),
             );
+
+            if (particle.prevPos) {
+                const x0 = this.xF(particle.prevPos);
+                const y0 = this.yF(particle.prevPos);
+                frame.drawLine(
+                    x,
+                    y,
+                    x0,
+                    y0,
+                    128,
+                    128,
+                    255,
+                    255,
+                );
+            }
         }
 
         this.canvas.drawFrame(frame);
@@ -168,15 +186,19 @@ export class Field {
 
             const d = particle.distanceTo(nq);
             const orientation = particle.orientationTo(nq);
-            const distLength = d.getLength() * this.scaleFactor;
+            let distLength = d.getLength() * this.scaleFactor;
+            distLength = Math.max(distLength, this.minDistance);
+
             d.divideByScalar(distLength);
             d.multiply(orientation);
 
             const d2 = distLength * distLength;
+            /*
             if (distLength < this.minDistance) {
                 this.collide(particle, nq);
                 continue;
             }
+            */
 
             if (particle.charge && nq.charge) {
                 const forceSign = particle.attract(nq) ? 1 : -1;
@@ -203,6 +225,19 @@ export class Field {
         return this.maxVelocity * Math.tanh(velocity / this.maxVelocity);
     }
 
+    intersectPlane(planePoint, planeNormal, linePoint, lineVector) {
+        const lineNormalized = lineVector.copy();
+        const planeDot = planeNormal.dotProduct(lineNormalized);
+        if (planeDot == 0) {
+            return null;
+        }
+
+        const t = (planeNormal.dotProduct(planePoint) - planeNormal.dotProduct(linePoint)) / planeDot;
+        const res = linePoint.copy();
+        res.addScaled(lineNormalized, t);
+        return res;
+    }
+
     borderCondition(particle) {
         const LOSS = 0.8;
         const { velocity } = particle;
@@ -214,26 +249,83 @@ export class Field {
         const dpy = d.dotProduct(this.boxDy);
         const dpz = d.dotProduct(this.boxDz);
 
-        if (Number.isNaN(dpx) || Number.isNaN(dpy) || Number.isNaN(dpz)) {
-            throw new Error('Invalid value');
+        const xOut = Math.abs(dpx) > this.center.x;
+        const yOut = Math.abs(dpy) > this.center.y;
+        const zOut = Math.abs(dpz) > this.center.z;
+
+        if (!xOut && !yOut && !zOut) {
+            particle.pos.add(velocity);
+            return;
         }
 
-        if (Math.abs(dpx) > this.center.x) {
-            const dp = 2 * velocity.dotProduct(this.boxDx) * LOSS;
+        let intersection;
+        if (xOut) {
+            intersection = this.intersectPlane(this.box.vertices[0], this.boxDx, particle.pos, d);
+            if (!intersection) {
+                intersection = this.intersectPlane(this.box.vertices[1], this.boxDx, particle.pos, d);
+            }
+            if (!intersection) {
+                throw new Error('Not intersection found');
+            }
+            particle.pos.set(intersection);
+
+            const remVelocity = d.copy();
+            remVelocity.substract(intersection);
+
+            let dp = 2 * remVelocity.dotProduct(this.boxDx);
+            remVelocity.substractScaled(this.boxDx, dp);
+            remVelocity.add(this.center);
+            particle.pos.add(remVelocity);
+
+            dp = 2 * velocity.dotProduct(this.boxDx) * LOSS;
             velocity.substractScaled(this.boxDx, dp);
         }
 
-        if (Math.abs(dpy) > this.center.y) {
-            const dp = 2 * velocity.dotProduct(this.boxDy) * LOSS;
+        if (yOut) {
+            intersection = this.intersectPlane(this.box.vertices[0], this.boxDx, particle.pos, d);
+            if (!intersection) {
+                intersection = this.intersectPlane(this.box.vertices[4], this.boxDx, particle.pos, d);
+            }
+            if (!intersection) {
+                throw new Error('Not intersection found');
+            }
+            particle.pos.set(intersection);
+
+            const remVelocity = d.copy();
+            remVelocity.substract(intersection);
+
+            let dp = 2 * remVelocity.dotProduct(this.boxDy);
+            remVelocity.substractScaled(this.boxDy, dp);
+            remVelocity.add(this.center);
+            particle.pos.add(remVelocity);
+
+            dp = 2 * velocity.dotProduct(this.boxDy) * LOSS;
             velocity.substractScaled(this.boxDy, dp);
         }
 
-        if (Math.abs(dpz) > this.center.z) {
-            const dp = 2 * velocity.dotProduct(this.boxDz) * LOSS;
+        if (zOut) {
+            intersection = this.intersectPlane(this.box.vertices[0], this.boxDx, particle.pos, d);
+            if (!intersection) {
+                intersection = this.intersectPlane(this.box.vertices[3], this.boxDx, particle.pos, d);
+            }
+            if (!intersection) {
+                throw new Error('Not intersection found');
+            }
+            particle.pos.set(intersection);
+
+            const remVelocity = d.copy();
+            remVelocity.substract(intersection);
+
+            let dp = 2 * remVelocity.dotProduct(this.boxDz);
+            remVelocity.substractScaled(this.boxDz, dp);
+            remVelocity.add(this.center);
+            particle.pos.add(remVelocity);
+
+            dp = 2 * velocity.dotProduct(this.boxDz) * LOSS;
             velocity.substractScaled(this.boxDz, dp);
         }
 
-        pos.add(velocity);
+        //particle.pos.add(velocity);
     }
 
     async applyForce(particle) {
@@ -248,6 +340,13 @@ export class Field {
             const vScalar = relativeVelocity / totalVelocity;
             velocity.multiplyByScalar(vScalar);
         }
+
+        if (!particle.prevPos) {
+            particle.prevPos = particle.pos.copy();
+        } else {
+            particle.prevPos.set(particle.pos);
+        }
+
         this.borderCondition(particle);
     }
 
