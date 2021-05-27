@@ -21,11 +21,14 @@ let yRotationText = null;
 let zRotationText = null;
 let toggleRunBtn = null;
 let paused = true;
+let updating = false;
 const autoStart = false;
 let rotation = { alpha: 0, beta: 0, gamma: 0 };
 let field = null;
 
 async function update() {
+    updating = true;
+
     const pBefore = performance.now();
 
     await field.calculate();
@@ -41,6 +44,8 @@ async function update() {
     if (!paused) {
         setTimeout(update.bind(null, field), animationDelay);
     }
+
+    updating = false;
 }
 
 function initStars(f) {
@@ -296,14 +301,7 @@ function onXRotate(e) {
     const delta = val - rotation.alpha;
     rotation.alpha = val;
 
-    field.rotate(delta, 0, 0);
-    field.drawFrame();
-
-    if (pausedBefore) {
-        render();
-    } else {
-        run();
-    }
+    processRotation(delta, 0, 0, pausedBefore);
 }
 
 function onYRotate(e) {
@@ -314,14 +312,7 @@ function onYRotate(e) {
     const delta = val - rotation.beta;
     rotation.beta = val;
 
-    field.rotate(0, delta, 0);
-    field.drawFrame();
-
-    if (pausedBefore) {
-        render();
-    } else {
-        run();
-    }
+    processRotation(0, delta, 0, pausedBefore);
 }
 
 function onZRotate(e) {
@@ -332,10 +323,18 @@ function onZRotate(e) {
     const delta = val - rotation.gamma;
     rotation.gamma = val;
 
-    field.rotate(0, 0, delta);
+    processRotation(0, 0, delta, pausedBefore);
+}
+
+function processRotation(a, b, g, pb) {
+    if (updating) {
+        setTimeout(() => processRotation(a, b, g, pb), 10);
+    }
+
+    field.rotate(a, b, g);
     field.drawFrame();
 
-    if (pausedBefore) {
+    if (pb) {
         render();
     } else {
         run();
