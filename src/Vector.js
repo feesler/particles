@@ -9,6 +9,12 @@ export class Vector {
         return !Number.isNaN(this.x) && !Number.isNaN(this.y) && !Number.isNaN(this.z);
     }
 
+    set(vector) {
+        this.x = vector.x;
+        this.y = vector.y;
+        this.z = vector.z;
+    }
+
     copy() {
         return new Vector(this.x, this.y, this.z);
     }
