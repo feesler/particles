@@ -15,6 +15,7 @@ const dt = 0.1;
 
 let scaleFactorElem = null;
 let countElem = null;
+let perfElem = null;
 let xRotationText = null;
 let yRotationText = null;
 let zRotationText = null;
@@ -25,13 +26,17 @@ let rotation = { alpha: 0, beta: 0, gamma: 0 };
 let field = null;
 
 async function update() {
+    const pBefore = performance.now();
 
     await field.calculate();
     field.drawFrame();
     field.setScaleFactor(field.scaleFactor + SCALE_STEP);
 
-    scaleFactorElem.textContent = field.scaleFactor;
+    const pAfter = performance.now();
+
+    scaleFactorElem.textContent = field.scaleFactor.toFixed(3);
     countElem.textContent = field.particles.length;
+    perfElem.textContent = Math.round(pAfter - pBefore);
 
     if (!paused) {
         setTimeout(update.bind(null, field), animationDelay);
@@ -350,6 +355,7 @@ function init() {
 
     scaleFactorElem = document.getElementById('scalefactor');
     countElem = document.getElementById('particlescount');
+    perfElem = document.getElementById('perfvalue');
 
     const xRotationInp = document.getElementById('xRotationInp');
     xRotationInp.addEventListener('input', onXRotate);
