@@ -6,6 +6,7 @@ const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
 const MAX_SPEED = 200;
 const DEPTH = 500;
+const MIN_DISTANCE = 0.0001;
 
 const ALPHA = -Math.PI / 8; /* Rotation angle aound x-axis */
 const BETA = Math.PI / 8; /* Rotation angle aound y-axis */
@@ -24,14 +25,23 @@ export class Field {
 
         this.width = this.canvas.width;
         this.height = this.canvas.height;
-        this.HW = this.width / 2;
-        this.HH = this.height / 2;
-        this.HD = this.depth / 2;
         this.DIST = 1000;
         this.Z_SHIFT = 0;
 
         this.box = new Box(this.width, this.height, this.depth);
-        this.center = new Vector(this.HW, this.HH, this.HD);
+        this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
+        // Prepare normales to each side of box
+        this.boxDx = new Vector(0, this.center.y, this.center.z);
+        this.boxDx.substract(this.center);
+        this.boxDx.normalize();
+
+        this.boxDy = new Vector(this.center.x, 0, this.center.z);
+        this.boxDy.substract(this.center);
+        this.boxDy.normalize();
+
+        this.boxDz = new Vector(this.center.x, this.center.y, 0);
+        this.boxDz.substract(this.center);
+        this.boxDz.normalize();
 
         this.particles = [];
         this.setScaleFactor(scaleFactor);
@@ -62,11 +72,11 @@ export class Field {
     }
 
     yF(v) {
-        return this.HH - this.DIST * (this.HH - v.y) / (this.DIST + v.z + this.Z_SHIFT);
+        return this.center.y - this.DIST * (this.center.y - v.y) / (this.DIST + v.z + this.Z_SHIFT);
     }
 
     xF(v) {
-        return this.HW - this.DIST * (this.HW - v.x) / (this.DIST + v.z + this.Z_SHIFT);
+        return this.center.x - this.DIST * (this.center.x - v.x) / (this.DIST + v.z + this.Z_SHIFT);
     }
 
     rotateVector(vector, alpha, beta, gamma, center) {
@@ -85,6 +95,10 @@ export class Field {
 
     rotate(alpha, beta, gamma) {
         this.box.rotate(alpha, beta, gamma);
+
+        this.rotateVector(this.boxDx, alpha, beta, gamma);
+        this.rotateVector(this.boxDy, alpha, beta, gamma);
+        this.rotateVector(this.boxDz, alpha, beta, gamma);
 
         for (const particle of this.particles) {
             this.rotateVector(particle.pos, alpha, beta, gamma, this.center);
@@ -121,6 +135,7 @@ export class Field {
     setScaleFactor(scaleFactor) {
         this.scaleFactor = scaleFactor;
         this.maxVelocity = MAX_SPEED / scaleFactor;
+        this.minDistance = MIN_DISTANCE / scaleFactor;
     }
 
     setTimeStep(timeStep) {
@@ -137,8 +152,6 @@ export class Field {
     }
 
     async force(particle) {
-        const MIN_DISTANCE = 0.001;
-
         if (particle.removed) {
             return;
         }
@@ -160,7 +173,7 @@ export class Field {
             d.multiply(orientation);
 
             const d2 = distLength * distLength;
-            if (distLength < MIN_DISTANCE / this.scaleFactor) {
+            if (distLength < this.minDistance) {
                 this.collide(particle, nq);
                 continue;
             }
@@ -197,20 +210,54 @@ export class Field {
         return this.maxVelocity * Math.tanh(velocity / this.maxVelocity);
     }
 
-    borderCondition(pos, delta, maxRange) {
-        const loss = 0.1;
-        const result = { pos, delta };
+    borderCondition(pos, velocity) {
+        const LOSS = 0.8;
 
-        result.pos += delta;
-        if (result.pos < 0 || result.pos > maxRange) {
-            result.pos *= -1;
-            if (result.pos < 0) {
-                result.pos += maxRange * 2;
-            }
-            result.delta *= -loss;
+        const pos2 = pos.copy();
+        pos2.add(velocity);
+
+        const d = pos2.copy();
+        d.substract(this.center);
+
+        const dpx = d.dotProduct(this.boxDx);
+        const dpy = d.dotProduct(this.boxDy);
+        const dpz = d.dotProduct(this.boxDz);
+
+        if (Number.isNaN(dpx) || Number.isNaN(dpy) || Number.isNaN(dpz)) {
+            throw new Error('Invalid value');
         }
 
-        return result;
+        if (Math.abs(dpx) > this.center.x) {
+            const n = this.boxDx.copy();
+            const dp = 2 * velocity.dotProduct(n) * LOSS;
+            if (Number.isNaN(dp)) {
+                throw new Error('Invalid value');
+            }
+            n.multiplyByScalar(dp);
+            velocity.substract(n);
+        }
+
+        if (Math.abs(dpy) > this.center.y) {
+            const n = this.boxDy.copy();
+            const dp = 2 * velocity.dotProduct(n) * LOSS;
+            if (Number.isNaN(dp)) {
+                throw new Error('Invalid value');
+            }
+            n.multiplyByScalar(dp);
+            velocity.substract(n);
+        }
+
+        if (Math.abs(dpz) > this.center.z) {
+            const n = this.boxDz.copy();
+            const dp = 2 * velocity.dotProduct(n) * LOSS;
+            if (Number.isNaN(dp)) {
+                throw new Error('Invalid value');
+            }
+            n.multiplyByScalar(dp);
+            velocity.substract(n);
+        }
+
+        pos.add(velocity);
     }
 
     async applyForce(particle) {
@@ -242,17 +289,8 @@ export class Field {
             throw new Error('Invalid values');
         }
 
-        const newX = this.borderCondition(q.pos.x, v.x, this.width);
-        const newY = this.borderCondition(q.pos.y, v.y, this.height);
-        const newZ = this.borderCondition(q.pos.z, v.z, this.depth);
-
-        q.pos.x = newX.pos;
-        q.pos.y = newY.pos;
-        q.pos.z = newZ.pos;
-
-        q.velocity.x = newX.delta;
-        q.velocity.y = newY.delta;
-        q.velocity.z = newZ.delta;
+        q.velocity = v;
+        this.borderCondition(q.pos, q.velocity);
     }
 
     async calculate() {
