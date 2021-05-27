@@ -1,5 +1,5 @@
 export class Vector {
-    constructor(x, y, z) {
+    constructor(x = 0, y = 0, z = 0) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -90,6 +90,11 @@ export class Vector {
 
     normalize() {
         this.divideByScalar(this.getLength());
+    }
+
+    reflect(normale, loss = 1) {
+        const dp = 2 * this.dotProduct(normale) * loss;
+        this.substractScaled(normale, dp);
     }
 
     rotateAroundX(angle) {

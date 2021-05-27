@@ -126,21 +126,32 @@ export class Field {
                 particle.color.b,
                 Math.round(255 * (this.depth / particle.pos.z)),
             );
+/*
+            let prevPos;
+            let x1 = x;
+            let y1 = y;
+            let x0, y0;
 
-            if (particle.prevPos) {
-                const x0 = this.xF(particle.prevPos);
-                const y0 = this.yF(particle.prevPos);
+            while (particle.path.length > 0) {
+                prevPos = particle.path.pop();
+
+                x0 = this.xF(prevPos);
+                y0 = this.yF(prevPos);
                 frame.drawLine(
-                    x,
-                    y,
                     x0,
                     y0,
+                    x1,
+                    y1,
                     128,
                     128,
                     255,
                     255,
                 );
+
+                x1 = x0;
+                y1 = y0;
             }
+            */
         }
 
         this.canvas.drawFrame(frame);
@@ -240,92 +251,65 @@ export class Field {
 
     borderCondition(particle) {
         const LOSS = 0.8;
-        const { velocity } = particle;
-        const d = particle.pos.copy();
-        d.add(velocity);
-        d.substract(this.center);
+        let remVelocity = particle.velocity;
+        let currentPos = new Vector();
+        let destPos = new Vector();
 
-        const dpx = d.dotProduct(this.boxDx);
-        const dpy = d.dotProduct(this.boxDy);
-        const dpz = d.dotProduct(this.boxDz);
 
-        const xOut = Math.abs(dpx) > this.center.x;
-        const yOut = Math.abs(dpy) > this.center.y;
-        const zOut = Math.abs(dpz) > this.center.z;
+        do {
 
-        if (!xOut && !yOut && !zOut) {
-            particle.pos.add(velocity);
-            return;
-        }
+            currentPos.set(particle.pos);
+            currentPos.substract(this.center);
 
-        let intersection;
-        if (xOut) {
-            intersection = this.intersectPlane(this.box.vertices[0], this.boxDx, particle.pos, d);
-            if (!intersection) {
-                intersection = this.intersectPlane(this.box.vertices[1], this.boxDx, particle.pos, d);
+            destPos.set(currentPos);
+            destPos.add(remVelocity);
+
+            const dpx = destPos.dotProduct(this.boxDx);
+            const dpy = destPos.dotProduct(this.boxDy);
+            const dpz = destPos.dotProduct(this.boxDz);
+
+            const xOut = Math.abs(dpx) > this.center.x;
+            const yOut = Math.abs(dpy) > this.center.y;
+            const zOut = Math.abs(dpz) > this.center.z;
+
+            if (!xOut && !yOut && !zOut) {
+                currentPos.add(remVelocity);
+                currentPos.add(this.center);
+                particle.setPos(currentPos);
+                return;
             }
-            if (!intersection) {
-                throw new Error('Not intersection found');
-            }
-            particle.pos.set(intersection);
 
-            const remVelocity = d.copy();
+            let intersection;
+            let planePoint;
+            let planeNormal;
+
+            if (xOut) {
+                planePoint = (remVelocity.x > 0) ? this.box.vertices[1] : this.box.vertices[0];
+                planeNormal = this.boxDx;
+            } else if (yOut) {
+                planePoint = (remVelocity.y > 0) ? this.box.vertices[0] : this.box.vertices[4];
+                planeNormal = this.boxDy;
+            } else if (zOut) {
+                planePoint = (remVelocity.z > 0) ? this.box.vertices[3] : this.box.vertices[0];
+                planeNormal = this.boxDz;
+            }
+
+            intersection = this.intersectPlane(planePoint, planeNormal, currentPos, remVelocity);
+            if (!intersection) {
+                throw new Error('Intersection not found');
+            }
+
+            const ii = intersection.copy();
+            ii.add(this.center);
+            particle.setPos(ii);
+
+            remVelocity = destPos.copy();
             remVelocity.substract(intersection);
 
-            let dp = 2 * remVelocity.dotProduct(this.boxDx);
-            remVelocity.substractScaled(this.boxDx, dp);
-            remVelocity.add(this.center);
-            particle.pos.add(remVelocity);
+            remVelocity.reflect(planeNormal);
 
-            dp = 2 * velocity.dotProduct(this.boxDx) * LOSS;
-            velocity.substractScaled(this.boxDx, dp);
-        }
-
-        if (yOut) {
-            intersection = this.intersectPlane(this.box.vertices[0], this.boxDx, particle.pos, d);
-            if (!intersection) {
-                intersection = this.intersectPlane(this.box.vertices[4], this.boxDx, particle.pos, d);
-            }
-            if (!intersection) {
-                throw new Error('Not intersection found');
-            }
-            particle.pos.set(intersection);
-
-            const remVelocity = d.copy();
-            remVelocity.substract(intersection);
-
-            let dp = 2 * remVelocity.dotProduct(this.boxDy);
-            remVelocity.substractScaled(this.boxDy, dp);
-            remVelocity.add(this.center);
-            particle.pos.add(remVelocity);
-
-            dp = 2 * velocity.dotProduct(this.boxDy) * LOSS;
-            velocity.substractScaled(this.boxDy, dp);
-        }
-
-        if (zOut) {
-            intersection = this.intersectPlane(this.box.vertices[0], this.boxDx, particle.pos, d);
-            if (!intersection) {
-                intersection = this.intersectPlane(this.box.vertices[3], this.boxDx, particle.pos, d);
-            }
-            if (!intersection) {
-                throw new Error('Not intersection found');
-            }
-            particle.pos.set(intersection);
-
-            const remVelocity = d.copy();
-            remVelocity.substract(intersection);
-
-            let dp = 2 * remVelocity.dotProduct(this.boxDz);
-            remVelocity.substractScaled(this.boxDz, dp);
-            remVelocity.add(this.center);
-            particle.pos.add(remVelocity);
-
-            dp = 2 * velocity.dotProduct(this.boxDz) * LOSS;
-            velocity.substractScaled(this.boxDz, dp);
-        }
-
-        //particle.pos.add(velocity);
+            particle.velocity.reflect(planeNormal);
+        } while (true);
     }
 
     async applyForce(particle) {
@@ -341,11 +325,7 @@ export class Field {
             velocity.multiplyByScalar(vScalar);
         }
 
-        if (!particle.prevPos) {
-            particle.prevPos = particle.pos.copy();
-        } else {
-            particle.prevPos.set(particle.pos);
-        }
+        //particle.path = [];
 
         this.borderCondition(particle);
     }

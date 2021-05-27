@@ -8,7 +8,7 @@ export class Particle {
 
         this.m = m;
         this.charge = charge;
-        this.prevPos = null;
+        //this.path = [];
 
         this.color = { r: 0xFF, g: 0xFF, b: 0xFF };
         this.removed = false;
@@ -40,5 +40,10 @@ export class Particle {
         const oz = (this.pos.z < particle.pos.z) ? 1 : -1;
 
         return new Vector(ox, oy, oz);
+    }
+
+    setPos(pos) {
+        //this.path.push(this.pos.copy());
+        this.pos.set(pos);
     }
 }
