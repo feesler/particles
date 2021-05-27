@@ -4,6 +4,7 @@ import { Proton } from './particles/Proton.js';
 import { Electron } from './particles/Electron.js';
 import { Star } from './particles/Star.js';
 import { Planet } from './particles/Planet.js';
+import { DarkParticle } from './particles/DarkParticle.js';
 import { Field } from './Field.js';
 import { Box } from './Box.js';
 
@@ -73,6 +74,64 @@ function initStars(f) {
 
         f.add(particle);
     }
+}
+
+function initGalaxies(f) {
+    f.setScaleFactor(4);
+    f.setTimeStep(0.1);
+    SCALE_STEP = 0.01;
+
+    const G_SIZE_LEFT = 150;
+    const G_SIZE_RIGHT = 80;
+
+    const leftPos = new Vector(f.width / 4 + f.width / 8, f.height / 2, f.depth / 2);
+    const rightPos = new Vector(f.width / 2 + f.width / 8, f.height / 2, f.depth / 2);
+
+    for (let i = 0; i < 1000; i++) {
+        const chance = rand();
+        const dist = rand() * G_SIZE_LEFT;
+        const a = rand() * Math.PI * 2;
+        const xPos = Math.round(leftPos.x + dist * Math.cos(a));
+        const yPos = Math.round(leftPos.y + dist * Math.sin(a));
+        const zPos = Math.round(leftPos.z + rand() * 10);
+
+        let particle;
+
+        if (chance > 0.9) {
+            particle = new Star(xPos, yPos, zPos, 1000000000);
+        } else if (chance > 0.7) {
+            const mass = rand() * 10000000 + 100000;
+            particle = new Star(xPos, yPos, zPos, mass);
+        } else {
+            particle = new DarkParticle(xPos, yPos, zPos);
+        }
+
+        particle.velocity.x = rand() * 2;
+
+        f.add(particle);
+    }
+
+    for (let i = 0; i < 500; i++) {
+        const chance = rand();
+        const dist = rand() * G_SIZE_RIGHT;
+        const a = rand() * Math.PI * 2;
+        const xPos = Math.round(rightPos.x + dist * Math.cos(a));
+        const yPos = Math.round(rightPos.y + dist * Math.sin(a));
+        const zPos = Math.round(rightPos.z + rand() * 10);
+
+        let particle;
+
+        if (chance > 0.5) {
+            particle = new Star(xPos, yPos, zPos, 1000000000);
+        } else {
+            particle = new DarkParticle(xPos, yPos, zPos);
+        }
+
+        particle.velocity.x = -rand() * 2;
+
+        f.add(particle);
+    }
+
 }
 
 function initPlanetarySystem(f) {
@@ -377,7 +436,8 @@ function init() {
     } else {
         field = new Field(canvas, INITIAL_SCALE, dt);
         //initPlanetarySystem(field);
-        initStars(field);
+        //initStars(field);
+        initGalaxies(field);
         //initParticles(field);
         //initVelocityTest(field);
         //initDepthTest(field);
