@@ -76,7 +76,7 @@ export class Vector {
         this.z += scalar * vector.z;
     }
 
-    subtractScaled(vector, scalar) {
+    substractScaled(vector, scalar) {
         this.x -= scalar * vector.x;
         this.y -= scalar * vector.y;
         this.z -= scalar * vector.z;
