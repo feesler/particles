@@ -5,6 +5,10 @@ export class Vector {
         this.z = z;
     }
 
+    isValid() {
+        return !Number.isNaN(this.x) && !Number.isNaN(this.y) && !Number.isNaN(this.z);
+    }
+
     copy() {
         return new Vector(this.x, this.y, this.z);
     }
@@ -17,8 +21,17 @@ export class Vector {
         return this.x * this.x + this.y * this.y + this.z * this.z;
     }
 
-    product(vector) {
+    dotProduct(vector) {
         return this.x * vector.x + this.y * vector.y + this.z * vector.z;
+    }
+
+    crossProduct(vector) {
+        const x = this.y * vector.z - this.z * vector.y;
+        const y = this.z * vector.x - this.x * vector.z;
+        const z = this.x * vector.y - this.y * vector.x;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     add(vector) {
@@ -55,6 +68,18 @@ export class Vector {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
+    }
+
+    addScaled(vector, scalar) {
+        this.x += scalar * vector.x;
+        this.y += scalar * vector.y;
+        this.z += scalar * vector.z;
+    }
+
+    subtractScaled(vector, scalar) {
+        this.x -= scalar * vector.x;
+        this.y -= scalar * vector.y;
+        this.z -= scalar * vector.z;
     }
 
     normalize() {
