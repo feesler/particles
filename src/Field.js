@@ -178,21 +178,14 @@ export class Field {
                 continue;
             }
 
-            let forceSign = 1;
-
-            if (!particle.attract(nq)) {
-                forceSign = -1;
+            if (particle.charge && nq.charge) {
+                const forceSign = particle.attract(nq) ? 1 : -1;
+                const emForce = K * forceSign * Math.abs(particle.charge * nq.charge) / d2;
+                res.addScaled(d, emForce);
             }
 
-            const emForce = K * forceSign * Math.abs(particle.charge * nq.charge) / d2;
-            res.x += emForce * d.x;
-            res.y += emForce * d.y;
-            res.z += emForce * d.z;
-
             const gForce = G * Math.abs(particle.m * nq.m) / d2;
-            res.x += gForce * d.x;
-            res.y += gForce * d.y;
-            res.z += gForce * d.z;
+            res.addScaled(d, gForce);
         }
     }
 
@@ -210,13 +203,11 @@ export class Field {
         return this.maxVelocity * Math.tanh(velocity / this.maxVelocity);
     }
 
-    borderCondition(pos, velocity) {
+    borderCondition(particle) {
         const LOSS = 0.8;
-
-        const pos2 = pos.copy();
-        pos2.add(velocity);
-
-        const d = pos2.copy();
+        const { velocity } = particle;
+        const d = particle.pos.copy();
+        d.add(velocity);
         d.substract(this.center);
 
         const dpx = d.dotProduct(this.boxDx);
@@ -228,69 +219,36 @@ export class Field {
         }
 
         if (Math.abs(dpx) > this.center.x) {
-            const n = this.boxDx.copy();
-            const dp = 2 * velocity.dotProduct(n) * LOSS;
-            if (Number.isNaN(dp)) {
-                throw new Error('Invalid value');
-            }
-            n.multiplyByScalar(dp);
-            velocity.substract(n);
+            const dp = 2 * velocity.dotProduct(this.boxDx) * LOSS;
+            velocity.substractScaled(this.boxDx, dp);
         }
 
         if (Math.abs(dpy) > this.center.y) {
-            const n = this.boxDy.copy();
-            const dp = 2 * velocity.dotProduct(n) * LOSS;
-            if (Number.isNaN(dp)) {
-                throw new Error('Invalid value');
-            }
-            n.multiplyByScalar(dp);
-            velocity.substract(n);
+            const dp = 2 * velocity.dotProduct(this.boxDy) * LOSS;
+            velocity.substractScaled(this.boxDy, dp);
         }
 
         if (Math.abs(dpz) > this.center.z) {
-            const n = this.boxDz.copy();
-            const dp = 2 * velocity.dotProduct(n) * LOSS;
-            if (Number.isNaN(dp)) {
-                throw new Error('Invalid value');
-            }
-            n.multiplyByScalar(dp);
-            velocity.substract(n);
+            const dp = 2 * velocity.dotProduct(this.boxDz) * LOSS;
+            velocity.substractScaled(this.boxDz, dp);
         }
 
         pos.add(velocity);
     }
 
     async applyForce(particle) {
-        const q = particle;
-        const f = particle.force;
-        const dt = this.timeStep;
+        const { velocity, force } = particle;
 
-        const a = f.copy();
-        const v = q.velocity.copy();
+        const scalar = this.timeStep / particle.m;
+        velocity.addScaled(force, scalar);
 
-        a.divideByScalar(q.m);
-        a.multiplyByScalar(dt);
-
-        if (Number.isNaN(a.x) || Number.isNaN(a.y) || Number.isNaN(a.z)) {
-            throw new Error('Invalid values');
-        }
-
-        v.add(a);
-
-        const totalVelocity = v.getLength();
+        const totalVelocity = velocity.getLength();
         const relativeVelocity = this.relVelocity(totalVelocity);
-
         if (relativeVelocity < totalVelocity) {
-            v.divideByScalar(totalVelocity);
-            v.multiplyByScalar(relativeVelocity);
+            const vScalar = relativeVelocity / totalVelocity;
+            velocity.multiplyByScalar(vScalar);
         }
-
-        if (Number.isNaN(v.x) || Number.isNaN(v.y) || Number.isNaN(v.z)) {
-            throw new Error('Invalid values');
-        }
-
-        q.velocity = v;
-        this.borderCondition(q.pos, q.velocity);
+        this.borderCondition(particle);
     }
 
     async calculate() {
