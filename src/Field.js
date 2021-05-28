@@ -7,6 +7,7 @@ const G = 6.67 * 0.00001;
 const MAX_SPEED = 200;
 const DEPTH = 500;
 const MIN_DISTANCE = 0.0001;
+const EPSILON = 0.000001;
 
 const ALPHA = -Math.PI / 8; /* Rotation angle aound x-axis */
 const BETA = Math.PI / 8; /* Rotation angle aound y-axis */
@@ -243,7 +244,7 @@ export class Field {
     intersectPlane(planePoint, planeNormal, linePoint, lineVector) {
         const lineNormalized = lineVector.copy();
         const planeDot = planeNormal.dotProduct(lineNormalized);
-        if (planeDot == 0) {
+        if (Math.abs(planeDot) < EPSILON) {
             return null;
         }
 
@@ -254,8 +255,7 @@ export class Field {
     }
 
     borderCondition(particle) {
-        const LOSS = 0.8;
-        let remVelocity = particle.velocity;
+        let remVelocity = particle.velocity.copy();
         let currentPos = new Vector();
         let destPos = new Vector();
 
@@ -263,23 +263,53 @@ export class Field {
             particle.path = [];
         }
 
-        do {
+        const boxPlanes = {
+            x: {
+                getPoint: (velocity) => {
+                    const dot = velocity.dotProduct(this.boxDx);
+                    return this.box.vertices[(dot > 0) ? 0 : 1];
+                },
+                normal: this.boxDx,
+            },
+            y: {
+                getPoint: (velocity) => {
+                    const dot = velocity.dotProduct(this.boxDy);
+                    return this.box.vertices[(dot > 0) ? 4 : 0];
+                },
+                normal: this.boxDy,
+            },
+            z: {
+                getPoint: (velocity) => {
+                    const dot = velocity.dotProduct(this.boxDz);
+                    return this.box.vertices[(dot > 0) ? 0 : 3];
+                },
+                normal: this.boxDz,
+            },
+        };
 
+        do {
             currentPos.set(particle.pos);
             currentPos.substract(this.center);
 
             destPos.set(currentPos);
             destPos.add(remVelocity);
 
-            const dpx = destPos.dotProduct(this.boxDx);
-            const dpy = destPos.dotProduct(this.boxDy);
-            const dpz = destPos.dotProduct(this.boxDz);
+            const dp = {};
+            const outCoords = [];
+            for (const coord in boxPlanes) {
+                const plane = boxPlanes[coord];
+                dp[coord] = destPos.dotProduct(plane.normal);
 
-            const xOut = Math.abs(dpx) > this.center.x;
-            const yOut = Math.abs(dpy) > this.center.y;
-            const zOut = Math.abs(dpz) > this.center.z;
+                const out = Math.abs(dp[coord]) - this.center[coord];
+                if (out > 0) {
+                    outCoords.push({
+                        coord,
+                        out,
+                    });
+                }
+            }
 
-            if (!xOut && !yOut && !zOut) {
+            if (!outCoords.length) {
                 currentPos.add(remVelocity);
                 currentPos.add(this.center);
                 if (this.drawPaths) {
@@ -290,25 +320,44 @@ export class Field {
                 return;
             }
 
-            let intersection;
+            let plane;
             let planePoint;
             let planeNormal;
 
-            if (xOut) {
-                planePoint = (remVelocity.x > 0) ? this.box.vertices[1] : this.box.vertices[0];
-                planeNormal = this.boxDx;
-            } else if (yOut) {
-                planePoint = (remVelocity.y > 0) ? this.box.vertices[0] : this.box.vertices[4];
-                planeNormal = this.boxDy;
-            } else if (zOut) {
-                planePoint = (remVelocity.z > 0) ? this.box.vertices[3] : this.box.vertices[0];
-                planeNormal = this.boxDz;
+            if (outCoords.length > 1) {
+                outCoords.sort((a, b) => a.out - b.out);
             }
 
-            intersection = this.intersectPlane(planePoint, planeNormal, currentPos, remVelocity);
-            if (!intersection) {
-                throw new Error('Intersection not found');
-            }
+            let correctIS;
+            let intersection;
+            do {
+                let outCoord = outCoords.pop();
+                if (!outCoord) {
+                    throw new Error('Fail');
+                }
+
+                plane = boxPlanes[outCoord.coord];
+                planePoint = plane.getPoint(remVelocity);
+                planeNormal = plane.normal;
+
+                intersection = this.intersectPlane(planePoint, planeNormal, currentPos, remVelocity);
+                if (!intersection) {
+                    continue;
+                }
+
+                correctIS = true;
+                for (const coord in boxPlanes) {
+                    if (coord === outCoord.coord) {
+                        continue;
+                    }
+
+                    const idp = intersection.dotProduct(boxPlanes[coord].normal);
+                    if (Math.abs(idp) - this.center[coord] > EPSILON) {
+                        correctIS = false;
+                        break;
+                    }
+                }
+            } while (!correctIS);
 
             const ii = intersection.copy();
             ii.add(this.center);
@@ -321,12 +370,14 @@ export class Field {
                 particle.pos.set(ii);
             }
 
-            remVelocity = destPos.copy();
+            remVelocity.set(destPos);
             remVelocity.substract(intersection);
 
             remVelocity.reflect(planeNormal);
+            remVelocity.multiplyByScalar(BORDER_LOSS);
 
             particle.velocity.reflect(planeNormal);
+            particle.velocity.multiplyByScalar(BORDER_LOSS);
         } while (true);
     }
 
