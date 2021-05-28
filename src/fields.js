@@ -44,7 +44,7 @@ async function update() {
     perfElem.textContent = Math.round(pAfter - pBefore);
 
     if (!paused) {
-        setTimeout(update.bind(null, field), animationDelay);
+        setTimeout(update, animationDelay);
     }
 
     updating = false;
@@ -176,29 +176,32 @@ function initPlanetarySystem(f) {
 
 function initGas(f) {
     f.setScaleFactor(0.01);
+    f.setTimeStep(0.01);
     SCALE_STEP = 0.001;
 
     const T = 2;
 
     for (let i = 0; i < 1000; i++) {
+        const chance = rand();
+
         const xPos = Math.round(rand() * f.width);
         const yPos = Math.round(rand() * f.height);
         const zPos = Math.round(rand() * f.depth);
 
         let particle;
 
-        particle = new Planet(xPos, yPos, zPos, 10000);
-
-        particle.velocity.x = rand() * T - (T / 2);
-        particle.velocity.y = rand() * T - (T / 2);
-        particle.velocity.z = rand() * T - (T / 2);
+        if (chance > 0.7) {
+            particle = new Planet(xPos, yPos, zPos, 10000);
+        } else {
+            particle = new DarkParticle(xPos, yPos, zPos);
+        }
 
         f.add(particle);
     }
 }
 
 function initParticles(f) {
-    f.setScaleFactor(1);
+    f.setScaleFactor(0.1);
     SCALE_STEP = 0;
 
     for (let i = 0; i < 1000; i++) {
@@ -225,6 +228,7 @@ function initParticles(f) {
 
 function initVelocityTest(f) {
     f.setScaleFactor(0.1);
+    f.setTimeStep(0.01);
     SCALE_STEP = 0;
 
     f.add(new Star(f.width / 2, f.height / 2, f.depth / 2, 10000000000));
@@ -373,7 +377,7 @@ function run() {
 
     paused = false;
     render();
-    update();
+    setTimeout(update, 10);
 }
 
 function onXRotate(e) {
@@ -462,9 +466,9 @@ function init() {
         //initPlanetarySystem(field);
         //initStars(field);
         //initGalaxies(field);
-        //initGas(field);
+        initGas(field);
         //initParticles(field);
-        initVelocityTest(field);
+        //initVelocityTest(field);
         //initDepthTest(field);
 
         field.drawFrame();

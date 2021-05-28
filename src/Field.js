@@ -1,12 +1,15 @@
 import { Box } from './Box.js';
 import { Particle } from './particles/Particle.js';
+import { Star } from './particles/Star.js';
+import { DarkParticle } from './particles/DarkParticle.js';
 import { Vector } from './Vector.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
-const MAX_SPEED = 200;
+const MAX_SPEED = 150;
 const DEPTH = 500;
-const MIN_DISTANCE = 0.0001;
+const MIN_DISTANCE = 0.05;
+const BORDER_LOSS = 0.8;
 const EPSILON = 0.000001;
 
 const ALPHA = -Math.PI / 8; /* Rotation angle aound x-axis */
@@ -30,6 +33,8 @@ export class Field {
         this.Z_SHIFT = 0;
 
         this.drawPaths = false;
+        this.useCollide = true;
+        this.restoreCollided = true;
 
         this.box = new Box(this.width, this.height, this.depth);
         this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
@@ -142,6 +147,10 @@ export class Field {
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
         for (const particle of this.particles) {
+            if (particle instanceof DarkParticle) {
+                continue;
+            }
+
             const x = this.xF(particle.pos);
             const y = this.yF(particle.pos);
 
@@ -203,18 +212,29 @@ export class Field {
             const d = particle.distanceTo(nq);
             const orientation = particle.orientationTo(nq);
             let distLength = d.getLength() * this.scaleFactor;
-            distLength = Math.max(distLength, this.minDistance);
+            if (!this.useCollide) {
+                distLength = Math.max(distLength, this.minDistance);
+            }
 
             d.divideByScalar(distLength);
             d.multiply(orientation);
 
             const d2 = distLength * distLength;
-            /*
-            if (distLength < this.minDistance) {
-                this.collide(particle, nq);
-                continue;
+
+            if (this.useCollide) {
+                const rr = (particle.r + nq.r) / (2 * this.scaleFactor);
+                if (!(particle instanceof DarkParticle)
+                    && !(nq instanceof DarkParticle)
+                ) {
+                    if (distLength - rr < MIN_DISTANCE / this.scaleFactor) {
+                        this.collide(particle, nq);
+                        if (particle.removed) {
+                            return;
+                        }
+                        continue;
+                    }
+                }
             }
-            */
 
             if (particle.charge && nq.charge) {
                 const forceSign = particle.attract(nq) ? 1 : -1;
@@ -228,13 +248,57 @@ export class Field {
     }
 
     collide(particleA, particleB) {
+        if (particleA.m + particleB.m >= 100000) {
+
+            const star = new Star(particleA.pos.x, particleA.pos.y, particleA.pos.z, particleA.m + particleB.m);
+
+            star.velocity = particleA.velocity.copy();
+            star.velocity.add(particleB.velocity);
+
+            const totalVelocity = star.velocity.getLength();
+            const relativeVelocity = this.relVelocity(totalVelocity);
+
+            if (relativeVelocity < totalVelocity) {
+                star.velocity.divideByScalar(totalVelocity);
+                star.velocity.multiplyByScalar(relativeVelocity);
+            }
+            this.add(star);
+
+            particleA.removed = true;
+            particleB.removed = true;
+
+            if (this.restoreCollided) {
+                this.addNew();
+            }
+            return;
+        }
+
         particleA.m += particleB.m;
 
-        particleA.velocity.x = this.relVelocity(particleA.velocity.x + particleB.velocity.x);
-        particleA.velocity.y = this.relVelocity(particleA.velocity.y + particleB.velocity.y);
-        particleA.velocity.z = this.relVelocity(particleA.velocity.z + particleB.velocity.z);
+        particleA.velocity.add(particleB.velocity);
+
+        const totalVelocity = particleA.velocity.getLength();
+        const relativeVelocity = this.relVelocity(totalVelocity);
+
+        if (relativeVelocity < totalVelocity) {
+            particleA.velocity.divideByScalar(totalVelocity);
+            particleA.velocity.multiplyByScalar(relativeVelocity);
+        }
 
         particleB.removed = true;
+
+        if (this.restoreCollided) {
+            this.addNew();
+        }
+    }
+
+    addNew() {
+        this.add(new Star(
+            Math.random() * this.width,
+            Math.random() * this.height,
+            Math.random() * this.depth,
+            Math.random() * 100000,
+        ));
     }
 
     relVelocity(velocity) {

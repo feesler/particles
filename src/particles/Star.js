@@ -3,6 +3,7 @@ import { Particle } from './Particle.js';
 export class Star extends Particle {
     constructor(x, y, z, mass = 500000) {
         super(x, y, z, 0, mass);
+        this.r = Math.log(mass);
         if (mass >= 1000000000) {
             this.color = { r: 0x4D, g: 0xBE, b: 0xFF };
         } else {
