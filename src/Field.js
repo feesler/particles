@@ -39,17 +39,33 @@ export class Field {
         this.box = new Box(this.width, this.height, this.depth);
         this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
         // Prepare normales to each side of box
-        this.boxDx = new Vector(0, this.center.y, this.center.z);
-        this.boxDx.substract(this.center);
-        this.boxDx.normalize();
+        this.boxDx = new Vector(1, 0, 0);
+        this.boxDy = new Vector(0, 1, 0);
+        this.boxDz = new Vector(0, 0, 1);
 
-        this.boxDy = new Vector(this.center.x, 0, this.center.z);
-        this.boxDy.substract(this.center);
-        this.boxDy.normalize();
-
-        this.boxDz = new Vector(this.center.x, this.center.y, 0);
-        this.boxDz.substract(this.center);
-        this.boxDz.normalize();
+        this.boxPlanes = {
+            x: {
+                getPoint: (velocity) => {
+                    const dot = velocity.dotProduct(this.boxDx);
+                    return this.box.vertices[(dot > 0) ? 1 : 0];
+                },
+                normal: this.boxDx,
+            },
+            y: {
+                getPoint: (velocity) => {
+                    const dot = velocity.dotProduct(this.boxDy);
+                    return this.box.vertices[(dot > 0) ? 0 : 4];
+                },
+                normal: this.boxDy,
+            },
+            z: {
+                getPoint: (velocity) => {
+                    const dot = velocity.dotProduct(this.boxDz);
+                    return this.box.vertices[(dot > 0) ? 3 : 0];
+                },
+                normal: this.boxDz,
+            },
+        };
 
         this.particles = [];
         this.setScaleFactor(scaleFactor);
@@ -327,30 +343,6 @@ export class Field {
             particle.path = [];
         }
 
-        const boxPlanes = {
-            x: {
-                getPoint: (velocity) => {
-                    const dot = velocity.dotProduct(this.boxDx);
-                    return this.box.vertices[(dot > 0) ? 0 : 1];
-                },
-                normal: this.boxDx,
-            },
-            y: {
-                getPoint: (velocity) => {
-                    const dot = velocity.dotProduct(this.boxDy);
-                    return this.box.vertices[(dot > 0) ? 4 : 0];
-                },
-                normal: this.boxDy,
-            },
-            z: {
-                getPoint: (velocity) => {
-                    const dot = velocity.dotProduct(this.boxDz);
-                    return this.box.vertices[(dot > 0) ? 0 : 3];
-                },
-                normal: this.boxDz,
-            },
-        };
-
         do {
             currentPos.set(particle.pos);
             currentPos.substract(this.center);
@@ -360,8 +352,8 @@ export class Field {
 
             const dp = {};
             const outCoords = [];
-            for (const coord in boxPlanes) {
-                const plane = boxPlanes[coord];
+            for (const coord in this.boxPlanes) {
+                const plane = this.boxPlanes[coord];
                 dp[coord] = destPos.dotProduct(plane.normal);
 
                 const out = Math.abs(dp[coord]) - this.center[coord];
@@ -400,7 +392,7 @@ export class Field {
                     throw new Error('Fail');
                 }
 
-                plane = boxPlanes[outCoord.coord];
+                plane = this.boxPlanes[outCoord.coord];
                 planePoint = plane.getPoint(remVelocity);
                 planeNormal = plane.normal;
 
@@ -410,12 +402,12 @@ export class Field {
                 }
 
                 correctIS = true;
-                for (const coord in boxPlanes) {
+                for (const coord in this.boxPlanes) {
                     if (coord === outCoord.coord) {
                         continue;
                     }
 
-                    const idp = intersection.dotProduct(boxPlanes[coord].normal);
+                    const idp = intersection.dotProduct(this.boxPlanes[coord].normal);
                     if (Math.abs(idp) - this.center[coord] > EPSILON) {
                         correctIS = false;
                         break;
