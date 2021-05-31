@@ -36,6 +36,12 @@ export class Field {
         this.useCollide = true;
         this.restoreCollided = true;
 
+        this.rotation = {
+            alpha: 0,
+            beta: 0,
+            gamma: 0,
+        };
+
         this.box = new Box(this.width, this.height, this.depth);
         this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
         // Prepare normales to each side of box
@@ -103,18 +109,10 @@ export class Field {
         return this.center.x - this.DIST * (this.center.x - v.x) / (this.DIST + v.z + this.Z_SHIFT);
     }
 
-    rotateVector(vector, alpha, beta, gamma, center) {
-        if (center) {
-            vector.substract(center);
-        }
-
+    rotateVector(vector, alpha, beta, gamma) {
         vector.rotateAroundX(alpha);
         vector.rotateAroundY(beta);
         vector.rotateAroundZ(gamma);
-
-        if (center) {
-            vector.add(center);
-        }
     }
 
     rotate(alpha, beta, gamma) {
@@ -125,20 +123,33 @@ export class Field {
         this.rotateVector(this.boxDz, alpha, beta, gamma);
 
         for (const particle of this.particles) {
-            this.rotateVector(particle.pos, alpha, beta, gamma, this.center);
+            this.rotateVector(particle.pos, alpha, beta, gamma);
             this.rotateVector(particle.velocity, alpha, beta, gamma);
             this.rotateVector(particle.force, alpha, beta, gamma);
         }
+
+        this.rotation.alpha += alpha;
+        this.rotation.beta += beta;
+        this.rotation.gamma += gamma;
     };
 
     drawParticlePath(frame, particle) {
-        let x1 = this.xF(particle.pos);
-        let y1 = this.yF(particle.pos);
+        const p = new Vector();
+
+        p.set(particle.pos);
+        p.add(this.center);
+
+        let x1 = this.xF(p);
+        let y1 = this.yF(p);
 
         while (particle.path.length > 0) {
             const prevPos = particle.path.pop();
-            const x0 = this.xF(prevPos);
-            const y0 = this.yF(prevPos);
+
+            p.set(prevPos);
+            p.add(this.center);
+
+            const x0 = this.xF(p);
+            const y0 = this.yF(p);
             frame.drawLine(
                 x0,
                 y0,
@@ -162,13 +173,18 @@ export class Field {
 
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
+        const p = new Vector();
+
         for (const particle of this.particles) {
             if (particle instanceof DarkParticle) {
                 continue;
             }
 
-            const x = this.xF(particle.pos);
-            const y = this.yF(particle.pos);
+            p.set(particle.pos);
+            p.add(this.center);
+
+            const x = this.xF(p);
+            const y = this.yF(p);
 
             frame.putPixel(
                 x,
@@ -176,7 +192,7 @@ export class Field {
                 particle.color.r,
                 particle.color.g,
                 particle.color.b,
-                Math.round(255 * (this.depth / particle.pos.z)),
+                Math.round(255 * (this.depth / p.z)),
             );
 
             if (this.drawPaths) {
@@ -309,10 +325,18 @@ export class Field {
     }
 
     addNew() {
+        const pos = new Vector(
+            Math.random() * this.width - (this.width / 2),
+            Math.random() * this.height - (this.height / 2),
+            Math.random() * this.depth - (this.depth / 2),
+        );
+
+        this.rotateVector(pos, this.rotation.alpha, this.rotation.beta, this.rotation.gamma);
+
         this.add(new Star(
-            Math.random() * this.width,
-            Math.random() * this.height,
-            Math.random() * this.depth,
+            pos.x,
+            pos.y,
+            pos.z,
             Math.random() * 100000,
         ));
     }
@@ -345,8 +369,6 @@ export class Field {
 
         do {
             currentPos.set(particle.pos);
-            currentPos.substract(this.center);
-
             destPos.set(currentPos);
             destPos.add(remVelocity);
 
@@ -367,7 +389,6 @@ export class Field {
 
             if (!outCoords.length) {
                 currentPos.add(remVelocity);
-                currentPos.add(this.center);
                 if (this.drawPaths) {
                     particle.setPos(currentPos);
                 } else {
@@ -384,19 +405,18 @@ export class Field {
                 outCoords.sort((a, b) => a.out - b.out);
             }
 
-            let correctIS;
+            let correctIS = false;
             let intersection;
-            do {
-                let outCoord = outCoords.pop();
-                if (!outCoord) {
-                    throw new Error('Fail');
-                }
+            let isErrors = [];
+
+            while(outCoords.length > 0 && !correctIS) {
+                const outCoord = outCoords.pop();
 
                 plane = this.boxPlanes[outCoord.coord];
                 planePoint = plane.getPoint(remVelocity);
                 planeNormal = plane.normal;
 
-                intersection = this.intersectPlane(planePoint, planeNormal, currentPos, remVelocity);
+                intersection = this.intersectPlane(planePoint, planeNormal, currentPos, destPos);
                 if (!intersection) {
                     continue;
                 }
@@ -408,22 +428,27 @@ export class Field {
                     }
 
                     const idp = intersection.dotProduct(this.boxPlanes[coord].normal);
-                    if (Math.abs(idp) - this.center[coord] > EPSILON) {
+                    const err = Math.abs(idp) - this.center[coord];
+                    if (err > EPSILON) {
+                        isErrors.push({
+                            is: intersection.copy(),
+                            error: err,
+                        });
                         correctIS = false;
                         break;
                     }
                 }
-            } while (!correctIS);
+            }
 
-            const ii = intersection.copy();
-            ii.add(this.center);
+            if (!correctIS){
+                isErrors.sort((a,b) => a.error - b.error);
+                intersection = isErrors[0].is;
+            }
+
             if (this.drawPaths) {
-                particle.setPos(ii);
-                if (particle.path.length > 4) {
-                    throw new Error('Collision collission');
-                }
+                particle.setPos(intersection);
             } else {
-                particle.pos.set(ii);
+                particle.pos.set(intersection);
             }
 
             remVelocity.set(destPos);
@@ -434,6 +459,10 @@ export class Field {
 
             particle.velocity.reflect(planeNormal);
             particle.velocity.multiplyByScalar(BORDER_LOSS);
+
+            if (!remVelocity.getLength()) {
+                break;
+            }
         } while (true);
     }
 
