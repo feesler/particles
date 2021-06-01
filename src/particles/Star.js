@@ -4,10 +4,17 @@ export class Star extends Particle {
     constructor(x, y, z, mass = 500000) {
         super(x, y, z, 0, mass);
         this.r = Math.log(mass);
+        this.color = this.getColor(mass);
+    }
+
+    getColor(mass) {
+        const shift = Math.log(mass);
+
         if (mass >= 1000000000) {
-            this.color = { r: 0x4D, g: 0xBE, b: 0xFF };
+            return { r: 0xFF - Math.round(shift), g: 0xFF - Math.round(shift / 2), b: 0xFF };
         } else {
-            this.color = { r: 0xEE, g: 0xB0, b: 0x2A };
+
+            return { r: 0xFF, g: Math.round(shift * 10), b: 0 };
         }
     }
 }

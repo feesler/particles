@@ -270,6 +270,9 @@ export class Field {
         }
 
         particleA.m += particleB.m;
+        if (particleA instanceof Star) {
+            particleA.color = particleA.getColor(particleA.m);
+        }
 
         particleA.velocity.add(particleB.velocity);
 
