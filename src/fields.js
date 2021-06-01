@@ -23,6 +23,7 @@ let zRotationText = null;
 let toggleRunBtn = null;
 let paused = true;
 let updating = false;
+let rotating = false;
 const autoStart = false;
 let rotation = { alpha: 0, beta: 0, gamma: 0 };
 let field = null;
@@ -39,6 +40,10 @@ const rand = (from = 0, to = 1) => {
 };
 
 async function update() {
+    if (rotating || paused) {
+        return;
+    }
+
     updating = true;
 
     const pBefore = performance.now();
@@ -424,6 +429,8 @@ function onZRotate(e) {
 }
 
 function processRotation(a, b, g, pb) {
+    rotating = true;
+
     if (updating) {
         setTimeout(() => processRotation(a, b, g, pb), 10);
     }
@@ -436,6 +443,8 @@ function processRotation(a, b, g, pb) {
     } else {
         run();
     }
+
+    rotating = false;
 }
 
 function onToggleRun() {
