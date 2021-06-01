@@ -440,8 +440,14 @@ export class Field {
                 }
             }
 
-            if (!correctIS){
-                isErrors.sort((a,b) => a.error - b.error);
+            if (!correctIS) {
+                if (!isErrors.length) {
+                    throw new Error('Intersections not found');
+                }
+
+                if (isErrors.length > 0) {
+                    isErrors.sort((a, b) => a.error - b.error);
+                }
                 intersection = isErrors[0].is;
             }
 
