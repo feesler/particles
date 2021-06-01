@@ -9,7 +9,6 @@ import { Molecule } from './particles/Molecule.js';
 import { Field } from './Field.js';
 import { Box } from './Box.js';
 
-const rand = Math.random;
 const animationDelay = 10;
 const INITIAL_SCALE = 0.1;
 let SCALE_STEP = 0.01;
@@ -27,6 +26,17 @@ let updating = false;
 const autoStart = false;
 let rotation = { alpha: 0, beta: 0, gamma: 0 };
 let field = null;
+
+const rand = (from = 0, to = 1) => {
+    const mfrom = Math.min(from, to);
+    const mto = Math.max(from, to);
+    const d = Math.abs(mto - mfrom);
+    if (d === 0) {
+        return mfrom;
+    }
+
+    return Math.random() * d + mfrom;
+};
 
 async function update() {
     updating = true;
@@ -57,19 +67,19 @@ function initStars(f) {
 
     for (let i = 0; i < 1500; i++) {
         const chance = rand();
-        const xPos = Math.round(rand() * f.width);
-        const yPos = Math.round(rand() * f.height);
-        const zPos = Math.round(rand() * f.depth);
+        const xPos = rand(-f.center.x, f.center.x);
+        const yPos = rand(-f.center.y, f.center.y);
+        const zPos = rand(-f.center.z, f.center.z);
 
         let particle;
 
         if (chance > 0.9) {
             particle = new Star(xPos, yPos, zPos, 1000000000);
         } else if (chance > 0.7) {
-            const mass = rand() * 10000000 + 100000;
+            const mass = rand(100000, 10000000);
             particle = new Star(xPos, yPos, zPos, mass);
         } else {
-            const mass = rand() * 1000 + 1;
+            const mass = rand(1, 1000);
             particle = new Planet(xPos, yPos, zPos, mass);
         }
 
@@ -85,23 +95,23 @@ function initGalaxies(f) {
     const G_SIZE_LEFT = 150;
     const G_SIZE_RIGHT = 80;
 
-    const leftPos = new Vector(f.width / 4 + f.width / 8, f.height / 2, f.depth / 2);
-    const rightPos = new Vector(f.width / 2 + f.width / 8, f.height / 2, f.depth / 2);
+    const leftPos = new Vector(-f.width / 4, 0, 0);
+    const rightPos = new Vector(f.width / 4, 0, 0);
 
     for (let i = 0; i < 1000; i++) {
         const chance = rand();
-        const dist = rand() * G_SIZE_LEFT;
-        const a = rand() * Math.PI * 2;
+        const dist = rand(0, G_SIZE_LEFT);
+        const a = rand(0, Math.PI * 2);
         const xPos = Math.round(leftPos.x + dist * Math.cos(a));
         const yPos = Math.round(leftPos.y + dist * Math.sin(a));
-        const zPos = Math.round(leftPos.z + rand() * 10);
+        const zPos = Math.round(leftPos.z + rand(0, 10));
 
         let particle;
 
         if (chance > 0.9) {
             particle = new Star(xPos, yPos, zPos, 1000000000);
         } else if (chance > 0.7) {
-            const mass = rand() * 10000000 + 100000;
+            const mass = rand(100000, 10000000);
             particle = new Star(xPos, yPos, zPos, mass);
         } else {
             particle = new DarkParticle(xPos, yPos, zPos);
@@ -184,9 +194,9 @@ function initGas(f) {
     for (let i = 0; i < 1000; i++) {
         const chance = rand();
 
-        const xPos = Math.round(rand() * f.width);
-        const yPos = Math.round(rand() * f.height);
-        const zPos = Math.round(rand() * f.depth);
+        const xPos = rand(-f.center.x, f.center.x);
+        const yPos = rand(-f.center.y, f.center.y);
+        const zPos = rand(-f.center.z, f.center.z);
 
         let particle;
 
@@ -231,12 +241,12 @@ function initVelocityTest(f) {
     f.setTimeStep(0.01);
     SCALE_STEP = 0;
 
-    f.add(new Star(f.width / 2, f.height / 2, f.depth / 2, 10000000000));
+    f.add(new Star(0, 0, 0, 100000000000));
 
-    f.add(new Star(10, 10, f.depth / 2, 1000));
-    f.add(new Star(10, 100, f.depth / 2, 10000));
-    f.add(new Star(10, 200, f.depth / 2, 100000));
-    f.add(new Star(10, 300, f.depth / 2, 1000000));
+    f.add(new Star(-f.width / 2 + 10, -f.height / 2 + 10, 0, 1000));
+    f.add(new Star(-f.width / 2 + 10, -f.height / 2 + 100, 100, 10000));
+    f.add(new Star(-f.width / 2 + 10, -f.height / 2 + 200, 200, 100000));
+    f.add(new Star(-f.width / 2 + 10, -f.height / 2 + 300, 300, 1000000));
 }
 
 function initDepthTest(f) {
