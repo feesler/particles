@@ -1,10 +1,13 @@
 import { Vector } from './Vector.js';
+import { EPSILON, intersectPlane } from './utils.js';
 
 export class Box {
     constructor(width, height, depth) {
         const hw = width / 2;
         const hh = height / 2;
         const hd = depth / 2;
+
+        this.halfSize = new Vector(hw, hh, hd);
 
         this.vertices = [
             new Vector(-hw, hh, -hd),
@@ -31,6 +34,32 @@ export class Box {
             [6, 7],
             [7, 4],
         ];
+
+        // Prepare normales to each side of box
+        this.normals = {
+            x: new Vector(1, 0, 0),
+            y: new Vector(0, 1, 0),
+            z: new Vector(0, 0, 1),
+        };
+
+        this.planePoints = {
+            x: { left: 1, right: 0 },
+            y: { left: 0, right: 4 },
+            z: { left: 3, right: 0 },
+        };
+    }
+
+    /** Return point of plane pointed by specified vector */
+    getPlanePoint(axis, vector) {
+        const normal = this.normals[axis];
+        const dp = vector.dotProduct(normal);
+
+        if (dp === 0) {
+            return null;
+        }
+
+        const planeAxis = this.planePoints[axis];
+        return this.vertices[(dp > 0) ? planeAxis.left : planeAxis.right];
     }
 
     rotate(alpha, beta, gamma) {
@@ -39,8 +68,16 @@ export class Box {
             vert.rotateAroundY(beta);
             vert.rotateAroundZ(gamma);
         }
+
+        for (const axis in this.normals) {
+            const normal = this.normals[axis];
+            normal.rotateAroundX(alpha);
+            normal.rotateAroundY(beta);
+            normal.rotateAroundZ(gamma);
+        }
     }
 
+    /** Returns intersection point of screen plane(z=0) by line specified by points A and B */
     getIntersectPoint(A, B) {
         const t = -A.z / (B.z - A.z);
         const x = t * (B.x - A.x) + A.x;
@@ -85,6 +122,87 @@ export class Box {
             const y1 = yF(toVert);
 
             frame.drawLine(x0, y0, x1, y1, rC, rC, rC, 255);
+        }
+    }
+
+    getIntersection(A, B) {
+        const dp = {};
+        const outAxes = [];
+        for (const axis in this.normals) {
+            dp[axis] = B.dotProduct(this.normals[axis]);
+
+            const out = Math.abs(dp[axis]) - this.halfSize[axis];
+            if (out > 0) {
+                outAxes.push({
+                    axis,
+                    out,
+                });
+            }
+        }
+
+        if (!outAxes.length) {
+            return null;
+        }
+
+        const direction = B.copy();
+        direction.substract(A);
+
+        if (outAxes.length > 1) {
+            outAxes.sort((a, b) => a.out - b.out);
+        }
+
+        let correctIS = false;
+        let planeNormal;
+        let intersection;
+        let results = [];
+
+        while (outAxes.length > 0 && !correctIS) {
+            const outAxis = outAxes.pop();
+            const planePoint = this.getPlanePoint(outAxis.axis, direction);
+            if (!planePoint) {
+                continue;
+            }
+            planeNormal = this.normals[outAxis.axis];
+
+            intersection = intersectPlane(planePoint, planeNormal, A, B);
+            if (!intersection) {
+                continue;
+            }
+
+            correctIS = true;
+            for (const axis in this.normals) {
+                if (axis === outAxis.axis) {
+                    continue;
+                }
+
+                const idp = intersection.dotProduct(this.normals[axis]);
+                const err = Math.abs(idp) - this.halfSize[axis];
+                if (err > EPSILON) {
+                    results.push({
+                        point: intersection.copy(),
+                        normal: planeNormal,
+                        error: err,
+                    });
+                    correctIS = false;
+                    break;
+                }
+            }
+        }
+
+        if (correctIS) {
+            return {
+                point: intersection,
+                normal: planeNormal,
+            };
+        } else {
+            if (!results.length) {
+                throw new Error('Intersections not found');
+            }
+
+            if (results.length > 0) {
+                results.sort((a, b) => a.error - b.error);
+            }
+            return results[0];
         }
     }
 }

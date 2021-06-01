@@ -10,10 +10,6 @@ const MAX_SPEED = 150;
 const DEPTH = 500;
 const MIN_DISTANCE = 0.05;
 const BORDER_LOSS = 0.8;
-const EPSILON = 0.000001;
-
-const ALPHA = -Math.PI / 8; /* Rotation angle aound x-axis */
-const BETA = Math.PI / 8; /* Rotation angle aound y-axis */
 
 export class Field {
     constructor(canvas, scaleFactor, timeStep) {
@@ -44,34 +40,6 @@ export class Field {
 
         this.box = new Box(this.width, this.height, this.depth);
         this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
-        // Prepare normales to each side of box
-        this.boxDx = new Vector(1, 0, 0);
-        this.boxDy = new Vector(0, 1, 0);
-        this.boxDz = new Vector(0, 0, 1);
-
-        this.boxPlanes = {
-            x: {
-                getPoint: (velocity) => {
-                    const dot = velocity.dotProduct(this.boxDx);
-                    return this.box.vertices[(dot > 0) ? 1 : 0];
-                },
-                normal: this.boxDx,
-            },
-            y: {
-                getPoint: (velocity) => {
-                    const dot = velocity.dotProduct(this.boxDy);
-                    return this.box.vertices[(dot > 0) ? 0 : 4];
-                },
-                normal: this.boxDy,
-            },
-            z: {
-                getPoint: (velocity) => {
-                    const dot = velocity.dotProduct(this.boxDz);
-                    return this.box.vertices[(dot > 0) ? 3 : 0];
-                },
-                normal: this.boxDz,
-            },
-        };
 
         this.particles = [];
         this.setScaleFactor(scaleFactor);
@@ -117,10 +85,6 @@ export class Field {
 
     rotate(alpha, beta, gamma) {
         this.box.rotate(alpha, beta, gamma);
-
-        this.rotateVector(this.boxDx, alpha, beta, gamma);
-        this.rotateVector(this.boxDy, alpha, beta, gamma);
-        this.rotateVector(this.boxDz, alpha, beta, gamma);
 
         for (const particle of this.particles) {
             this.rotateVector(particle.pos, alpha, beta, gamma);
@@ -345,19 +309,6 @@ export class Field {
         return this.maxVelocity * Math.tanh(velocity / this.maxVelocity);
     }
 
-    intersectPlane(planePoint, planeNormal, linePoint, lineVector) {
-        const lineNormalized = lineVector.copy();
-        const planeDot = planeNormal.dotProduct(lineNormalized);
-        if (Math.abs(planeDot) < EPSILON) {
-            return null;
-        }
-
-        const t = (planeNormal.dotProduct(planePoint) - planeNormal.dotProduct(linePoint)) / planeDot;
-        const res = linePoint.copy();
-        res.addScaled(lineNormalized, t);
-        return res;
-    }
-
     borderCondition(particle) {
         let remVelocity = particle.velocity.copy();
         let currentPos = new Vector();
@@ -372,22 +323,8 @@ export class Field {
             destPos.set(currentPos);
             destPos.add(remVelocity);
 
-            const dp = {};
-            const outCoords = [];
-            for (const coord in this.boxPlanes) {
-                const plane = this.boxPlanes[coord];
-                dp[coord] = destPos.dotProduct(plane.normal);
-
-                const out = Math.abs(dp[coord]) - this.center[coord];
-                if (out > 0) {
-                    outCoords.push({
-                        coord,
-                        out,
-                    });
-                }
-            }
-
-            if (!outCoords.length) {
+            const intersection = this.box.getIntersection(currentPos, destPos);
+            if (!intersection) {
                 currentPos.add(remVelocity);
                 if (this.drawPaths) {
                     particle.setPos(currentPos);
@@ -397,73 +334,19 @@ export class Field {
                 return;
             }
 
-            let plane;
-            let planePoint;
-            let planeNormal;
-
-            if (outCoords.length > 1) {
-                outCoords.sort((a, b) => a.out - b.out);
-            }
-
-            let correctIS = false;
-            let intersection;
-            let isErrors = [];
-
-            while(outCoords.length > 0 && !correctIS) {
-                const outCoord = outCoords.pop();
-
-                plane = this.boxPlanes[outCoord.coord];
-                planePoint = plane.getPoint(remVelocity);
-                planeNormal = plane.normal;
-
-                intersection = this.intersectPlane(planePoint, planeNormal, currentPos, destPos);
-                if (!intersection) {
-                    continue;
-                }
-
-                correctIS = true;
-                for (const coord in this.boxPlanes) {
-                    if (coord === outCoord.coord) {
-                        continue;
-                    }
-
-                    const idp = intersection.dotProduct(this.boxPlanes[coord].normal);
-                    const err = Math.abs(idp) - this.center[coord];
-                    if (err > EPSILON) {
-                        isErrors.push({
-                            is: intersection.copy(),
-                            error: err,
-                        });
-                        correctIS = false;
-                        break;
-                    }
-                }
-            }
-
-            if (!correctIS) {
-                if (!isErrors.length) {
-                    throw new Error('Intersections not found');
-                }
-
-                if (isErrors.length > 0) {
-                    isErrors.sort((a, b) => a.error - b.error);
-                }
-                intersection = isErrors[0].is;
-            }
-
             if (this.drawPaths) {
-                particle.setPos(intersection);
+                particle.setPos(intersection.point);
             } else {
-                particle.pos.set(intersection);
+                particle.pos.set(intersection.point);
             }
 
             remVelocity.set(destPos);
-            remVelocity.substract(intersection);
+            remVelocity.substract(intersection.point);
 
-            remVelocity.reflect(planeNormal);
+            remVelocity.reflect(intersection.normal);
             remVelocity.multiplyByScalar(BORDER_LOSS);
 
-            particle.velocity.reflect(planeNormal);
+            particle.velocity.reflect(intersection.normal);
             particle.velocity.multiplyByScalar(BORDER_LOSS);
 
             if (!remVelocity.getLength()) {
