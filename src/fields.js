@@ -68,6 +68,7 @@ async function update() {
 function initStars(f) {
     f.setScaleFactor(0.1);
     f.setTimeStep(0.1);
+    f.useCollide = false;
     SCALE_STEP = 0.01;
 
     for (let i = 0; i < 1500; i++) {
@@ -95,6 +96,7 @@ function initStars(f) {
 function initGalaxies(f) {
     f.setScaleFactor(4);
     f.setTimeStep(0.1);
+    f.useCollide = false;
     SCALE_STEP = 0.01;
 
     const G_SIZE_LEFT = 150;
@@ -191,7 +193,7 @@ function initPlanetarySystem(f) {
 
 function initGas(f) {
     f.setScaleFactor(0.01);
-    f.setTimeStep(0.01);
+    f.setTimeStep(0.1);
     SCALE_STEP = 0.001;
 
     const T = 2;
@@ -244,6 +246,8 @@ function initParticles(f) {
 function initVelocityTest(f) {
     f.setScaleFactor(0.1);
     f.setTimeStep(0.01);
+    f.drawPaths = true;
+    f.useCollide = false;
     SCALE_STEP = 0;
 
     f.add(new Star(0, 0, 0, 100000000000));

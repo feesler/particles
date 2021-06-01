@@ -7,7 +7,7 @@ import { Vector } from './Vector.js';
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
 const MAX_SPEED = 150;
-const DEPTH = 500;
+const DEPTH = 2000;
 const MIN_DISTANCE = 0.05;
 const BORDER_LOSS = 0.8;
 
