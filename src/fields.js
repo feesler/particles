@@ -14,8 +14,10 @@ let SCALE_STEP = 0.01;
 const dt = 0.1;
 
 let scaleFactorElem = null;
+let scaleFactorInp = null;
 let countElem = null;
 let perfElem = null;
+let perfValue = 0;
 let xRotationText = null;
 let yRotationText = null;
 let zRotationText = null;
@@ -38,6 +40,22 @@ const rand = (from = 0, to = 1) => {
     return Math.random() * d + mfrom;
 };
 
+function render() {
+    const sfText = field.scaleFactor.toFixed(3);
+    const sfValue = parseFloat(sfText);
+
+    scaleFactorElem.textContent = sfText;
+    scaleFactorInp.value = sfValue;
+    countElem.textContent = field.particles.length;
+    perfElem.textContent = perfValue;
+
+    toggleRunBtn.textContent = (paused) ? 'Run' : 'Pause';
+
+    xRotationText.textContent = rotation.alpha.toFixed(2);
+    yRotationText.textContent = rotation.beta.toFixed(2);
+    zRotationText.textContent = rotation.gamma.toFixed(2);
+}
+
 function update() {
     if (rotating || paused) {
         return;
@@ -49,13 +67,13 @@ function update() {
 
     field.calculate();
     field.drawFrame();
-    field.setScaleFactor(field.scaleFactor + SCALE_STEP);
+    if (SCALE_STEP !== 0) {
+        field.setScaleFactor(field.scaleFactor + SCALE_STEP);
+    }
 
-    const pAfter = performance.now();
+    perfValue = Math.round(performance.now() - pBefore);
 
-    scaleFactorElem.textContent = field.scaleFactor.toFixed(3);
-    countElem.textContent = field.particles.length;
-    perfElem.textContent = Math.round(pAfter - pBefore);
+    render();
 
     if (!paused) {
         setTimeout(update, animationDelay);
@@ -325,14 +343,6 @@ function draw3D(canvas) {
     setTimeout(() => update3dFrame(), 100);
 }
 
-function render() {
-    toggleRunBtn.textContent = (paused) ? 'Run' : 'Pause';
-
-    xRotationText.textContent = rotation.alpha.toFixed(2);
-    yRotationText.textContent = rotation.beta.toFixed(2);
-    zRotationText.textContent = rotation.gamma.toFixed(2);
-}
-
 function pause() {
     if (paused) {
         return;
@@ -350,6 +360,13 @@ function run() {
     paused = false;
     render();
     setTimeout(update, 10);
+}
+
+function onScale(e) {
+    const val = parseFloat(e.target.value);
+
+    field.setScaleFactor(val);
+    render();
 }
 
 function processRotation(a, b, g, pb) {
@@ -415,7 +432,10 @@ function onToggleRun() {
 function init() {
     const canvas = new Canvas(document.getElementById('cnv'));
 
+    scaleFactorInp = document.getElementById('scaleFactorInp');
+    scaleFactorInp.addEventListener('input', onScale);
     scaleFactorElem = document.getElementById('scalefactor');
+
     countElem = document.getElementById('particlescount');
     perfElem = document.getElementById('perfvalue');
 
