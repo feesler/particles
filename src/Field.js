@@ -196,23 +196,23 @@ export class Field {
         this.particles.push(q);
     }
 
-    async force(particle) {
+    force(particle, index) {
         if (particle.removed) {
             return;
         }
 
         const res = particle.force;
-        res.x = 0;
-        res.y = 0;
-        res.z = 0;
 
-        for (const nq of this.particles) {
-            if (nq === particle || nq.removed) {
+        for (let ind = index + 1, l = this.particles.length; ind < l; ind += 1) {
+            const nq = this.particles[ind];
+            if (nq.removed) {
                 continue;
             }
+            const nres = nq.force;
 
             const d = particle.distanceTo(nq);
             const orientation = particle.orientationTo(nq);
+
             let distLength = d.getLength() * this.scaleFactor;
             if (!this.useCollide) {
                 distLength = Math.max(distLength, this.minDistance);
@@ -220,6 +220,9 @@ export class Field {
 
             d.divideByScalar(distLength);
             d.multiply(orientation);
+
+            const nd = d.copy();
+            nd.multiplyByScalar(-1);
 
             const d2 = distLength * distLength;
 
@@ -242,10 +245,12 @@ export class Field {
                 const forceSign = particle.attract(nq) ? 1 : -1;
                 const emForce = (K * forceSign * Math.abs(particle.charge * nq.charge)) / d2;
                 res.addScaled(d, emForce);
+                nres.addScaled(nd, emForce);
             }
 
             const gForce = (G * Math.abs(particle.m * nq.m)) / d2;
             res.addScaled(d, gForce);
+            nres.addScaled(nd, gForce);
         }
     }
 
@@ -364,7 +369,7 @@ export class Field {
         } while (true);
     }
 
-    async applyForce(particle) {
+    applyForce(particle) {
         const { velocity, force } = particle;
 
         const scalar = this.timeStep / particle.m;
@@ -380,9 +385,10 @@ export class Field {
         this.borderCondition(particle);
     }
 
-    async calculate() {
-        await Promise.all(this.particles.map((p) => this.force(p)));
+    calculate() {
+        this.particles.forEach((p) => p.resetForce());
+        this.particles.forEach((p, ind) => this.force(p, ind));
         this.particles = this.particles.filter((p) => !p.removed);
-        await Promise.all(this.particles.map((p) => this.applyForce(p)));
+        this.particles.forEach((p) => this.applyForce(p));
     }
 }

@@ -38,7 +38,7 @@ const rand = (from = 0, to = 1) => {
     return Math.random() * d + mfrom;
 };
 
-async function update() {
+function update() {
     if (rotating || paused) {
         return;
     }
@@ -47,7 +47,7 @@ async function update() {
 
     const pBefore = performance.now();
 
-    await field.calculate();
+    field.calculate();
     field.drawFrame();
     field.setScaleFactor(field.scaleFactor + SCALE_STEP);
 
@@ -69,8 +69,9 @@ function initStars() {
     field.setTimeStep(0.1);
     field.useCollide = false;
     SCALE_STEP = 0.01;
+    const PARTICLES_COUNT = 2000;
 
-    for (let i = 0; i < 1500; i += 1) {
+    for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
         const xPos = rand(-field.center.x, field.center.x);
         const yPos = rand(-field.center.y, field.center.y);
@@ -187,8 +188,9 @@ function initGas() {
     field.setScaleFactor(0.01);
     field.setTimeStep(0.1);
     SCALE_STEP = 0.001;
+    const PARTICLES_COUNT = 2000;
 
-    for (let i = 0; i < 1000; i += 1) {
+    for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
 
         const xPos = rand(-field.center.x, field.center.x);

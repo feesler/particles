@@ -23,6 +23,10 @@ export class Particle {
         this.m = mass;
     }
 
+    resetForce() {
+        this.force.multiplyByScalar(0);
+    }
+
     attract(particle) {
         return Math.sign(this.charge) !== Math.sign(particle.charge);
     }
