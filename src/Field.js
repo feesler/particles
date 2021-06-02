@@ -3,6 +3,8 @@ import { Particle } from './particles/Particle.js';
 import { Star } from './particles/Star.js';
 import { DarkParticle } from './particles/DarkParticle.js';
 import { Vector } from './Vector.js';
+import { Quantum } from './particles/Quantum.js';
+import { Planet } from './particles/Planet.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
@@ -228,14 +230,12 @@ export class Field {
 
             if (this.useCollide) {
                 const rr = (particle.r + nq.r) / (2 * this.scaleFactor);
-                if (!(particle instanceof DarkParticle)
-                    && !(nq instanceof DarkParticle)
-                ) {
-                    if (distLength - rr < MIN_DISTANCE / this.scaleFactor) {
-                        this.collide(particle, nq);
-                        if (particle.removed) {
-                            return;
-                        }
+                if (distLength - rr < MIN_DISTANCE / this.scaleFactor) {
+                    const collideResult = this.collide(particle, nq);
+                    if (particle.removed) {
+                        return;
+                    }
+                    if (collideResult) {
                         continue;
                     }
                 }
@@ -254,51 +254,55 @@ export class Field {
         }
     }
 
-    collide(particleA, particleB) {
-        if (particleA.m + particleB.m >= 100000) {
-            const star = new Star(
-                particleA.pos.x,
-                particleA.pos.y,
-                particleA.pos.z,
-                particleA.m + particleB.m,
+    resolveMassive(A, B) {
+        let massiveParticle = (A.m > B.m) ? A : B;
+        const lightParticle = (A.m > B.m) ? A : B;
+        const newMass = A.m + B.m;
+        const particleClass = (newMass >= 100000) ? Star : Planet;
+
+        if (massiveParticle instanceof particleClass) {
+            massiveParticle.setMass(newMass);
+        } else {
+            const newParticle = new particleClass(
+                massiveParticle.pos.x,
+                massiveParticle.pos.y,
+                massiveParticle.pos.z,
+                newMass,
             );
 
-            star.velocity = particleA.velocity.copy();
-            star.velocity.add(particleB.velocity);
-
-            const totalVelocity = star.velocity.getLength();
-            const relativeVelocity = this.relVelocity(totalVelocity);
-
-            if (relativeVelocity < totalVelocity) {
-                star.velocity.divideByScalar(totalVelocity);
-                star.velocity.multiplyByScalar(relativeVelocity);
-            }
-            this.add(star);
-
-            particleA.remove();
-            particleB.remove();
-
-            if (this.restoreCollided) {
-                this.addNew();
-            }
-            return;
+            massiveParticle.remove();
+            massiveParticle = newParticle;
         }
 
-        particleA.setMass(particleA.m + particleB.m);
-        particleA.velocity.add(particleB.velocity);
+        const impulseScale = lightParticle.m / newMass;
 
-        const totalVelocity = particleA.velocity.getLength();
-        const relativeVelocity = this.relVelocity(totalVelocity);
+        massiveParticle.velocity.addScaled(lightParticle.velocity, impulseScale);
+        this.fixVelocity(massiveParticle);
 
-        if (relativeVelocity < totalVelocity) {
-            particleA.velocity.divideByScalar(totalVelocity);
-            particleA.velocity.multiplyByScalar(relativeVelocity);
-        }
-
-        particleB.remove();
+        lightParticle.remove();
 
         if (this.restoreCollided) {
             this.addNew();
+        }
+
+        return true;
+    }
+
+    resolveQuants(A, B) {
+        return false;
+    }
+
+    collide(A, B) {
+        if (A instanceof DarkParticle || B instanceof DarkParticle) {
+            return false;
+        }
+
+        if (!(A instanceof Quantum) && !(B instanceof Quantum)) {
+            return this.resolveMassive(A, B);
+        }
+
+        if (A instanceof Quantum && B instanceof Quantum) {
+            return this.resolveQuants(A, B);
         }
     }
 
@@ -375,14 +379,17 @@ export class Field {
         const scalar = this.timeStep / particle.m;
         velocity.addScaled(force, scalar);
 
-        const totalVelocity = velocity.getLength();
+        this.fixVelocity(particle);
+        this.borderCondition(particle);
+    }
+
+    fixVelocity(particle) {
+        const totalVelocity = particle.velocity.getLength();
         const relativeVelocity = this.relVelocity(totalVelocity);
         if (relativeVelocity < totalVelocity) {
             const vScalar = relativeVelocity / totalVelocity;
-            velocity.multiplyByScalar(vScalar);
+            particle.velocity.multiplyByScalar(vScalar);
         }
-
-        this.borderCondition(particle);
     }
 
     calculate() {
