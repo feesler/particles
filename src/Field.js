@@ -33,6 +33,8 @@ export class Field {
         this.drawPaths = false;
         this.useCollide = true;
         this.restoreCollided = true;
+        this.useSoftening = false;
+        this.SOFTENING = 2;
 
         this.rotation = {
             alpha: 0,
@@ -248,7 +250,11 @@ export class Field {
                 nres.addScaled(nd, emForce);
             }
 
-            const gForce = (G * Math.abs(particle.m * nq.m)) / d2;
+            const r2 = (this.useSoftening)
+                ? d2 * Math.sqrt(d2 + this.SOFTENING)
+                : d2;
+
+            const gForce = (G * Math.abs(particle.m * nq.m)) / r2;
             res.addScaled(d, gForce);
             nres.addScaled(nd, gForce);
         }

@@ -86,6 +86,7 @@ function initStars() {
     field.setScaleFactor(0.1);
     field.setTimeStep(0.1);
     field.useCollide = false;
+    field.useSoftening = false;
     SCALE_STEP = 0.01;
     const PARTICLES_COUNT = 2000;
 
