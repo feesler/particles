@@ -51,8 +51,10 @@ export class Particle {
         this.path = [];
     }
 
-    setPos(pos) {
-        this.path.push(this.pos.copy());
+    setPos(pos, usePath = false) {
+        if (usePath) {
+            this.path.push(this.pos.copy());
+        }
         this.pos.set(pos);
     }
 }

@@ -350,19 +350,11 @@ export class Field {
             const intersection = this.box.getIntersection(currentPos, destPos);
             if (!intersection) {
                 currentPos.add(remVelocity);
-                if (this.drawPaths) {
-                    particle.setPos(currentPos);
-                } else {
-                    particle.pos.set(currentPos);
-                }
+                particle.setPos(currentPos, this.drawPaths);
                 return;
             }
 
-            if (this.drawPaths) {
-                particle.setPos(intersection.point);
-            } else {
-                particle.pos.set(intersection.point);
-            }
+            particle.setPos(intersection.point, this.drawPaths);
 
             remVelocity.set(destPos);
             remVelocity.substract(intersection.point);
