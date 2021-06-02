@@ -83,12 +83,13 @@ function update() {
 }
 
 function initStars() {
+    const PARTICLES_COUNT = 2000;
+
     field.setScaleFactor(0.1);
     field.setTimeStep(0.1);
     field.useCollide = false;
     field.useSoftening = false;
     SCALE_STEP = 0.01;
-    const PARTICLES_COUNT = 2000;
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
@@ -204,14 +205,14 @@ function initPlanetarySystem() {
 }
 
 function initGas() {
+    const PARTICLES_COUNT = 2000;
+
     field.setScaleFactor(0.01);
     field.setTimeStep(0.1);
     SCALE_STEP = 0.001;
-    const PARTICLES_COUNT = 2000;
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
-
         const xPos = rand(-field.center.x, field.center.x);
         const yPos = rand(-field.center.y, field.center.y);
         const zPos = rand(-field.center.z, field.center.z);
@@ -229,14 +230,16 @@ function initGas() {
 }
 
 function initParticles() {
+    const PARTICLES_COUNT = 10;
+
     field.setScaleFactor(0.1);
     SCALE_STEP = 0;
 
-    for (let i = 0; i < 1000; i += 1) {
+    for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
-        const xPos = Math.round(rand() * field.width);
-        const yPos = Math.round(rand() * field.height);
-        const zPos = Math.round(rand() * field.depth);
+        const xPos = rand(-field.center.x, field.center.x);
+        const yPos = rand(-field.center.y, field.center.y);
+        const zPos = rand(-field.center.z, field.center.z);
 
         let particle;
 
@@ -246,9 +249,9 @@ function initParticles() {
             particle = new Electron(xPos, yPos, zPos);
         }
 
-        particle.velocity.x = rand() * 0.2 - 0.1;
-        particle.velocity.y = rand() * 0.2 - 0.1;
-        particle.velocity.z = rand() * 0.2 - 0.1;
+        particle.velocity.x = rand(-0.1, 0.1);
+        particle.velocity.y = rand(-0.1, 0.1);
+        particle.velocity.z = rand(-0.1, 0.1);
 
         field.add(particle);
     }
