@@ -15,16 +15,16 @@ export class Particle {
         this.removed = false;
     }
 
-    speed() {
-        return Math.sqrt(
-            this.velocity.x * this.velocity.x
-            + this.velocity.y * this.velocity.y
-            + this.velocity.z * this.velocity.z
-        );
+    remove() {
+        this.removed = true;
+    }
+
+    setMass(mass) {
+        this.m = mass;
     }
 
     attract(particle) {
-        return Math.sign(this.charge) != Math.sign(particle.charge);
+        return Math.sign(this.charge) !== Math.sign(particle.charge);
     }
 
     distanceTo(particle) {
@@ -41,6 +41,10 @@ export class Particle {
         const oz = (this.pos.z < particle.pos.z) ? 1 : -1;
 
         return new Vector(ox, oy, oz);
+    }
+
+    resetPath() {
+        this.path = [];
     }
 
     setPos(pos) {

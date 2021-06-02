@@ -12,9 +12,14 @@ export class Star extends Particle {
 
         if (mass >= 1000000000) {
             return { r: 0xFF - Math.round(shift), g: 0xFF - Math.round(shift / 2), b: 0xFF };
-        } else {
-
-            return { r: 0xFF, g: Math.round(shift * 10), b: 0 };
         }
+
+        return { r: 0xFF, g: Math.round(shift * 10), b: 0 };
+    }
+
+    setMass(mass) {
+        super.setMass(mass);
+
+        this.color = this.getColor(mass);
     }
 }

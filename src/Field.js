@@ -70,11 +70,17 @@ export class Field {
     }
 
     yF(v) {
-        return this.center.y - this.DIST * (this.center.y - v.y) / (this.DIST + v.z + this.Z_SHIFT);
+        return (
+            this.center.y - (this.DIST * (this.center.y - v.y))
+            / (this.DIST + v.z + this.Z_SHIFT)
+        );
     }
 
     xF(v) {
-        return this.center.x - this.DIST * (this.center.x - v.x) / (this.DIST + v.z + this.Z_SHIFT);
+        return (
+            this.center.x - (this.DIST * (this.center.x - v.x))
+            / (this.DIST + v.z + this.Z_SHIFT)
+        );
     }
 
     rotateVector(vector, alpha, beta, gamma) {
@@ -95,7 +101,7 @@ export class Field {
         this.rotation.alpha += alpha;
         this.rotation.beta += beta;
         this.rotation.gamma += gamma;
-    };
+    }
 
     drawParticlePath(frame, particle) {
         const p = new Vector();
@@ -183,7 +189,7 @@ export class Field {
 
     /* Add particle */
     add(q) {
-        if (!q instanceof Particle) {
+        if (!(q instanceof Particle)) {
             return;
         }
 
@@ -200,8 +206,8 @@ export class Field {
         res.y = 0;
         res.z = 0;
 
-        for (let nq of this.particles) {
-            if (nq == particle || nq.removed) {
+        for (const nq of this.particles) {
+            if (nq === particle || nq.removed) {
                 continue;
             }
 
@@ -234,19 +240,23 @@ export class Field {
 
             if (particle.charge && nq.charge) {
                 const forceSign = particle.attract(nq) ? 1 : -1;
-                const emForce = K * forceSign * Math.abs(particle.charge * nq.charge) / d2;
+                const emForce = (K * forceSign * Math.abs(particle.charge * nq.charge)) / d2;
                 res.addScaled(d, emForce);
             }
 
-            const gForce = G * Math.abs(particle.m * nq.m) / d2;
+            const gForce = (G * Math.abs(particle.m * nq.m)) / d2;
             res.addScaled(d, gForce);
         }
     }
 
     collide(particleA, particleB) {
         if (particleA.m + particleB.m >= 100000) {
-
-            const star = new Star(particleA.pos.x, particleA.pos.y, particleA.pos.z, particleA.m + particleB.m);
+            const star = new Star(
+                particleA.pos.x,
+                particleA.pos.y,
+                particleA.pos.z,
+                particleA.m + particleB.m,
+            );
 
             star.velocity = particleA.velocity.copy();
             star.velocity.add(particleB.velocity);
@@ -260,8 +270,8 @@ export class Field {
             }
             this.add(star);
 
-            particleA.removed = true;
-            particleB.removed = true;
+            particleA.remove();
+            particleB.remove();
 
             if (this.restoreCollided) {
                 this.addNew();
@@ -269,11 +279,7 @@ export class Field {
             return;
         }
 
-        particleA.m += particleB.m;
-        if (particleA instanceof Star) {
-            particleA.color = particleA.getColor(particleA.m);
-        }
-
+        particleA.setMass(particleA.m + particleB.m);
         particleA.velocity.add(particleB.velocity);
 
         const totalVelocity = particleA.velocity.getLength();
@@ -284,7 +290,7 @@ export class Field {
             particleA.velocity.multiplyByScalar(relativeVelocity);
         }
 
-        particleB.removed = true;
+        particleB.remove();
 
         if (this.restoreCollided) {
             this.addNew();
@@ -313,12 +319,12 @@ export class Field {
     }
 
     borderCondition(particle) {
-        let remVelocity = particle.velocity.copy();
-        let currentPos = new Vector();
-        let destPos = new Vector();
+        const remVelocity = particle.velocity.copy();
+        const currentPos = new Vector();
+        const destPos = new Vector();
 
         if (this.drawPaths) {
-            particle.path = [];
+            particle.resetPath();
         }
 
         do {

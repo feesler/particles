@@ -41,10 +41,10 @@ export class CanvasFrame {
 
         const dx = lx1 - lx0;
         const dy = ly1 - ly0;
-        let derror2 = Math.abs(dy) * 2;
+        const derror2 = Math.abs(dy) * 2;
         let error2 = 0;
         let y = ly0;
-        for (let x = lx0; x <= lx1; x++) {
+        for (let x = lx0; x <= lx1; x += 1) {
             this.putPixel(
                 (steep) ? y : x,
                 (steep) ? x : y,

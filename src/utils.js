@@ -1,5 +1,5 @@
-
 export const EPSILON = 0.00000001;
+export const AXES = ['x', 'y', 'z'];
 
 export function intersectPlane(planePoint, planeNormal, linePoint, lineVector) {
     const lineNormalized = lineVector.copy();

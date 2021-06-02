@@ -1,5 +1,5 @@
 import { Vector } from './Vector.js';
-import { EPSILON, intersectPlane } from './utils.js';
+import { EPSILON, AXES, intersectPlane } from './utils.js';
 
 export class Box {
     constructor(width, height, depth) {
@@ -69,7 +69,7 @@ export class Box {
             vert.rotateAroundZ(gamma);
         }
 
-        for (const axis in this.normals) {
+        for (const axis of AXES) {
             const normal = this.normals[axis];
             normal.rotateAroundX(alpha);
             normal.rotateAroundY(beta);
@@ -128,7 +128,7 @@ export class Box {
     getIntersection(A, B) {
         const dp = {};
         const outAxes = [];
-        for (const axis in this.normals) {
+        for (const axis of AXES) {
             dp[axis] = B.dotProduct(this.normals[axis]);
 
             const out = Math.abs(dp[axis]) - this.halfSize[axis];
@@ -154,7 +154,7 @@ export class Box {
         let correctIS = false;
         let planeNormal;
         let intersection;
-        let results = [];
+        const results = [];
 
         while (outAxes.length > 0 && !correctIS) {
             const outAxis = outAxes.pop();
@@ -190,10 +190,10 @@ export class Box {
         }
 
         if (correctIS) {
-            return {
+            results.push({
                 point: intersection,
                 normal: planeNormal,
-            };
+            });
         } else {
             if (!results.length) {
                 throw new Error('Intersections not found');
@@ -202,7 +202,8 @@ export class Box {
             if (results.length > 0) {
                 results.sort((a, b) => a.error - b.error);
             }
-            return results[0];
         }
+
+        return results[0];
     }
 }

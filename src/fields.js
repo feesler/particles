@@ -5,7 +5,6 @@ import { Electron } from './particles/Electron.js';
 import { Star } from './particles/Star.js';
 import { Planet } from './particles/Planet.js';
 import { DarkParticle } from './particles/DarkParticle.js';
-import { Molecule } from './particles/Molecule.js';
 import { Field } from './Field.js';
 import { Box } from './Box.js';
 
@@ -25,7 +24,7 @@ let paused = true;
 let updating = false;
 let rotating = false;
 const autoStart = false;
-let rotation = { alpha: 0, beta: 0, gamma: 0 };
+const rotation = { alpha: 0, beta: 0, gamma: 0 };
 let field = null;
 
 const rand = (from = 0, to = 1) => {
@@ -65,17 +64,17 @@ async function update() {
     updating = false;
 }
 
-function initStars(f) {
-    f.setScaleFactor(0.1);
-    f.setTimeStep(0.1);
-    f.useCollide = false;
+function initStars() {
+    field.setScaleFactor(0.1);
+    field.setTimeStep(0.1);
+    field.useCollide = false;
     SCALE_STEP = 0.01;
 
-    for (let i = 0; i < 1500; i++) {
+    for (let i = 0; i < 1500; i += 1) {
         const chance = rand();
-        const xPos = rand(-f.center.x, f.center.x);
-        const yPos = rand(-f.center.y, f.center.y);
-        const zPos = rand(-f.center.z, f.center.z);
+        const xPos = rand(-field.center.x, field.center.x);
+        const yPos = rand(-field.center.y, field.center.y);
+        const zPos = rand(-field.center.z, field.center.z);
 
         let particle;
 
@@ -89,23 +88,23 @@ function initStars(f) {
             particle = new Planet(xPos, yPos, zPos, mass);
         }
 
-        f.add(particle);
+        field.add(particle);
     }
 }
 
-function initGalaxies(f) {
-    f.setScaleFactor(4);
-    f.setTimeStep(0.1);
-    f.useCollide = false;
-    SCALE_STEP = 0.01;
-
+function initGalaxies() {
     const G_SIZE_LEFT = 150;
     const G_SIZE_RIGHT = 80;
 
-    const leftPos = new Vector(-f.width / 4, 0, 0);
-    const rightPos = new Vector(f.width / 4, 0, 0);
+    field.setScaleFactor(4);
+    field.setTimeStep(0.1);
+    field.useCollide = false;
+    SCALE_STEP = 0.01;
 
-    for (let i = 0; i < 1000; i++) {
+    const leftPos = new Vector(-field.width / 4, 0, 0);
+    const rightPos = new Vector(field.width / 4, 0, 0);
+
+    for (let i = 0; i < 1000; i += 1) {
         const chance = rand();
         const dist = rand(0, G_SIZE_LEFT);
         const a = rand(0, Math.PI * 2);
@@ -126,10 +125,10 @@ function initGalaxies(f) {
 
         particle.velocity.x = rand() * 2;
 
-        f.add(particle);
+        field.add(particle);
     }
 
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 500; i += 1) {
         const chance = rand();
         const dist = rand() * G_SIZE_RIGHT;
         const a = rand() * Math.PI * 2;
@@ -147,63 +146,54 @@ function initGalaxies(f) {
 
         particle.velocity.x = -rand() * 2;
 
-        f.add(particle);
+        field.add(particle);
     }
-
 }
 
-function initPlanetarySystem(f) {
-    f.setScaleFactor(2);
-    f.setTimeStep(0.1);
-    SCALE_STEP = 0;
-
-    f.add(new Star(f.width / 2, f.height / 2, f.depth / 2, 1.9 * 10000000));
-
-    let xPos, yPos, zPos;
-    let planet;
-    let mass;
-
+function initPlanetarySystem() {
     const AU = 150;
     const EM = 5.9;
     const V_SCALE = 1;
 
+    field.setScaleFactor(2);
+    field.setTimeStep(0.1);
+    SCALE_STEP = 0;
 
-    planet = new Planet(f.width / 2 + AU * 0.38, f.height / 2, f.depth / 2, EM * 0.382);
+    field.add(new Star(field.width / 2, field.height / 2, field.depth / 2, 1.9 * 10000000));
+
+    let planet;
+    planet = new Planet(field.width / 2 + AU * 0.38, field.height / 2, field.depth / 2, EM * 0.382);
     planet.velocity.y = 0.4 * V_SCALE;
-    f.add(planet);
+    field.add(planet);
 
-    planet = new Planet(f.width / 2 + AU * 0.72, f.height / 2, f.depth / 2, EM * 0.815);
+    planet = new Planet(field.width / 2 + AU * 0.72, field.height / 2, field.depth / 2, EM * 0.815);
     planet.velocity.y = 0.3 * V_SCALE;
-    f.add(planet);
+    field.add(planet);
 
-    planet = new Planet(f.width / 2 + AU, f.height / 2, f.depth / 2, EM);
+    planet = new Planet(field.width / 2 + AU, field.height / 2, field.depth / 2, EM);
     planet.velocity.y = 0.3 * V_SCALE;
-    f.add(planet);
+    field.add(planet);
 
-    planet = new Planet(f.width / 2 + AU * 1.52, f.height / 2, f.depth / 2, EM * 0.107);
+    planet = new Planet(field.width / 2 + AU * 1.52, field.height / 2, field.depth / 2, EM * 0.107);
     planet.velocity.y = 0.2 * V_SCALE;
-    f.add(planet);
+    field.add(planet);
 
-    planet = new Planet(f.width / 2 + AU * 5.2, f.height / 2, f.depth / 2, EM * 318);
+    planet = new Planet(field.width / 2 + AU * 5.2, field.height / 2, field.depth / 2, EM * 318);
     planet.velocity.y = 0.1 * V_SCALE;
-    f.add(planet);
-
-
+    field.add(planet);
 }
 
-function initGas(f) {
-    f.setScaleFactor(0.01);
-    f.setTimeStep(0.1);
+function initGas() {
+    field.setScaleFactor(0.01);
+    field.setTimeStep(0.1);
     SCALE_STEP = 0.001;
 
-    const T = 2;
-
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 1000; i += 1) {
         const chance = rand();
 
-        const xPos = rand(-f.center.x, f.center.x);
-        const yPos = rand(-f.center.y, f.center.y);
-        const zPos = rand(-f.center.z, f.center.z);
+        const xPos = rand(-field.center.x, field.center.x);
+        const yPos = rand(-field.center.y, field.center.y);
+        const zPos = rand(-field.center.z, field.center.z);
 
         let particle;
 
@@ -213,19 +203,19 @@ function initGas(f) {
             particle = new DarkParticle(xPos, yPos, zPos);
         }
 
-        f.add(particle);
+        field.add(particle);
     }
 }
 
-function initParticles(f) {
-    f.setScaleFactor(0.1);
+function initParticles() {
+    field.setScaleFactor(0.1);
     SCALE_STEP = 0;
 
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 1000; i += 1) {
         const chance = rand();
-        const xPos = Math.round(rand() * f.width);
-        const yPos = Math.round(rand() * f.height);
-        const zPos = Math.round(rand() * f.depth);
+        const xPos = Math.round(rand() * field.width);
+        const yPos = Math.round(rand() * field.height);
+        const zPos = Math.round(rand() * field.depth);
 
         let particle;
 
@@ -239,41 +229,41 @@ function initParticles(f) {
         particle.velocity.y = rand() * 0.2 - 0.1;
         particle.velocity.z = rand() * 0.2 - 0.1;
 
-        f.add(particle);
+        field.add(particle);
     }
 }
 
-function initVelocityTest(f) {
-    f.setScaleFactor(0.1);
-    f.setTimeStep(0.01);
-    f.drawPaths = true;
-    f.useCollide = false;
+function initVelocityTest() {
+    field.setScaleFactor(0.1);
+    field.setTimeStep(0.01);
+    field.drawPaths = true;
+    field.useCollide = false;
     SCALE_STEP = 0;
 
-    f.add(new Star(0, 0, 0, 100000000000));
+    field.add(new Star(0, 0, 0, 100000000000));
 
-    f.add(new Star(-f.width / 2 + 10, -f.height / 2 + 10, 0, 1000));
-    f.add(new Star(-f.width / 2 + 10, -f.height / 2 + 100, 100, 10000));
-    f.add(new Star(-f.width / 2 + 10, -f.height / 2 + 200, 200, 100000));
-    f.add(new Star(-f.width / 2 + 10, -f.height / 2 + 300, 300, 1000000));
+    field.add(new Star(-field.width / 2 + 10, -field.height / 2 + 10, 0, 1000));
+    field.add(new Star(-field.width / 2 + 10, -field.height / 2 + 100, 100, 10000));
+    field.add(new Star(-field.width / 2 + 10, -field.height / 2 + 200, 200, 100000));
+    field.add(new Star(-field.width / 2 + 10, -field.height / 2 + 300, 300, 1000000));
 }
 
-function initDepthTest(f) {
+function initDepthTest() {
     const D = 1;
 
-    f.add(new Star(D, D, D));
-    f.add(new Star(f.width - D, D, D));
-    f.add(new Star(D, f.height - D, D));
-    f.add(new Star(D, D, f.depth - D));
-    f.add(new Star(D, f.height - D, f.depth - D));
-    f.add(new Star(f.width - D, D, f.depth - D));
-    f.add(new Star(f.width - D, f.height - D, D));
-    f.add(new Star(f.width - D, f.height - D, f.depth - D));
+    field.add(new Star(D, D, D));
+    field.add(new Star(field.width - D, D, D));
+    field.add(new Star(D, field.height - D, D));
+    field.add(new Star(D, D, field.depth - D));
+    field.add(new Star(D, field.height - D, field.depth - D));
+    field.add(new Star(field.width - D, D, field.depth - D));
+    field.add(new Star(field.width - D, field.height - D, D));
+    field.add(new Star(field.width - D, field.height - D, field.depth - D));
 }
 
-function drawMaxVelocity(f) {
-    const frame = f.context2d.createImageData(f.width, f.height);
-    const yF = (y) => f.height - y;
+function drawMaxVelocity() {
+    const frame = field.context2d.createImageData(field.width, field.height);
+    const yF = (y) => field.height - y;
 
     const MAX_SPEED = 300;
     const scaleFactor = 3;
@@ -281,61 +271,24 @@ function drawMaxVelocity(f) {
     const relVelocity = (velocity) => c * Math.tanh(velocity / c);
 
     for (let x = 0; x < 1000; x += 1) {
-        let v = x;
-        f.putPixel(frame, x, yF(v), 128, 255, 128, 255);
-        f.putPixel(frame, x, yF(c), 128, 255, 128, 255);
-        let y = relVelocity(v);
-        f.putPixel(frame, x, yF(y), 255, 128, 80, 255);
+        const v = x;
+        field.putPixel(frame, x, yF(v), 128, 255, 128, 255);
+        field.putPixel(frame, x, yF(c), 128, 255, 128, 255);
+        const y = relVelocity(v);
+        field.putPixel(frame, x, yF(y), 255, 128, 80, 255);
     }
 
-    f.context2d.putImageData(frame, 0, 0);
-}
-
-function createCube(width, height, depth) {
-    const hw = width / 2;
-    const hh = height / 2;
-    const hd = depth / 2;
-
-    return {
-        vertices: [
-            new Vector(-hw, hh, -hd),
-            new Vector(hw, hh, -hd),
-            new Vector(hw, hh, hd),
-            new Vector(-hw, hh, hd),
-            new Vector(-hw, -hh, -hd),
-            new Vector(hw, -hh, -hd),
-            new Vector(hw, -hh, hd),
-            new Vector(-hw, -hh, hd),
-        ],
-        edges: [
-            [0, 1],
-            [1, 2],
-            [2, 3],
-            [3, 0],
-            [0, 4],
-            [1, 5],
-            [2, 6],
-            [3, 7],
-            [4, 5],
-            [5, 6],
-            [6, 7],
-            [7, 4],
-        ],
-    };
+    field.context2d.putImageData(frame, 0, 0);
 }
 
 function draw3D(canvas) {
-    let ALPHA = 0.1;//-Math.PI / 8;
-    let BETA = 0;//Math.PI / 8;
-    let GAMMA = 0;
-
-    const DIST = 1000;       /* Distance from camera to canvas */
-    const Z_SHIFT = 0;    /* Distance from canvas to z=0 plane */
+    const DIST = 1000; /* Distance from camera to canvas */
+    const Z_SHIFT = 0; /* Distance from canvas to z=0 plane */
     const HH = canvas.height / 2;
     const HW = canvas.width / 2;
 
-    const yF = (v) => HH - DIST * (HH - v.y) / (DIST + v.z + Z_SHIFT);
-    const xF = (v) => HW - DIST * (HW - v.x) / (DIST + v.z + Z_SHIFT);
+    const yF = (v) => HH - (DIST * (HH - v.y)) / (DIST + v.z + Z_SHIFT);
+    const xF = (v) => HW - (DIST * (HW - v.x)) / (DIST + v.z + Z_SHIFT);
 
     const CUBE_X = 500;
     const CUBE_Y = 100;
@@ -361,8 +314,6 @@ function draw3D(canvas) {
     };
 
     const update3dFrame = () => {
-        //ALPHA += 0.1;
-        BETA += 0.1;
         cube.rotate(0, 0.1, 0);
         draw3dFrame();
         setTimeout(() => update3dFrame(), 100);
@@ -399,6 +350,25 @@ function run() {
     setTimeout(update, 10);
 }
 
+function processRotation(a, b, g, pb) {
+    rotating = true;
+
+    if (updating) {
+        setTimeout(() => processRotation(a, b, g, pb), 10);
+    }
+
+    field.rotate(a, b, g);
+    field.drawFrame();
+
+    if (pb) {
+        render();
+    } else {
+        run();
+    }
+
+    rotating = false;
+}
+
 function onXRotate(e) {
     const pausedBefore = paused;
     pause();
@@ -432,25 +402,6 @@ function onZRotate(e) {
     processRotation(0, 0, delta, pausedBefore);
 }
 
-function processRotation(a, b, g, pb) {
-    rotating = true;
-
-    if (updating) {
-        setTimeout(() => processRotation(a, b, g, pb), 10);
-    }
-
-    field.rotate(a, b, g);
-    field.drawFrame();
-
-    if (pb) {
-        render();
-    } else {
-        run();
-    }
-
-    rotating = false;
-}
-
 function onToggleRun() {
     if (paused) {
         run();
@@ -481,18 +432,33 @@ function init() {
     toggleRunBtn = document.getElementById('toggleRunBtn');
     toggleRunBtn.addEventListener('click', onToggleRun);
 
-    if (0) {
-        //drawMaxVelocity(f);
-        draw3D(canvas);
-    } else {
+    const canvasDemos = {
+        maxVelocity: drawMaxVelocity,
+        cube: draw3D,
+    };
+
+    const fieldDemos = {
+        planetarySystem: initPlanetarySystem,
+        stars: initStars,
+        galaxies: initGalaxies,
+        gas: initGas,
+        particles: initParticles,
+        velocityTest: initVelocityTest,
+        depthTest: initDepthTest,
+    };
+
+    const demoType = 'field';
+    const runCanvasDemo = 'cube';
+    const runFieldDemo = 'gas';
+
+    if (demoType === 'canvas') {
+        const demo = canvasDemos[runCanvasDemo];
+        demo(canvas);
+    } else if (demoType === 'field') {
         field = new Field(canvas, INITIAL_SCALE, dt);
-        //initPlanetarySystem(field);
-        //initStars(field);
-        //initGalaxies(field);
-        initGas(field);
-        //initParticles(field);
-        //initVelocityTest(field);
-        //initDepthTest(field);
+
+        const demoInit = fieldDemos[runFieldDemo];
+        demoInit();
 
         field.drawFrame();
 
@@ -502,7 +468,6 @@ function init() {
             run();
         }
     }
-
 }
 
 document.addEventListener('DOMContentLoaded', init);
