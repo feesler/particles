@@ -37,6 +37,8 @@ export class Field {
         this.restoreCollided = true;
         this.useSoftening = false;
         this.SOFTENING = 2;
+        this.addInstantly = true;
+        this.newParticles = [];
 
         this.rotation = {
             alpha: 0,
@@ -193,13 +195,25 @@ export class Field {
         this.timeStep = timeStep;
     }
 
-    /* Add particle */
-    add(q) {
-        if (!(q instanceof Particle)) {
+    /** Add particle */
+    add(particle) {
+        if (!(particle instanceof Particle)) {
             return;
         }
 
-        this.particles.push(q);
+        if (this.addInstantly) {
+            this.particles.push(particle);
+        } else {
+            this.newParticles.push(particle);
+        }
+    }
+
+    push(particle) {
+        if (!(particle instanceof Particle)) {
+            return;
+        }
+
+        this.particles.push(particle);
     }
 
     force(particle, index) {
@@ -435,9 +449,18 @@ export class Field {
     }
 
     calculate() {
+        if (!this.addInstantly) {
+            this.newParticles = [];
+        }
+
         this.particles.forEach((p) => p.resetForce());
         this.particles.forEach((p, ind) => this.force(p, ind));
         this.particles = this.particles.filter((p) => !p.removed);
+
+        if (!this.addInstantly) {
+            this.particles.push(...this.newParticles);
+        }
+
         this.particles.forEach((p) => this.applyForce(p));
     }
 }

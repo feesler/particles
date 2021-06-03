@@ -99,7 +99,7 @@ function initStars() {
             particle = new Planet(xPos, yPos, zPos, mass);
         }
 
-        field.add(particle);
+        field.push(particle);
     }
 }
 
@@ -136,7 +136,7 @@ function initGalaxies() {
 
         particle.velocity.x = rand() * 2;
 
-        field.add(particle);
+        field.push(particle);
     }
 
     for (let i = 0; i < 500; i += 1) {
@@ -157,7 +157,7 @@ function initGalaxies() {
 
         particle.velocity.x = -rand() * 2;
 
-        field.add(particle);
+        field.push(particle);
     }
 }
 
@@ -170,28 +170,28 @@ function initPlanetarySystem() {
     field.setTimeStep(0.1);
     SCALE_STEP = 0;
 
-    field.add(new Star(field.width / 2, field.height / 2, field.depth / 2, 1.9 * 10000000));
+    field.push(new Star(field.width / 2, field.height / 2, field.depth / 2, 1.9 * 10000000));
 
     let planet;
     planet = new Planet(field.width / 2 + AU * 0.38, field.height / 2, field.depth / 2, EM * 0.382);
     planet.velocity.y = 0.4 * V_SCALE;
-    field.add(planet);
+    field.push(planet);
 
     planet = new Planet(field.width / 2 + AU * 0.72, field.height / 2, field.depth / 2, EM * 0.815);
     planet.velocity.y = 0.3 * V_SCALE;
-    field.add(planet);
+    field.push(planet);
 
     planet = new Planet(field.width / 2 + AU, field.height / 2, field.depth / 2, EM);
     planet.velocity.y = 0.3 * V_SCALE;
-    field.add(planet);
+    field.push(planet);
 
     planet = new Planet(field.width / 2 + AU * 1.52, field.height / 2, field.depth / 2, EM * 0.107);
     planet.velocity.y = 0.2 * V_SCALE;
-    field.add(planet);
+    field.push(planet);
 
     planet = new Planet(field.width / 2 + AU * 5.2, field.height / 2, field.depth / 2, EM * 318);
     planet.velocity.y = 0.1 * V_SCALE;
-    field.add(planet);
+    field.push(planet);
 }
 
 function initGas() {
@@ -215,7 +215,7 @@ function initGas() {
             particle = new DarkParticle(xPos, yPos, zPos);
         }
 
-        field.add(particle);
+        field.push(particle);
     }
 }
 
@@ -224,6 +224,7 @@ function initParticles() {
 
     field.setScaleFactor(0.0001);
     field.setTimeStep(0.1);
+    field.addInstantly = true;
     SCALE_STEP = 0;
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
@@ -244,7 +245,7 @@ function initParticles() {
         particle.velocity.y = rand(-0.1, 0.1);
         particle.velocity.z = rand(-0.1, 0.1);
 
-        field.add(particle);
+        field.push(particle);
     }
 }
 
@@ -255,25 +256,25 @@ function initVelocityTest() {
     field.useCollide = false;
     SCALE_STEP = 0;
 
-    field.add(new Star(0, 0, 0, 100000000000));
+    field.push(new Star(0, 0, 0, 100000000000));
 
-    field.add(new Star(-field.width / 2 + 10, -field.height / 2 + 10, 0, 1000));
-    field.add(new Star(-field.width / 2 + 10, -field.height / 2 + 100, 100, 10000));
-    field.add(new Star(-field.width / 2 + 10, -field.height / 2 + 200, 200, 100000));
-    field.add(new Star(-field.width / 2 + 10, -field.height / 2 + 300, 300, 1000000));
+    field.push(new Star(-field.width / 2 + 10, -field.height / 2 + 10, 0, 1000));
+    field.push(new Star(-field.width / 2 + 10, -field.height / 2 + 100, 100, 10000));
+    field.push(new Star(-field.width / 2 + 10, -field.height / 2 + 200, 200, 100000));
+    field.push(new Star(-field.width / 2 + 10, -field.height / 2 + 300, 300, 1000000));
 }
 
 function initDepthTest() {
     const D = 1;
 
-    field.add(new Star(D, D, D));
-    field.add(new Star(field.width - D, D, D));
-    field.add(new Star(D, field.height - D, D));
-    field.add(new Star(D, D, field.depth - D));
-    field.add(new Star(D, field.height - D, field.depth - D));
-    field.add(new Star(field.width - D, D, field.depth - D));
-    field.add(new Star(field.width - D, field.height - D, D));
-    field.add(new Star(field.width - D, field.height - D, field.depth - D));
+    field.push(new Star(D, D, D));
+    field.push(new Star(field.width - D, D, D));
+    field.push(new Star(D, field.height - D, D));
+    field.push(new Star(D, D, field.depth - D));
+    field.push(new Star(D, field.height - D, field.depth - D));
+    field.push(new Star(field.width - D, D, field.depth - D));
+    field.push(new Star(field.width - D, field.height - D, D));
+    field.push(new Star(field.width - D, field.height - D, field.depth - D));
 }
 
 function drawMaxVelocity() {
