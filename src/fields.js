@@ -220,9 +220,10 @@ function initGas() {
 }
 
 function initParticles() {
-    const PARTICLES_COUNT = 10;
+    const PARTICLES_COUNT = 200;
 
-    field.setScaleFactor(0.1);
+    field.setScaleFactor(0.0001);
+    field.setTimeStep(0.1);
     SCALE_STEP = 0;
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
@@ -233,7 +234,7 @@ function initParticles() {
 
         let particle;
 
-        if (chance > 0.7) {
+        if (chance > 0.5) {
             particle = new Proton(xPos, yPos, zPos);
         } else {
             particle = new Electron(xPos, yPos, zPos);
@@ -465,7 +466,7 @@ function init() {
 
     const demoType = 'field';
     const runCanvasDemo = 'cube';
-    const runFieldDemo = 'gas';
+    const runFieldDemo = 'particles';
 
     if (demoType === 'canvas') {
         const demo = canvasDemos[runCanvasDemo];

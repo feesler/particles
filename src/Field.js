@@ -6,13 +6,14 @@ import { Vector } from './Vector.js';
 import { Quantum } from './particles/Quantum.js';
 import { Planet } from './particles/Planet.js';
 import { rand } from './utils.js';
+import { Photon } from './particles/Photon.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
-const MAX_SPEED = 150;
+const MAX_SPEED = 50;
 const DEPTH = 2000;
-const MIN_DISTANCE = 0.05;
-const BORDER_LOSS = 0.8;
+const MIN_DISTANCE = 0.00005;
+const BORDER_LOSS = 0.1;
 
 export class Field {
     constructor(canvas, scaleFactor, timeStep) {
@@ -130,9 +131,9 @@ export class Field {
                 y0,
                 x1,
                 y1,
-                128,
-                128,
-                255,
+                particle.color.r,
+                particle.color.g,
+                particle.color.b,
                 255,
             );
 
@@ -184,7 +185,7 @@ export class Field {
 
     setScaleFactor(scaleFactor) {
         this.scaleFactor = scaleFactor;
-        this.maxVelocity = MAX_SPEED / scaleFactor;
+        this.maxVelocity = (scaleFactor < 1) ? MAX_SPEED : (MAX_SPEED / scaleFactor);
         this.minDistance = MIN_DISTANCE / scaleFactor;
     }
 
@@ -296,6 +297,42 @@ export class Field {
     }
 
     resolveQuants(A, B) {
+        const isAPhoton = A instanceof Photon;
+        const isBPhoton = B instanceof Photon;
+
+        if (isAPhoton && isBPhoton) {
+            return false;
+        }
+
+        if ((isAPhoton && !isBPhoton) || (!isAPhoton && isBPhoton)) {
+            const photon = (isAPhoton) ? A : B;
+            const particle = (isAPhoton) ? B : A;
+
+            particle.velocity.add(photon.velocity);
+            this.fixVelocity(particle);
+
+            photon.remove();
+        }
+
+        if (!isAPhoton && !isBPhoton) {
+            const dist = A.pos.copy();
+            dist.substract(B.pos);
+
+            const photon = new Photon(A.pos.x, A.pos.y, A.pos.z);
+            photon.velocity.set(dist);
+            this.add(photon);
+
+
+            const chance = rand();
+            if (chance > 0) {
+                const sPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
+                sPhoton.velocity.set(dist);
+                sPhoton.velocity.multiplyByScalar(-1);
+                this.add(sPhoton);
+            }
+
+        }
+
         return false;
     }
 
@@ -375,10 +412,16 @@ export class Field {
     applyForce(particle) {
         const { velocity, force } = particle;
 
-        const scalar = this.timeStep / particle.m;
-        velocity.addScaled(force, scalar);
+        if (particle.m === 0) {
+            velocity.add(force);
+            velocity.normalize();
+            velocity.multiplyByScalar(this.maxVelocity);
+        } else {
+            const scalar = this.timeStep / particle.m;
+            velocity.addScaled(force, scalar);
+            this.fixVelocity(particle);
+        }
 
-        this.fixVelocity(particle);
         this.borderCondition(particle);
     }
 
