@@ -89,7 +89,10 @@ export class Vector {
     }
 
     normalize() {
-        this.divideByScalar(this.getLength());
+        const length = this.getLength();
+        if (length !== 0) {
+            this.divideByScalar(length);
+        }
     }
 
     reflect(normale, loss = 1) {
