@@ -31,7 +31,7 @@ export class Field {
         this.DIST = 1000;
         this.Z_SHIFT = 0;
 
-        this.drawPaths = false;
+        this.drawAllPaths = false;
         this.useCollide = true;
         this.restoreCollided = true;
         this.useSoftening = false;
@@ -170,7 +170,7 @@ export class Field {
                 Math.round(255 * (this.depth / p.z)),
             );
 
-            if (this.drawPaths) {
+            if (this.drawAllPaths || particle.drawPath) {
                 this.drawParticlePath(frame, particle);
             }
         }
@@ -339,7 +339,7 @@ export class Field {
         const currentPos = new Vector();
         const destPos = new Vector();
 
-        if (this.drawPaths) {
+        if (this.drawAllPaths || particle.drawPath) {
             particle.resetPath();
         }
 
@@ -351,11 +351,11 @@ export class Field {
             const intersection = this.box.getIntersection(currentPos, destPos);
             if (!intersection) {
                 currentPos.add(remVelocity);
-                particle.setPos(currentPos, this.drawPaths);
+                particle.setPos(currentPos, this.drawAllPaths);
                 return;
             }
 
-            particle.setPos(intersection.point, this.drawPaths);
+            particle.setPos(intersection.point, this.drawAllPaths);
 
             remVelocity.set(destPos);
             remVelocity.substract(intersection.point);

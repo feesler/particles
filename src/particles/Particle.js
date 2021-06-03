@@ -9,6 +9,7 @@ export class Particle {
         this.m = m;
         this.charge = charge;
         this.r = 0;
+        this.drawPath = false;
         this.path = [];
 
         this.color = { r: 0xFF, g: 0xFF, b: 0xFF };
@@ -52,7 +53,7 @@ export class Particle {
     }
 
     setPos(pos, usePath = false) {
-        if (usePath) {
+        if (usePath || this.drawPath) {
             this.path.push(this.pos.copy());
         }
         this.pos.set(pos);
