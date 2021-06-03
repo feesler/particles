@@ -7,12 +7,14 @@ import { Quantum } from './particles/Quantum.js';
 import { Planet } from './particles/Planet.js';
 import { rand } from './utils.js';
 import { Photon } from './particles/Photon.js';
+import { Electron } from './particles/Electron.js';
+import { Positron } from './particles/Positron.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
 const MAX_SPEED = 50;
 const DEPTH = 2000;
-const MIN_DISTANCE = 0.00005;
+const MIN_DISTANCE = 0.05;
 const BORDER_LOSS = 0.1;
 
 export class Field {
@@ -310,6 +312,16 @@ export class Field {
         return true;
     }
 
+    getOrthogonalTo(vector) {
+        const b0 = ((vector.x < vector.y) && (vector.x < vector.z)) ? 1 : 0;
+        const b1 = ((vector.y <= vector.x) && (vector.y < vector.z)) ? 1 : 0;
+        const b2 = ((vector.z <= vector.x) && (vector.z <= vector.y)) ? 1 : 0;
+
+        const res = vector.copy();
+        res.crossProduct(new Vector(b0, b1, b2));
+        return res;
+    }
+
     resolveQuants(A, B) {
         const isAPhoton = A instanceof Photon;
         const isBPhoton = B instanceof Photon;
@@ -329,20 +341,37 @@ export class Field {
         }
 
         if (!isAPhoton && !isBPhoton) {
+            const isAElectron = A instanceof Electron;
+            const isBElectron = B instanceof Electron;
+
             const dist = A.pos.copy();
             dist.substract(B.pos);
 
-            const photon = new Photon(A.pos.x, A.pos.y, A.pos.z);
-            photon.velocity.set(dist);
-            this.add(photon);
+            if (
+                (isAElectron || isBElectron)
+                && (A instanceof Positron || B instanceof Positron)
+            ) {
+                const lPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
 
+                const photonVelocity = this.getOrthogonalTo(dist);
+                photonVelocity.normalize();
+                photonVelocity.multiplyByScalar(this.maxVelocity);
+                lPhoton.velocity.set(photonVelocity);
+                this.add(lPhoton);
 
-            const chance = rand();
-            if (chance > 0) {
-                const sPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
-                sPhoton.velocity.set(dist);
-                sPhoton.velocity.multiplyByScalar(-1);
-                this.add(sPhoton);
+                const rPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
+                rPhoton.velocity.set(lPhoton.velocity);
+                rPhoton.velocity.multiplyByScalar(-1);
+                this.add(rPhoton);
+
+                A.remove();
+                B.remove();
+            } else {
+                if (isAElectron || isBElectron) {
+                    const photon = new Photon(A.pos.x, A.pos.y, A.pos.z);
+                    photon.velocity.set(dist);
+                    this.add(photon);
+                }
             }
 
         }
@@ -362,6 +391,33 @@ export class Field {
         if (A instanceof Quantum && B instanceof Quantum) {
             return this.resolveQuants(A, B);
         }
+    }
+
+    spontaneous() {
+        const chance = rand();
+        if (chance < 0.2) {
+            return;
+        }
+
+        const pos = new Vector(
+            rand(-this.center.x, this.center.x),
+            rand(-this.center.y, this.center.y),
+            rand(-this.center.z, this.center.z),
+        );
+
+        this.rotateVector(pos, this.rotation.alpha, this.rotation.beta, this.rotation.gamma);
+
+        const negParticle = new Electron(pos.x, pos.y, pos.z);
+        negParticle.velocity.x = rand(0, this.maxVelocity);
+        negParticle.velocity.y = rand(0, this.maxVelocity);
+        negParticle.velocity.z = rand(0, this.maxVelocity);
+        this.fixVelocity(negParticle);
+        this.add(negParticle);
+
+        const posParticle = new Positron(pos.x, pos.y, pos.z);
+        posParticle.velocity.set(negParticle.velocity);
+        posParticle.velocity.multiplyByScalar(-1);
+        this.add(posParticle);
     }
 
     addNew() {
@@ -460,6 +516,8 @@ export class Field {
         if (!this.addInstantly) {
             this.particles.push(...this.newParticles);
         }
+
+        this.spontaneous();
 
         this.particles.forEach((p) => this.applyForce(p));
     }

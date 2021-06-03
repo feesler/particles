@@ -220,7 +220,7 @@ function initGas() {
 }
 
 function initParticles() {
-    const PARTICLES_COUNT = 200;
+    const PARTICLES_COUNT = 50;
 
     field.setScaleFactor(0.0001);
     field.setTimeStep(0.1);
