@@ -5,6 +5,7 @@ import { DarkParticle } from './particles/DarkParticle.js';
 import { Vector } from './Vector.js';
 import { Quantum } from './particles/Quantum.js';
 import { Planet } from './particles/Planet.js';
+import { rand } from './utils.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
@@ -314,9 +315,9 @@ export class Field {
 
     addNew() {
         const pos = new Vector(
-            Math.random() * this.width - (this.width / 2),
-            Math.random() * this.height - (this.height / 2),
-            Math.random() * this.depth - (this.depth / 2),
+            rand(-this.center.x, this.center.x),
+            rand(-this.center.y, this.center.y),
+            rand(-this.center.z, this.center.z),
         );
 
         this.rotateVector(pos, this.rotation.alpha, this.rotation.beta, this.rotation.gamma);
@@ -325,7 +326,7 @@ export class Field {
             pos.x,
             pos.y,
             pos.z,
-            Math.random() * 100000,
+            rand(100000, 1000000),
         ));
     }
 

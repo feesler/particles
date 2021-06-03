@@ -7,6 +7,7 @@ import { Planet } from './particles/Planet.js';
 import { DarkParticle } from './particles/DarkParticle.js';
 import { Field } from './Field.js';
 import { Box } from './Box.js';
+import { rand } from './utils.js';
 
 const animationDelay = 10;
 const INITIAL_SCALE = 0.1;
@@ -28,17 +29,6 @@ let rotating = false;
 const autoStart = false;
 const rotation = { alpha: 0, beta: 0, gamma: 0 };
 let field = null;
-
-const rand = (from = 0, to = 1) => {
-    const mfrom = Math.min(from, to);
-    const mto = Math.max(from, to);
-    const d = Math.abs(mto - mfrom);
-    if (d === 0) {
-        return mfrom;
-    }
-
-    return Math.random() * d + mfrom;
-};
 
 function render() {
     const sfText = field.scaleFactor.toFixed(3);

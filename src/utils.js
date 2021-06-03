@@ -13,3 +13,15 @@ export function intersectPlane(planePoint, planeNormal, linePoint, lineVector) {
     res.addScaled(lineNormalized, t);
     return res;
 }
+
+/** Returns random value in range [from, to) */
+export function rand(from = 0, to = 1) {
+    const mfrom = Math.min(from, to);
+    const mto = Math.max(from, to);
+    const d = Math.abs(mto - mfrom);
+    if (d === 0) {
+        return mfrom;
+    }
+
+    return Math.random() * d + mfrom;
+}
