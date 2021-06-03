@@ -128,6 +128,14 @@ export class Box {
     getIntersection(A, B) {
         const dp = {};
         const outAxes = [];
+
+        const direction = B.copy();
+        direction.substract(A);
+
+        if (direction.x === 0 && direction.y === 0 && direction.z === 0) {
+            return null;
+        }
+
         for (const axis of AXES) {
             dp[axis] = B.dotProduct(this.normals[axis]);
 
@@ -143,9 +151,6 @@ export class Box {
         if (!outAxes.length) {
             return null;
         }
-
-        const direction = B.copy();
-        direction.substract(A);
 
         if (outAxes.length > 1) {
             outAxes.sort((a, b) => a.out - b.out);
