@@ -44,6 +44,7 @@ export class Field {
         this.SOFTENING = 2;
         this.addInstantly = true;
         this.newParticles = [];
+        this.useSpontaneous = false;
 
         this.rotation = {
             alpha: 0,
@@ -566,8 +567,9 @@ export class Field {
         if (!this.addInstantly) {
             this.particles.push(...this.newParticles);
         }
-
-        this.spontaneous();
+        if (this.useSpontaneous) {
+            this.spontaneous();
+        }
 
         this.particles.forEach((p) => this.applyForce(p));
     }

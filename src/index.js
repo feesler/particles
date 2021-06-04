@@ -225,6 +225,7 @@ function initParticles() {
     field.setScaleFactor(0.0001);
     field.setTimeStep(0.1);
     field.addInstantly = true;
+    field.useSpontaneous = false;
     SCALE_STEP = 0;
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
