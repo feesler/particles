@@ -519,6 +519,10 @@ export class Field {
             particle.velocity.reflect(intersection.normal);
             particle.velocity.multiplyByScalar(BORDER_LOSS);
 
+            if (particle.type === PHOTON_TYPE) {
+                particle.reflect();
+            }
+
             if (!remVelocity.getLength()) {
                 break;
             }
