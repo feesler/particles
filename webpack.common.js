@@ -5,8 +5,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default {
-    mode: 'production',
-    target: ['web'],
+    target: ['web','es6'],
     entry: './src/index.js',
     output: {
         filename: 'index.js',

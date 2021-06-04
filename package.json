@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "eslint --quiet ./src/",
     "build": "webpack",
-    "serve": "webpack serve"
+    "serve": "webpack serve -c ./webpack.dev.js"
   },
   "repository": {
     "type": "git",
@@ -39,6 +39,7 @@
     "html-webpack-plugin": "^5.3.1",
     "webpack": "^5.38.1",
     "webpack-cli": "^4.7.0",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-dev-server": "^3.7.2",
+    "webpack-merge": "^5.7.3"
   }
 }
