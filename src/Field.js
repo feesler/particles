@@ -17,7 +17,8 @@ const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
 const MAX_SPEED = 50;
 const DEPTH = 2000;
-const MIN_DISTANCE = 0.05;
+const MIN_DISTANCE = 0.5;
+const MIN_HARD_DIST = 0.5;
 const BORDER_LOSS = 0.1;
 
 export class Field {
@@ -195,6 +196,7 @@ export class Field {
         this.scaleFactor = scaleFactor;
         this.maxVelocity = (scaleFactor < 1) ? MAX_SPEED : (MAX_SPEED / scaleFactor);
         this.minDistance = MIN_DISTANCE / scaleFactor;
+        this.minHardDistance = MIN_HARD_DIST / this.scaleFactor;
     }
 
     setTimeStep(timeStep) {
@@ -254,7 +256,7 @@ export class Field {
 
             if (this.useCollide) {
                 const rr = (particle.r + nq.r) / (2 * this.scaleFactor);
-                if (distLength - rr < MIN_DISTANCE / this.scaleFactor) {
+                if (distLength - rr < this.minDistance) {
                     const collideResult = this.collide(particle, nq);
                     if (particle.removed) {
                         return;
