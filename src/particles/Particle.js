@@ -9,6 +9,7 @@ export class Particle {
         this.m = m;
         this.charge = charge;
         this.r = 0;
+        this.type = 0;
         this.drawPath = false;
         this.path = [];
 

@@ -9,6 +9,9 @@ import { rand } from './utils.js';
 import { Photon } from './particles/Photon.js';
 import { Electron } from './particles/Electron.js';
 import { Positron } from './particles/Positron.js';
+import { Proton } from './particles/Proton.js';
+import { Gluon } from './particles/Gluon.js';
+import { ELECTRON_TYPE, GLUON_TYPE, NEUTRON_TYPE, PHOTON_TYPE, POSITRON_TYPE, PROTON_TYPE } from './particles/types.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
@@ -322,15 +325,43 @@ export class Field {
         return res;
     }
 
-    resolveQuants(A, B) {
-        const isAPhoton = A instanceof Photon;
-        const isBPhoton = B instanceof Photon;
+    annihilate(A, B) {
+        const dist = A.pos.copy();
+        dist.substract(B.pos);
 
+        const lPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
+
+        const photonVelocity = this.getOrthogonalTo(dist);
+        photonVelocity.normalize();
+        photonVelocity.multiplyByScalar(this.maxVelocity);
+        lPhoton.velocity.set(photonVelocity);
+        this.add(lPhoton);
+
+        const rPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
+        rPhoton.velocity.set(lPhoton.velocity);
+        rPhoton.velocity.multiplyByScalar(-1);
+        this.add(rPhoton);
+
+        A.remove();
+        B.remove();
+
+        return false;
+    }
+
+    resolveQuants(A, B) {
+        const isAPhoton = A.type === PHOTON_TYPE;
+        const isBPhoton = B.type === PHOTON_TYPE;
+
+        // Photons does not interact
         if (isAPhoton && isBPhoton) {
             return false;
         }
 
-        if ((isAPhoton && !isBPhoton) || (!isAPhoton && isBPhoton)) {
+        const isAElectron = A.type === ELECTRON_TYPE;
+        const isBElectron = B.type === ELECTRON_TYPE;
+
+        // Photon is absorbed by particle
+        if ((isAPhoton && B.charge !== 0) || (isBPhoton && A.charge !== 0)) {
             const photon = (isAPhoton) ? A : B;
             const particle = (isAPhoton) ? B : A;
 
@@ -338,42 +369,57 @@ export class Field {
             this.fixVelocity(particle);
 
             photon.remove();
+
+            return false;
         }
 
-        if (!isAPhoton && !isBPhoton) {
-            const isAElectron = A instanceof Electron;
-            const isBElectron = B instanceof Electron;
+        // Electron and positron are annihilates
+        if (
+            (isAElectron || isBElectron)
+            && (A.type === POSITRON_TYPE || B.type === POSITRON_TYPE)
+        ) {
+            return this.annihilate(A, B);
+        }
 
-            const dist = A.pos.copy();
-            dist.substract(B.pos);
+        const dist = A.pos.copy();
+        dist.substract(B.pos);
 
-            if (
-                (isAElectron || isBElectron)
-                && (A instanceof Positron || B instanceof Positron)
-            ) {
-                const lPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
+        // Electron emits photon
+        if (isAElectron && isBElectron) {
+            const photon = new Photon(A.pos.x, A.pos.y, A.pos.z);
+            photon.velocity.set(dist);
+            this.add(photon);
 
-                const photonVelocity = this.getOrthogonalTo(dist);
-                photonVelocity.normalize();
-                photonVelocity.multiplyByScalar(this.maxVelocity);
-                lPhoton.velocity.set(photonVelocity);
-                this.add(lPhoton);
+            return false;
+        }
 
-                const rPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
-                rPhoton.velocity.set(lPhoton.velocity);
-                rPhoton.velocity.multiplyByScalar(-1);
-                this.add(rPhoton);
+        const isAGluon = A.type === GLUON_TYPE;
+        const isBGluon = B.type === GLUON_TYPE;
+        const isAHadron = A.type === PROTON_TYPE || A.type === NEUTRON_TYPE;
+        const isBHadron = B.type === PROTON_TYPE || B.type === NEUTRON_TYPE;
 
-                A.remove();
-                B.remove();
-            } else {
-                if (isAElectron || isBElectron) {
-                    const photon = new Photon(A.pos.x, A.pos.y, A.pos.z);
-                    photon.velocity.set(dist);
-                    this.add(photon);
-                }
+        const md2 = this.minHardDistance * this.minHardDistance;
+
+        const d2 = dist.getLengthSquare();
+        if (d2 < md2) {
+
+            // Gluons interacts with each other and with hardons
+            if ((isAGluon || isBGluon) && (isAHadron || isBHadron)) {
+                const gluon = (isAGluon) ? A : B;
+                const particle = (isAGluon) ? B : A;
+
+                particle.velocity.add(gluon.velocity);
+
+                gluon.remove();
+                return true;
             }
 
+            if (isAHadron && isBHadron) {
+                const gluon = new Gluon(A.pos.x, A.pos.y, A.pos.z);
+                gluon.velocity.set(dist);
+                this.add(gluon);
+                return true;
+            }
         }
 
         return false;
