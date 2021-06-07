@@ -1,85 +1,22 @@
-import { Canvas } from './Canvas.js';
 import { Vector } from './Vector.js';
 import { Proton } from './particles/Proton.js';
 import { Electron } from './particles/Electron.js';
 import { Star } from './particles/Star.js';
 import { Planet } from './particles/Planet.js';
 import { DarkParticle } from './particles/DarkParticle.js';
-import { Field } from './Field.js';
 import { Box } from './Box.js';
 import { rand } from './utils.js';
+import { MainView } from './MainView.js';
 
-const animationDelay = 10;
-const INITIAL_SCALE = 0.1;
-let SCALE_STEP = 0.01;
-const dt = 0.1;
-
-let scaleFactorElem = null;
-let scaleFactorInp = null;
-let countElem = null;
-let perfElem = null;
-let perfValue = 0;
-let xRotationText = null;
-let yRotationText = null;
-let zRotationText = null;
-let toggleRunBtn = null;
-let paused = true;
-let updating = false;
-let rotating = false;
-const autoStart = false;
-const rotation = { alpha: 0, beta: 0, gamma: 0 };
-let field = null;
-
-function render() {
-    const sfText = field.scaleFactor.toFixed(3);
-    const sfValue = parseFloat(sfText);
-
-    scaleFactorElem.textContent = sfText;
-    scaleFactorInp.value = sfValue;
-    countElem.textContent = field.particles.length;
-    perfElem.textContent = perfValue;
-
-    toggleRunBtn.textContent = (paused) ? 'Run' : 'Pause';
-
-    xRotationText.textContent = rotation.alpha.toFixed(2);
-    yRotationText.textContent = rotation.beta.toFixed(2);
-    zRotationText.textContent = rotation.gamma.toFixed(2);
-}
-
-function update() {
-    if (rotating || paused) {
-        return;
-    }
-
-    updating = true;
-
-    const pBefore = performance.now();
-
-    field.calculate();
-    field.drawFrame();
-    if (SCALE_STEP !== 0) {
-        field.setScaleFactor(field.scaleFactor + SCALE_STEP);
-    }
-
-    perfValue = Math.round(performance.now() - pBefore);
-
-    render();
-
-    if (!paused) {
-        setTimeout(update, animationDelay);
-    }
-
-    updating = false;
-}
-
-function initStars() {
+function initStars(view) {
     const PARTICLES_COUNT = 2000;
+    const { field } = view;
 
     field.setScaleFactor(0.1);
     field.setTimeStep(0.1);
     field.useCollide = false;
     field.useSoftening = false;
-    SCALE_STEP = 0.01;
+    view.setScaleStep(0.01);
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
@@ -103,14 +40,15 @@ function initStars() {
     }
 }
 
-function initGalaxies() {
+function initGalaxies(view) {
     const G_SIZE_LEFT = 150;
     const G_SIZE_RIGHT = 80;
+    const { field } = view;
 
     field.setScaleFactor(4);
     field.setTimeStep(0.1);
     field.useCollide = false;
-    SCALE_STEP = 0.01;
+    view.setScaleStep(0.01);
 
     const leftPos = new Vector(-field.width / 4, 0, 0);
     const rightPos = new Vector(field.width / 4, 0, 0);
@@ -161,14 +99,15 @@ function initGalaxies() {
     }
 }
 
-function initPlanetarySystem() {
+function initPlanetarySystem(view) {
     const AU = 150;
     const EM = 5.9;
     const V_SCALE = 1;
+    const { field } = view;
 
     field.setScaleFactor(2);
     field.setTimeStep(0.1);
-    SCALE_STEP = 0;
+    view.setScaleStep(0);
 
     field.push(new Star(field.width / 2, field.height / 2, field.depth / 2, 1.9 * 10000000));
 
@@ -194,12 +133,13 @@ function initPlanetarySystem() {
     field.push(planet);
 }
 
-function initGas() {
+function initGas(view) {
     const PARTICLES_COUNT = 2000;
+    const { field } = view;
 
     field.setScaleFactor(0.01);
     field.setTimeStep(0.1);
-    SCALE_STEP = 0.001;
+    view.setScaleStep(0.001);
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
@@ -219,14 +159,15 @@ function initGas() {
     }
 }
 
-function initParticles() {
+function initParticles(view) {
     const PARTICLES_COUNT = 50;
+    const { field } = view;
 
     field.setScaleFactor(0.0001);
     field.setTimeStep(0.1);
     field.addInstantly = true;
     field.useSpontaneous = false;
-    SCALE_STEP = 0;
+    view.setScaleStep(0);
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
@@ -250,12 +191,14 @@ function initParticles() {
     }
 }
 
-function initVelocityTest() {
+function initVelocityTest(view) {
+    const { field } = view;
+
     field.setScaleFactor(0.1);
     field.setTimeStep(0.01);
     field.drawPaths = true;
     field.useCollide = false;
-    SCALE_STEP = 0;
+    view.setScaleStep(0);
 
     field.push(new Star(0, 0, 0, 100000000000));
 
@@ -265,7 +208,8 @@ function initVelocityTest() {
     field.push(new Star(-field.width / 2 + 10, -field.height / 2 + 300, 300, 1000000));
 }
 
-function initDepthTest() {
+function initDepthTest(view) {
+    const { field } = view;
     const D = 1;
 
     field.push(new Star(D, D, D));
@@ -278,9 +222,11 @@ function initDepthTest() {
     field.push(new Star(field.width - D, field.height - D, field.depth - D));
 }
 
-function drawMaxVelocity() {
-    const frame = field.context2d.createImageData(field.width, field.height);
-    const yF = (y) => field.height - y;
+function drawMaxVelocity(view) {
+    const frame = view.canvas.createFrame();
+    const { height } = view.canvas;
+
+    const yF = (y) => height - y;
 
     const MAX_SPEED = 300;
     const scaleFactor = 3;
@@ -289,16 +235,18 @@ function drawMaxVelocity() {
 
     for (let x = 0; x < 1000; x += 1) {
         const v = x;
-        field.putPixel(frame, x, yF(v), 128, 255, 128, 255);
-        field.putPixel(frame, x, yF(c), 128, 255, 128, 255);
+        frame.putPixel(x, yF(v), 128, 255, 128, 255);
+        frame.putPixel(x, yF(c), 128, 255, 128, 255);
         const y = relVelocity(v);
-        field.putPixel(frame, x, yF(y), 255, 128, 80, 255);
+        frame.putPixel(x, yF(y), 255, 128, 80, 255);
     }
 
-    field.context2d.putImageData(frame, 0, 0);
+    view.canvas.drawFrame(frame);
 }
 
-function draw3D(canvas) {
+function draw3D(view) {
+    const { canvas } = view;
+
     const DIST = 1000; /* Distance from camera to canvas */
     const Z_SHIFT = 0; /* Distance from canvas to z=0 plane */
     const HH = canvas.height / 2;
@@ -340,153 +288,32 @@ function draw3D(canvas) {
     setTimeout(() => update3dFrame(), 100);
 }
 
-function pause() {
-    if (paused) {
-        return;
-    }
+const canvasDemos = {
+    maxVelocity: drawMaxVelocity,
+    cube: draw3D,
+};
 
-    paused = true;
-    render();
+const fieldDemos = {
+    planetarySystem: initPlanetarySystem,
+    stars: initStars,
+    galaxies: initGalaxies,
+    gas: initGas,
+    particles: initParticles,
+    velocityTest: initVelocityTest,
+    depthTest: initDepthTest,
+};
+
+const demoType = 'field';
+const runCanvasDemo = 'cube';
+const runFieldDemo = 'particles';
+
+let demo;
+if (demoType === 'canvas') {
+    demo = canvasDemos[runCanvasDemo];
+} else if (demoType === 'field') {
+    demo = fieldDemos[runFieldDemo];
 }
 
-function run() {
-    if (!paused) {
-        return;
-    }
-
-    paused = false;
-    render();
-    setTimeout(update, 10);
-}
-
-function onScale(e) {
-    const val = parseFloat(e.target.value);
-
-    field.setScaleFactor(val);
-    render();
-}
-
-function processRotation(a, b, g, pb) {
-    rotating = true;
-
-    if (updating) {
-        setTimeout(() => processRotation(a, b, g, pb), 10);
-    }
-
-    field.rotate(a, b, g);
-    field.drawFrame();
-
-    if (pb) {
-        render();
-    } else {
-        run();
-    }
-
-    rotating = false;
-}
-
-function onXRotate(e) {
-    const pausedBefore = paused;
-    pause();
-
-    const val = parseFloat(e.target.value);
-    const delta = val - rotation.alpha;
-    rotation.alpha = val;
-
-    processRotation(delta, 0, 0, pausedBefore);
-}
-
-function onYRotate(e) {
-    const pausedBefore = paused;
-    pause();
-
-    const val = parseFloat(e.target.value);
-    const delta = val - rotation.beta;
-    rotation.beta = val;
-
-    processRotation(0, delta, 0, pausedBefore);
-}
-
-function onZRotate(e) {
-    const pausedBefore = paused;
-    pause();
-
-    const val = parseFloat(e.target.value);
-    const delta = val - rotation.gamma;
-    rotation.gamma = val;
-
-    processRotation(0, 0, delta, pausedBefore);
-}
-
-function onToggleRun() {
-    if (paused) {
-        run();
-    } else {
-        pause();
-    }
-}
-
-function init() {
-    const canvas = new Canvas(document.getElementById('cnv'));
-
-    scaleFactorInp = document.getElementById('scaleFactorInp');
-    scaleFactorInp.addEventListener('input', onScale);
-    scaleFactorElem = document.getElementById('scalefactor');
-
-    countElem = document.getElementById('particlescount');
-    perfElem = document.getElementById('perfvalue');
-
-    const xRotationInp = document.getElementById('xRotationInp');
-    xRotationInp.addEventListener('input', onXRotate);
-    xRotationText = document.getElementById('xrotate');
-
-    const yRotationInp = document.getElementById('yRotationInp');
-    yRotationInp.addEventListener('input', onYRotate);
-    yRotationText = document.getElementById('yrotate');
-
-    const zRotationInp = document.getElementById('zRotationInp');
-    zRotationInp.addEventListener('input', onZRotate);
-    zRotationText = document.getElementById('zrotate');
-
-    toggleRunBtn = document.getElementById('toggleRunBtn');
-    toggleRunBtn.addEventListener('click', onToggleRun);
-
-    const canvasDemos = {
-        maxVelocity: drawMaxVelocity,
-        cube: draw3D,
-    };
-
-    const fieldDemos = {
-        planetarySystem: initPlanetarySystem,
-        stars: initStars,
-        galaxies: initGalaxies,
-        gas: initGas,
-        particles: initParticles,
-        velocityTest: initVelocityTest,
-        depthTest: initDepthTest,
-    };
-
-    const demoType = 'field';
-    const runCanvasDemo = 'cube';
-    const runFieldDemo = 'particles';
-
-    if (demoType === 'canvas') {
-        const demo = canvasDemos[runCanvasDemo];
-        demo(canvas);
-    } else if (demoType === 'field') {
-        field = new Field(canvas, INITIAL_SCALE, dt);
-
-        const demoInit = fieldDemos[runFieldDemo];
-        demoInit();
-
-        field.drawFrame();
-
-        render();
-
-        if (autoStart) {
-            run();
-        }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', init);
+window.view = new MainView({
+    demo,
+});
