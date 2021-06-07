@@ -13,7 +13,7 @@ export class Photon extends Quantum {
     }
 
     reflect() {
-        this.reflectCount++;
+        this.reflectCount += 1;
         if (this.reflectCount > PHOTON_REFLECT_LIMIT) {
             this.remove();
         }

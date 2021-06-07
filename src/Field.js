@@ -9,9 +9,15 @@ import { rand } from './utils.js';
 import { Photon } from './particles/Photon.js';
 import { Electron } from './particles/Electron.js';
 import { Positron } from './particles/Positron.js';
-import { Proton } from './particles/Proton.js';
 import { Gluon } from './particles/Gluon.js';
-import { ELECTRON_TYPE, GLUON_TYPE, NEUTRON_TYPE, PHOTON_TYPE, POSITRON_TYPE, PROTON_TYPE } from './particles/types.js';
+import {
+    ELECTRON_TYPE,
+    GLUON_TYPE,
+    NEUTRON_TYPE,
+    PHOTON_TYPE,
+    POSITRON_TYPE,
+    PROTON_TYPE,
+} from './particles/types.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
@@ -288,12 +294,12 @@ export class Field {
         let massiveParticle = (A.m > B.m) ? A : B;
         const lightParticle = (A.m > B.m) ? A : B;
         const newMass = A.m + B.m;
-        const particleClass = (newMass >= 100000) ? Star : Planet;
+        const ParticleClass = (newMass >= 100000) ? Star : Planet;
 
-        if (massiveParticle instanceof particleClass) {
+        if (massiveParticle instanceof ParticleClass) {
             massiveParticle.setMass(newMass);
         } else {
-            const newParticle = new particleClass(
+            const newParticle = new ParticleClass(
                 massiveParticle.pos.x,
                 massiveParticle.pos.y,
                 massiveParticle.pos.z,
@@ -405,7 +411,6 @@ export class Field {
 
         const d2 = dist.getLengthSquare();
         if (d2 < md2) {
-
             // Gluons interacts with each other and with hardons
             if ((isAGluon || isBGluon) && (isAHadron || isBHadron)) {
                 const gluon = (isAGluon) ? A : B;
@@ -440,6 +445,8 @@ export class Field {
         if (A instanceof Quantum && B instanceof Quantum) {
             return this.resolveQuants(A, B);
         }
+
+        return false;
     }
 
     spontaneous() {
