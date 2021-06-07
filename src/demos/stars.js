@@ -1,0 +1,35 @@
+import { Star } from '../particles/Star.js';
+import { Planet } from '../particles/Planet.js';
+import { rand } from '../utils.js';
+
+export function initStars(view) {
+    const PARTICLES_COUNT = 2000;
+    const { field } = view;
+
+    field.setScaleFactor(0.1);
+    field.setTimeStep(0.1);
+    field.useCollide = false;
+    field.useSoftening = false;
+    view.setScaleStep(0.01);
+
+    for (let i = 0; i < PARTICLES_COUNT; i += 1) {
+        const chance = rand();
+        const xPos = rand(-field.center.x, field.center.x);
+        const yPos = rand(-field.center.y, field.center.y);
+        const zPos = rand(-field.center.z, field.center.z);
+
+        let particle;
+
+        if (chance > 0.9) {
+            particle = new Star(xPos, yPos, zPos, 1000000000);
+        } else if (chance > 0.7) {
+            const mass = rand(100000, 10000000);
+            particle = new Star(xPos, yPos, zPos, mass);
+        } else {
+            const mass = rand(1, 1000);
+            particle = new Planet(xPos, yPos, zPos, mass);
+        }
+
+        field.push(particle);
+    }
+}
