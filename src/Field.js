@@ -1,7 +1,6 @@
 import { Box } from './Box.js';
 import { Particle } from './particles/Particle.js';
 import { Star } from './particles/Star.js';
-import { DarkParticle } from './particles/DarkParticle.js';
 import { Vector } from './Vector.js';
 import { Quantum } from './particles/Quantum.js';
 import { Planet } from './particles/Planet.js';
@@ -11,6 +10,7 @@ import { Electron } from './particles/Electron.js';
 import { Positron } from './particles/Positron.js';
 import { Gluon } from './particles/Gluon.js';
 import {
+    DARK_TYPE,
     ELECTRON_TYPE,
     GLUON_TYPE,
     NEUTRON_TYPE,
@@ -219,7 +219,7 @@ export class Field {
         const p = new Vector();
 
         for (const particle of this.particles) {
-            if (particle instanceof DarkParticle) {
+            if (particle.type === DARK_TYPE) {
                 continue;
             }
 
@@ -292,6 +292,8 @@ export class Field {
         }
 
         const res = particle.force;
+        const d = new Vector();
+        const nd = new Vector();
 
         for (let ind = index + 1, l = this.particles.length; ind < l; ind += 1) {
             const nq = this.particles[ind];
@@ -300,8 +302,8 @@ export class Field {
             }
             const nres = nq.force;
 
-            const d = particle.distanceTo(nq);
-            const orientation = particle.orientationTo(nq);
+            d.set(nq.pos);
+            d.substract(particle.pos);
 
             let distLength = d.getLength() * this.scaleFactor;
             if (!this.useCollide) {
@@ -309,9 +311,8 @@ export class Field {
             }
 
             d.divideByScalar(distLength);
-            d.multiply(orientation);
 
-            const nd = d.copy();
+            nd.set(d);
             nd.multiplyByScalar(-1);
 
             const d2 = distLength * distLength;
@@ -490,7 +491,7 @@ export class Field {
     }
 
     collide(A, B) {
-        if (A instanceof DarkParticle || B instanceof DarkParticle) {
+        if (A.type === DARK_TYPE || B.type === DARK_TYPE) {
             return false;
         }
 
