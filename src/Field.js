@@ -5,7 +5,7 @@ import { DarkParticle } from './particles/DarkParticle.js';
 import { Vector } from './Vector.js';
 import { Quantum } from './particles/Quantum.js';
 import { Planet } from './particles/Planet.js';
-import { rand } from './utils.js';
+import { AXES, rand } from './utils.js';
 import { Photon } from './particles/Photon.js';
 import { Electron } from './particles/Electron.js';
 import { Positron } from './particles/Positron.js';
@@ -18,6 +18,7 @@ import {
     POSITRON_TYPE,
     PROTON_TYPE,
 } from './particles/types.js';
+import { OctTree } from './OctTree.js';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.00001;
@@ -53,6 +54,20 @@ export class Field {
         this.newParticles = [];
         this.useSpontaneous = false;
 
+        this.useBarnesHut = true;
+        this.drawNodes = false;
+        if (this.useBarnesHut) {
+            this.sceneNormals = {
+                x: new Vector(1, 0, 0),
+                y: new Vector(0, 1, 0),
+                z: new Vector(0, 0, 1),
+            };
+
+            this.tree = null;
+            this.boundingSize = 0;
+            this.theta = 0.5;
+        }
+
         this.rotation = {
             alpha: 0,
             beta: 0,
@@ -65,6 +80,10 @@ export class Field {
         this.particles = [];
         this.setScaleFactor(scaleFactor);
         this.setTimeStep(timeStep);
+
+        if (this.useBarnesHut) {
+            this.calculateBoundingSize();
+        }
     }
 
     drawFrameByCircles() {
@@ -104,6 +123,17 @@ export class Field {
         );
     }
 
+    calculateBoundingSize() {
+        this.boundingSize = 0;
+        for (const axis of AXES) {
+            const values = this.box.vertices.map(
+                (vert) => vert.dotProduct(this.sceneNormals[axis]),
+            );
+            const size = Math.max(...values) - Math.min(...values);
+            this.boundingSize = Math.max(this.boundingSize, size);
+        }
+    }
+
     rotateVector(vector, alpha, beta, gamma) {
         vector.rotateAroundX(alpha);
         vector.rotateAroundY(beta);
@@ -122,6 +152,10 @@ export class Field {
         this.rotation.alpha += alpha;
         this.rotation.beta += beta;
         this.rotation.gamma += gamma;
+
+        if (this.useBarnesHut) {
+            this.calculateBoundingSize();
+        }
     }
 
     drawParticlePath(frame, particle) {
@@ -157,6 +191,24 @@ export class Field {
         }
     }
 
+    drawNode(frame, node) {
+        if (!node) {
+            return;
+        }
+
+        const nodeBox = new Box(node.size, node.size, node.size);
+
+        const boxCenter = node.offset.copy();
+        boxCenter.addScalar(node.half);
+
+        nodeBox.draw(frame, boxCenter, (v) => this.xF(v), (v) => this.yF(v));
+        for (const child of node.nodes) {
+            if (child && child.nodes) {
+                this.drawNode(frame, child);
+            }
+        }
+    }
+
     drawFrameByPixels() {
         const frame = this.canvas.createFrame();
 
@@ -189,6 +241,10 @@ export class Field {
             if (this.drawAllPaths || particle.drawPath) {
                 this.drawParticlePath(frame, particle);
             }
+        }
+
+        if (this.useBarnesHut && this.tree && this.drawNodes) {
+            this.drawNode(frame, this.tree.root);
         }
 
         this.canvas.drawFrame(frame);
@@ -564,9 +620,79 @@ export class Field {
         }
     }
 
+    forceBH(particle, node) {
+        if (!node.nodes && particle.pos.isEqual(node)) {
+            return;
+        }
+
+        const dist = particle.pos.copy();
+
+        if (node.nodes) {
+            dist.substract(node.centerOfMass);
+            const d = dist.getLength();
+
+            if (node.size / d < this.theta) {
+                let distLength = d * this.scaleFactor;
+                if (!this.useCollide) {
+                    distLength = Math.max(distLength, this.minDistance);
+                }
+
+                dist.divideByScalar(distLength);
+
+                const d2 = distLength * distLength;
+
+                const r2 = (this.useSoftening)
+                    ? d2 * Math.sqrt(d2 + this.SOFTENING)
+                    : d2;
+
+                const gForce = (G * Math.abs(particle.m * node.mass)) / r2;
+                particle.force.addScaled(dist, -gForce);
+            } else {
+                for (const child of node.nodes) {
+                    if (child) {
+                        this.forceBH(particle, child);
+                    }
+                }
+            }
+        } else {
+            dist.substract(node.pos);
+
+            let distLength = dist.getLength() * this.scaleFactor;
+            if (!this.useCollide) {
+                distLength = Math.max(distLength, this.minDistance);
+            }
+
+            dist.divideByScalar(distLength);
+
+            const d2 = distLength * distLength;
+
+            const r2 = (this.useSoftening)
+                ? d2 * Math.sqrt(d2 + this.SOFTENING)
+                : d2;
+
+            const gForce = (G * Math.abs(particle.m * node.m)) / r2;
+            particle.force.addScaled(dist, -gForce);
+        }
+    }
+
+    calculateForceBH() {
+        this.tree = new OctTree(this.boundingSize, this.center);
+        this.particles.forEach((p) => this.tree.insert(p));
+        this.particles.forEach((p) => {
+            p.resetForce();
+            this.forceBH(p, this.tree.root);
+        });
+        this.particles.forEach((p) => this.applyForce(p));
+    }
+
     calculate() {
         if (!this.addInstantly) {
             this.newParticles = [];
+        }
+
+        if (this.useBarnesHut) {
+            this.calculateForceBH();
+            return;
         }
 
         this.particles.forEach((p) => p.resetForce());

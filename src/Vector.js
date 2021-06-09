@@ -19,6 +19,10 @@ export class Vector {
         return new Vector(this.x, this.y, this.z);
     }
 
+    isEqual(vector) {
+        return this.x === vector.x && this.y === vector.y && this.z === vector.z;
+    }
+
     getLength() {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
@@ -62,6 +66,12 @@ export class Vector {
         this.x /= vector.x;
         this.y /= vector.y;
         this.z /= vector.z;
+    }
+
+    addScalar(scalar) {
+        this.x += scalar;
+        this.y += scalar;
+        this.z += scalar;
     }
 
     multiplyByScalar(scalar) {
