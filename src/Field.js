@@ -64,6 +64,7 @@ export class Field {
             };
 
             this.tree = null;
+            this.boundingOffset = 0;
             this.boundingSize = 0;
             this.theta = 0.5;
         }
@@ -124,14 +125,19 @@ export class Field {
     }
 
     calculateBoundingSize() {
-        this.boundingSize = 0;
+        const BOUNDING_GAP = 10;
+        let min = 0;
+        let max = 0;
+
         for (const axis of AXES) {
             const values = this.box.vertices.map(
                 (vert) => vert.dotProduct(this.sceneNormals[axis]),
             );
-            const size = Math.max(...values) - Math.min(...values);
-            this.boundingSize = Math.max(this.boundingSize, size);
+            min = Math.min(min, ...values);
+            max = Math.max(max, ...values);
         }
+        this.boundingOffset = min - BOUNDING_GAP;
+        this.boundingSize = max - min + BOUNDING_GAP * 2;
     }
 
     rotateVector(vector, alpha, beta, gamma) {
@@ -244,7 +250,7 @@ export class Field {
         }
 
         if (this.useBarnesHut && this.tree && this.drawNodes) {
-            this.drawNode(frame, this.tree.root);
+            this.drawNode(frame, this.tree);
         }
 
         this.canvas.drawFrame(frame);
@@ -677,11 +683,17 @@ export class Field {
     }
 
     calculateForceBH() {
-        this.tree = new OctTree(this.boundingSize, this.center);
+        this.tree = new OctTree({
+            x: this.boundingOffset,
+            y: this.boundingOffset,
+            z: this.boundingOffset,
+        },
+            this.boundingSize,
+        );
         this.particles.forEach((p) => this.tree.insert(p));
         this.particles.forEach((p) => {
             p.resetForce();
-            this.forceBH(p, this.tree.root);
+            this.forceBH(p, this.tree);
         });
         this.particles.forEach((p) => this.applyForce(p));
     }

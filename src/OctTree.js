@@ -1,12 +1,11 @@
 import { Vector } from './Vector.js';
 
-class OctNode {
-    constructor(offset, size, tree) {
+export class OctTree {
+    constructor(offset, size) {
         this.offset = new Vector();
         this.offset.set(offset);
         this.size = size;
         this.half = size / 2;
-        this.tree = tree;
 
         this.corner = this.offset.copy();
         this.corner.addScalar(size);
@@ -28,38 +27,32 @@ class OctNode {
     }
 
     getNodeIndexByPos(pos) {
-        const fpos = {
-            x: pos.x + this.tree.shift.x,
-            y: pos.y + this.tree.shift.y,
-            z: pos.z + this.tree.shift.z,
-        };
-
         if (
-            fpos.x < this.offset.x
-            || fpos.x > this.corner.x
-            || fpos.y < this.offset.y
-            || fpos.y > this.corner.y
-            || fpos.z < this.offset.z
-            || fpos.z > this.corner.z
+            pos.x < this.offset.x
+            || pos.x > this.corner.x
+            || pos.y < this.offset.y
+            || pos.y > this.corner.y
+            || pos.z < this.offset.z
+            || pos.z > this.corner.z
         ) {
-            return null;
+            throw new Error('Invalid position');
         }
 
-        const left = (this.corner.x - fpos.x > this.half) ? 0 : 1;
-        const top = (this.corner.y - fpos.y > this.half) ? 0 : 2;
-        const front = (this.corner.z - fpos.z > this.half) ? 0 : 4;
+        const left = (this.corner.x - pos.x > this.half) ? 0 : 1;
+        const top = (this.corner.y - pos.y > this.half) ? 0 : 2;
+        const front = (this.corner.z - pos.z > this.half) ? 0 : 4;
 
         return front + top + left;
     }
 
     getOffsetByIndex(index) {
         if (index < 0 || index > 7) {
-            return null;
+            throw new Error('Invalid index');
         }
 
-        const xShift = (index % 2) ? this.half : 0;
-        const yShift = ((index % 4) > 1) ? this.half : 0;
-        const zShift = ((index > 3) ? this.half : 0);
+        const xShift = (index & 0x1) ? this.half : 0;
+        const yShift = (index & 0x2) ? this.half : 0;
+        const zShift = (index & 0x4) ? this.half : 0;
 
         return {
             x: this.offset.x + xShift,
@@ -70,11 +63,8 @@ class OctNode {
 
     insert(particle) {
         const ind = this.getNodeIndexByPos(particle.pos);
-        if (ind === null) {
-            throw new Error('Invalid position');
-        }
-
         const child = this.nodes[ind];
+
         if (child === null) {
             this.nodes[ind] = { pos: particle.pos.copy(), m: particle.m };
         } else if (child.nodes) {
@@ -83,7 +73,7 @@ class OctNode {
             child.m += particle.m;
         } else {
             const newOffset = this.getOffsetByIndex(ind);
-            const newNode = new OctNode(newOffset, this.size / 2, this.tree);
+            const newNode = new OctTree(newOffset, this.size / 2);
             newNode.insert(child);
             newNode.insert(particle);
             this.nodes[ind] = newNode;
@@ -111,21 +101,5 @@ class OctNode {
         if (this.mass > 0) {
             this.centerOfMass.divideByScalar(this.mass);
         }
-    }
-}
-
-export class OctTree {
-    constructor(size, shift) {
-        this.size = size;
-        this.root = null;
-        this.shift = shift;
-    }
-
-    insert(particle) {
-        if (!this.root) {
-            this.root = new OctNode({ x: 0, y: 0, z: 0 }, this.size, this);
-        }
-
-        this.root.insert(particle);
     }
 }
