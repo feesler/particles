@@ -67,6 +67,7 @@ export class Field {
             this.boundingOffset = 0;
             this.boundingSize = 0;
             this.theta = 0.5;
+            this.dist = new Vector();
         }
 
         this.rotation = {
@@ -628,58 +629,41 @@ export class Field {
     }
 
     forceBH(particle, node) {
+        if (!particle || !node) {
+            return;
+        }
+
         if (!node.nodes && particle.pos.isEqual(node)) {
             return;
         }
 
-        const dist = particle.pos.copy();
+        this.dist.set((node.nodes) ? node.centerOfMass : node.pos);
+        this.dist.substract(particle.pos);
 
-        if (node.nodes) {
-            dist.substract(node.centerOfMass);
-            const d = dist.getLength();
+        const d = this.dist.getLength();
 
-            if (node.size / d < this.theta) {
-                let distLength = d * this.scaleFactor;
-                if (!this.useCollide) {
-                    distLength = Math.max(distLength, this.minDistance);
-                }
-
-                dist.divideByScalar(distLength);
-
-                const d2 = distLength * distLength;
-
-                const r2 = (this.useSoftening)
-                    ? d2 * Math.sqrt(d2 + this.SOFTENING)
-                    : d2;
-
-                const gForce = (G * Math.abs(particle.m * node.mass)) / r2;
-                particle.force.addScaled(dist, -gForce);
-            } else {
-                for (const child of node.nodes) {
-                    if (child) {
-                        this.forceBH(particle, child);
-                    }
-                }
-            }
-        } else {
-            dist.substract(node.pos);
-
-            let distLength = dist.getLength() * this.scaleFactor;
-            if (!this.useCollide) {
-                distLength = Math.max(distLength, this.minDistance);
-            }
-
-            dist.divideByScalar(distLength);
-
-            const d2 = distLength * distLength;
-
-            const r2 = (this.useSoftening)
-                ? d2 * Math.sqrt(d2 + this.SOFTENING)
-                : d2;
-
-            const gForce = (G * Math.abs(particle.m * node.m)) / r2;
-            particle.force.addScaled(dist, -gForce);
+        if (node.nodes && (node.size / d > this.theta)) {
+            node.nodes.forEach((child) => this.forceBH(particle, child));
+            return;
         }
+
+        let distLength = d * this.scaleFactor;
+        if (!this.useCollide) {
+            distLength = Math.max(distLength, this.minDistanceSquare);
+        }
+
+        this.dist.divideByScalar(distLength);
+
+        const d2 = distLength * distLength;
+
+        const r2 = (this.useSoftening)
+            ? d2 * Math.sqrt(d2 + this.SOFTENING)
+            : d2;
+
+        const mass = (node.nodes) ? node.mass : node.m;
+
+        const gForce = (G * Math.abs(particle.m * mass)) / r2;
+        particle.force.addScaled(this.dist, gForce);
     }
 
     calculateForceBH() {
