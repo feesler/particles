@@ -27,6 +27,10 @@ export class OctTree {
     }
 
     getNodeIndexByPos(pos) {
+        if (!pos.isValid()) {
+            throw new Error('Invalid position');
+        }
+
         if (
             pos.x < this.offset.x
             || pos.x > this.corner.x
@@ -66,11 +70,17 @@ export class OctTree {
         const child = this.nodes[ind];
 
         if (child === null) {
-            this.nodes[ind] = { pos: particle.pos.copy(), m: particle.m };
+            this.nodes[ind] = {
+                pos: particle.pos.copy(),
+                m: particle.m,
+                charge: particle.charge,
+                particles: [particle],
+            };
         } else if (child.nodes) {
             child.insert(particle);
         } else if (particle.pos.isEqual(child.pos)) {
             child.m += particle.m;
+            child.particles.push(particle);
         } else {
             const newOffset = this.getOffsetByIndex(ind);
             const newNode = new OctTree(newOffset, this.size / 2);
@@ -80,6 +90,7 @@ export class OctTree {
         }
 
         this.mass += particle.m;
+        this.charge += particle.charge;
         this.calculateCenterOfMass();
     }
 

@@ -629,7 +629,7 @@ export class Field {
     }
 
     forceBH(particle, node) {
-        if (!particle || !node) {
+        if (!particle || particle.removed || !node) {
             return;
         }
 
@@ -643,18 +643,62 @@ export class Field {
         const d = this.dist.getLength();
 
         if (node.nodes && (node.size / d > this.theta)) {
-            node.nodes.forEach((child) => this.forceBH(particle, child));
+            for (const child of node.nodes) {
+                if (child) {
+                    this.forceBH(particle, child);
+                    if (particle.removed) {
+                        return;
+                    }
+                }
+            }
+
             return;
         }
 
         let distLength = d * this.scaleFactor;
         if (!this.useCollide) {
-            distLength = Math.max(distLength, this.minDistanceSquare);
+            distLength = Math.max(distLength, this.minDistance);
         }
 
         this.dist.divideByScalar(distLength);
 
+        if (this.useCollide) {
+
+            if (!node.nodes) {
+                let otherParticle;
+                do {
+                    otherParticle = node.particles.pop();
+                } while (otherParticle && otherParticle.removed);
+
+                if (otherParticle) {
+
+                    const rr = (particle.r + otherParticle.r) / (2 * this.scaleFactor);
+                    if (distLength - rr < this.minDistance) {
+                        const collideResult = this.collide(particle, otherParticle);
+                        if (otherParticle.removed) {
+                            node.particles.unshift();
+
+                        }
+
+                        if (particle.removed || collideResult) {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (distLength < this.minDistance) {
+                return;
+            }
+        }
+
         const d2 = distLength * distLength;
+
+        if (particle.charge && node.charge) {
+            const forceSign = particle.attract(node) ? 1 : -1;
+            const emForce = (K * forceSign * Math.abs(particle.charge * node.charge)) / d2;
+            particle.force.addScaled(this.dist, emForce);
+        }
 
         const r2 = (this.useSoftening)
             ? d2 * Math.sqrt(d2 + this.SOFTENING)
@@ -664,6 +708,9 @@ export class Field {
 
         const gForce = (G * Math.abs(particle.m * mass)) / r2;
         particle.force.addScaled(this.dist, gForce);
+        if (!particle.force.isValid()) {
+            throw new Error('NaN');
+        }
     }
 
     calculateForceBH() {
@@ -679,6 +726,7 @@ export class Field {
             p.resetForce();
             this.forceBH(p, this.tree);
         });
+        this.particles = this.particles.filter((p) => !p.removed);
         this.particles.forEach((p) => this.applyForce(p));
     }
 
