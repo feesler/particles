@@ -388,15 +388,6 @@ export class Field {
         return true;
     }
 
-    getOrthogonalTo(vector) {
-        const b0 = ((vector.x < vector.y) && (vector.x < vector.z)) ? 1 : 0;
-        const b1 = ((vector.y <= vector.x) && (vector.y < vector.z)) ? 1 : 0;
-        const b2 = ((vector.z <= vector.x) && (vector.z <= vector.y)) ? 1 : 0;
-
-        const res = vector.copy();
-        res.crossProduct(new Vector(b0, b1, b2));
-        return res;
-    }
 
     annihilate(A, B) {
         const dist = A.pos.copy();
@@ -404,7 +395,7 @@ export class Field {
 
         const lPhoton = new Photon(A.pos.x, A.pos.y, A.pos.z);
 
-        const photonVelocity = this.getOrthogonalTo(dist);
+        const photonVelocity = dist.getOrthogonal();
         photonVelocity.normalize();
         photonVelocity.multiplyByScalar(this.maxVelocity);
         lPhoton.velocity.set(photonVelocity);

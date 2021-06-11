@@ -110,6 +110,17 @@ export class Vector {
         this.substractScaled(normale, dp);
     }
 
+    /** Returns new vector orthogonal to current instance */
+    getOrthogonal() {
+        const b0 = ((this.x < this.y) && (this.x < this.z)) ? 1 : 0;
+        const b1 = ((this.y <= this.x) && (this.y < this.z)) ? 1 : 0;
+        const b2 = ((this.z <= this.x) && (this.z <= this.y)) ? 1 : 0;
+
+        const res = this.copy();
+        res.crossProduct(new Vector(b0, b1, b2));
+        return res;
+    }
+
     rotateAroundX(angle) {
         if (angle === 0) {
             return;
