@@ -280,6 +280,9 @@ export class Field {
 
         if (this.addInstantly) {
             this.particles.push(particle);
+            if (this.useBarnesHut && this.tree) {
+                this.tree.insert(particle);
+            }
         } else {
             this.newParticles.push(particle);
         }
@@ -651,38 +654,27 @@ export class Field {
             distLength = Math.max(distLength, this.minDistance);
         }
 
-        this.dist.divideByScalar(distLength);
+        if (this.useCollide && !node.nodes) {
+            for (const otherParticle of node.particles) {
+                if (otherParticle.removed) {
+                    continue;
+                }
 
-        if (this.useCollide) {
-
-            if (!node.nodes) {
-                let otherParticle;
-                do {
-                    otherParticle = node.particles.pop();
-                } while (otherParticle && otherParticle.removed);
-
-                if (otherParticle) {
-
-                    const rr = (particle.r + otherParticle.r) / (2 * this.scaleFactor);
-                    if (distLength - rr < this.minDistance) {
-                        const collideResult = this.collide(particle, otherParticle);
-                        if (otherParticle.removed) {
-                            node.particles.unshift();
-
-                        }
-
-                        if (particle.removed || collideResult) {
-                            return;
-                        }
+                const rr = (particle.r + otherParticle.r) / (2 * this.scaleFactor);
+                if (distLength - rr < this.minDistance) {
+                    const collideResult = this.collide(particle, otherParticle);
+                    if (particle.removed || collideResult) {
+                        return;
                     }
                 }
             }
-
-            if (distLength < this.minDistance) {
-                return;
-            }
         }
 
+        if (!distLength) {
+            return;
+        }
+
+        this.dist.divideByScalar(distLength);
         const d2 = distLength * distLength;
 
         if (particle.charge && node.charge) {
@@ -704,35 +696,31 @@ export class Field {
         }
     }
 
-    calculateForceBH() {
-        this.tree = new OctTree({
-            x: this.boundingOffset,
-            y: this.boundingOffset,
-            z: this.boundingOffset,
-        },
-            this.boundingSize,
-        );
-        this.particles.forEach((p) => this.tree.insert(p));
-        this.particles.forEach((p) => {
-            p.resetForce();
-            this.forceBH(p, this.tree);
-        });
-        this.particles = this.particles.filter((p) => !p.removed);
-        this.particles.forEach((p) => this.applyForce(p));
-    }
-
     calculate() {
         if (!this.addInstantly) {
             this.newParticles = [];
         }
 
         if (this.useBarnesHut) {
-            this.calculateForceBH();
-            return;
+            this.tree = new OctTree({
+                x: this.boundingOffset,
+                y: this.boundingOffset,
+                z: this.boundingOffset,
+            },
+                this.boundingSize,
+            );
+            this.particles.forEach((p) => {
+                p.resetForce();
+                this.tree.insert(p);
+            });
+            this.particles.forEach((p) => {
+                this.forceBH(p, this.tree);
+            });
+        } else {
+            this.particles.forEach((p) => p.resetForce());
+            this.particles.forEach((p, ind) => this.force(p, ind));
         }
 
-        this.particles.forEach((p) => p.resetForce());
-        this.particles.forEach((p, ind) => this.force(p, ind));
         this.particles = this.particles.filter((p) => !p.removed);
 
         if (!this.addInstantly) {

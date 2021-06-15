@@ -13,6 +13,7 @@ export class OctTree {
         this.centerOfMass = this.offset.copy();
         this.centerOfMass.addScalar(this.half);
         this.mass = 0;
+        this.charge = 0;
 
         this.nodes = [
             null, // front top left
