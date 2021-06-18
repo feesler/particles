@@ -5,7 +5,7 @@ export function initVelocityTest(view) {
 
     field.setScaleFactor(0.1);
     field.setTimeStep(0.01);
-    field.drawAllPaths = true;
+    field.drawAllPaths = false;
     field.useCollide = false;
     view.setScaleStep(0);
 

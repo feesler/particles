@@ -35,7 +35,7 @@ export function initGalaxies(view) {
             particle = new DarkParticle(xPos, yPos, zPos);
         }
 
-        particle.velocity.x = rand() * 2;
+        particle.velocity.x = rand() * 200;
 
         field.push(particle);
     }
@@ -56,7 +56,7 @@ export function initGalaxies(view) {
             particle = new DarkParticle(xPos, yPos, zPos);
         }
 
-        particle.velocity.x = -rand() * 2;
+        particle.velocity.x = -rand() * 200;
 
         field.push(particle);
     }

@@ -3,13 +3,14 @@ import { Electron } from '../particles/Electron.js';
 import { rand } from '../utils.js';
 
 export function initParticles(view) {
-    const PARTICLES_COUNT = 50;
+    const PARTICLES_COUNT = 150;
     const { field } = view;
 
     field.setScaleFactor(0.0001);
     field.setTimeStep(0.1);
     field.addInstantly = true;
-    field.useSpontaneous = false;
+    field.useSpontaneous = true;
+    field.useBarnesHut = true;
     view.setScaleStep(0);
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {

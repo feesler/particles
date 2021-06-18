@@ -23,11 +23,11 @@ import {
 import { OctTree } from './OctTree.js';
 
 const K = 8.9 * 10;
-const G = 6.67 * 0.00001;
-const MAX_SPEED = 50;
+const G = 6.67 * 0.0000001;
+const MAX_SPEED = 150;
 const DEPTH = 2000;
-const MIN_DISTANCE = 0.5;
-const MIN_HARD_DIST = 0.5;
+const MIN_DISTANCE = 0.05;
+const MIN_HARD_DIST = 0.005;
 const BORDER_LOSS = 0.1;
 
 export class Field {
@@ -336,7 +336,7 @@ export class Field {
                     if (particle.removed) {
                         return;
                     }
-                    if (collideResult) {
+                    if (nq.removed) {
                         continue;
                     }
                 }
@@ -520,7 +520,7 @@ export class Field {
 
     spontaneous() {
         const chance = rand();
-        if (chance < 0.2) {
+        if (chance < 0.1) {
             return;
         }
 
@@ -558,7 +558,7 @@ export class Field {
             pos.x,
             pos.y,
             pos.z,
-            rand(100000, 1000000),
+            rand(100000, 10000000),
         ));
     }
 

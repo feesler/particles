@@ -7,10 +7,11 @@ export function initStars(view) {
     const { field } = view;
 
     field.setScaleFactor(0.1);
-    field.setTimeStep(0.1);
-    field.useCollide = false;
+    field.setTimeStep(0.01);
+    field.useCollide = true;
+    field.restoreCollided = true;
     field.useSoftening = false;
-    view.setScaleStep(0.01);
+    view.setScaleStep(0.001);
 
     for (let i = 0; i < PARTICLES_COUNT; i += 1) {
         const chance = rand();
@@ -21,7 +22,7 @@ export function initStars(view) {
         let particle;
 
         if (chance > 0.9) {
-            particle = new Star(xPos, yPos, zPos, 1000000000);
+            particle = new Star(xPos, yPos, zPos, 10000000000);
         } else if (chance > 0.7) {
             const mass = rand(100000, 10000000);
             particle = new Star(xPos, yPos, zPos, mass);
