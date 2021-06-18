@@ -15,8 +15,10 @@ import {
     GLUON_TYPE,
     NEUTRON_TYPE,
     PHOTON_TYPE,
+    PLANET_TYPE,
     POSITRON_TYPE,
     PROTON_TYPE,
+    STAR_TYPE,
 } from './particles/types.js';
 import { OctTree } from './OctTree.js';
 
@@ -358,14 +360,19 @@ export class Field {
     }
 
     resolveMassive(A, B) {
-        let massiveParticle = (A.m > B.m) ? A : B;
-        const lightParticle = (A.m > B.m) ? A : B;
-        const newMass = A.m + B.m;
-        const ParticleClass = (newMass >= 100000) ? Star : Planet;
+        if (!A || A.removed || !B || B.removed) {
+            return false;
+        }
 
-        if (massiveParticle instanceof ParticleClass) {
+        let massiveParticle = (A.m > B.m) ? A : B;
+        const lightParticle = (A.m > B.m) ? B : A;
+        const newMass = A.m + B.m;
+        const particleType = (newMass >= 100000) ? STAR_TYPE : PLANET_TYPE;
+
+        if (massiveParticle.type === particleType) {
             massiveParticle.setMass(newMass);
         } else {
+            const ParticleClass = (newMass >= 100000) ? Star : Planet;
             const newParticle = new ParticleClass(
                 massiveParticle.pos.x,
                 massiveParticle.pos.y,
@@ -374,6 +381,7 @@ export class Field {
             );
 
             massiveParticle.remove();
+            this.add(newParticle);
             massiveParticle = newParticle;
         }
 
@@ -390,7 +398,6 @@ export class Field {
 
         return true;
     }
-
 
     annihilate(A, B) {
         const dist = A.pos.copy();
@@ -452,7 +459,7 @@ export class Field {
         dist.substract(B.pos);
 
         // Electron emits photon
-        if (isAElectron && isBElectron) {
+        if ((isAElectron && B.charge !== 0) || (isBElectron && A.charge !== 0)) {
             const photon = new Photon(A.pos.x, A.pos.y, A.pos.z);
             photon.velocity.set(dist);
             this.add(photon);
@@ -492,15 +499,19 @@ export class Field {
     }
 
     collide(A, B) {
+        if (!A || !A.type || !B || !B.type || A === B) {
+            return true;
+        }
+
         if (A.type === DARK_TYPE || B.type === DARK_TYPE) {
             return false;
         }
 
-        if (!(A instanceof Quantum) && !(B instanceof Quantum)) {
+        if (!A.isQuantum && !B.isQuantum) {
             return this.resolveMassive(A, B);
         }
 
-        if (A instanceof Quantum && B instanceof Quantum) {
+        if (A.isQuantum && B.isQuantum) {
             return this.resolveQuants(A, B);
         }
 

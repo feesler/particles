@@ -8,5 +8,6 @@ export class Proton extends Quantum {
         super(x, y, z, 1, PROTON_MASS);
         this.type = PROTON_TYPE;
         this.color = { r: 0xFF, g: 0x88, b: 0x88 };
+        this.isQuantum = true;
     }
 }

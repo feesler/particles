@@ -11,6 +11,7 @@ export class Photon extends Quantum {
         this.reflectCount = 0;
         this.draw = false;
         this.drawPath = false;
+        this.isQuantum = true;
     }
 
     reflect() {

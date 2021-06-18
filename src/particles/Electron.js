@@ -8,5 +8,6 @@ export class Electron extends Quantum {
         super(x, y, z, -1, ELECTRON_MASS);
         this.type = ELECTRON_TYPE;
         this.color = { r: 0x88, g: 0x88, b: 0xFF };
+        this.isQuantum = true;
     }
 }

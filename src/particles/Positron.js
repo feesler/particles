@@ -8,5 +8,6 @@ export class Positron extends Quantum {
         super(x, y, z, 1, POSITRON_MASS);
         this.type = POSITRON_TYPE;
         this.color = { r: 0xFF, g: 0x33, b: 0x33 };
+        this.isQuantum = true;
     }
 }

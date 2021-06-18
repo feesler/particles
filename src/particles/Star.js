@@ -1,10 +1,13 @@
 import { Particle } from './Particle.js';
+import { STAR_TYPE } from './types.js';
 
 export class Star extends Particle {
     constructor(x, y, z, mass = 500000) {
         super(x, y, z, 0, mass);
         this.r = Math.log(mass);
         this.color = this.getColor(mass);
+        this.type = STAR_TYPE;
+        this.isQuantum = false;
     }
 
     getColor(mass) {

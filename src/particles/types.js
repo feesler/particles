@@ -5,3 +5,5 @@ export const NEUTRON_TYPE = 4;
 export const PHOTON_TYPE = 5;
 export const GLUON_TYPE = 6;
 export const DARK_TYPE = 7;
+export const PLANET_TYPE = 8;
+export const STAR_TYPE = 9;

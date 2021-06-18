@@ -8,5 +8,6 @@ export class Neutron extends Quantum {
         super(x, y, z, 0, NEUTRON_MASS);
         this.type = NEUTRON_TYPE;
         this.color = { r: 0xCC, g: 0xCC, b: 0xCC };
+        this.isQuantum = true;
     }
 }
