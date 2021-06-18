@@ -608,15 +608,19 @@ export class Field {
         } while (true);
     }
 
-    applyForce(particle) {
+    applyForce(particle, dt) {
         const { velocity, force } = particle;
+
+        if (!dt) {
+            return;
+        }
 
         if (particle.m === 0) {
             velocity.add(force);
             velocity.normalize();
             velocity.multiplyByScalar(this.maxVelocity);
         } else {
-            const scalar = this.timeStep / particle.m;
+            const scalar = (dt * this.timeStep) / particle.m;
             velocity.addScaled(force, scalar);
             this.fixVelocity(particle);
         }
@@ -707,7 +711,11 @@ export class Field {
         }
     }
 
-    calculate() {
+    calculate(dt) {
+        if (!dt) {
+            return;
+        }
+
         if (!this.addInstantly) {
             this.newParticles = [];
         }
@@ -741,6 +749,6 @@ export class Field {
             this.spontaneous();
         }
 
-        this.particles.forEach((p) => this.applyForce(p));
+        this.particles.forEach((p) => this.applyForce(p, dt));
     }
 }

@@ -41,6 +41,7 @@ export class MainView {
             updating: false,
             rotating: false,
             rotation: { alpha: 0, beta: 0, gamma: 0 },
+            timestamp: undefined,
             perfValue: 0,
         };
 
@@ -115,7 +116,7 @@ export class MainView {
 
         this.state.paused = false;
         this.render();
-        setTimeout(() => this.update(), 10);
+        requestAnimationFrame((t) => this.update(t));
     }
 
     onScale(e) {
@@ -185,7 +186,7 @@ export class MainView {
         }
     }
 
-    update() {
+    update(timestamp) {
         if (this.state.rotating || this.state.paused) {
             return;
         }
@@ -194,7 +195,10 @@ export class MainView {
 
         const pBefore = performance.now();
 
-        this.field.calculate();
+        const dt = (this.state.timestamp) ? (timestamp - this.state.timestamp) : 0;
+        this.state.timestamp = timestamp;
+
+        this.field.calculate(dt);
         this.field.drawFrame();
         if (this.props.scaleStep !== 0) {
             this.field.setScaleFactor(this.field.scaleFactor + this.props.scaleStep);
@@ -205,7 +209,7 @@ export class MainView {
         this.render();
 
         if (!this.state.paused) {
-            setTimeout(() => this.update(), this.props.animationDelay);
+            requestAnimationFrame((t) => this.update(t));
         }
 
         this.state.updating = false;
