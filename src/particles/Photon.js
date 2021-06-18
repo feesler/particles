@@ -9,6 +9,7 @@ export class Photon extends Quantum {
         this.color = { r: 0xFF, g: 0xFF, b: 0x00 };
         this.type = PHOTON_TYPE;
         this.reflectCount = 0;
+        this.draw = false;
         this.drawPath = false;
     }
 

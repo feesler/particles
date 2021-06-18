@@ -8,5 +8,6 @@ export class DarkParticle extends Particle {
         super(x, y, z, 0, DARK_MASS);
         this.color = { r: 0x00, g: 0x00, b: 0x00 };
         this.type = DARK_TYPE;
+        this.draw = false;
     }
 }

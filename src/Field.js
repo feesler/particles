@@ -226,7 +226,7 @@ export class Field {
         const p = new Vector();
 
         for (const particle of this.particles) {
-            if (particle.type === DARK_TYPE) {
+            if (!particle.draw) {
                 continue;
             }
 

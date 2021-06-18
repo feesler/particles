@@ -6,5 +6,6 @@ export class Gluon extends Quantum {
         super(x, y, z, 0, 0);
         this.color = { r: 0x00, g: 0xFF, b: 0x00 };
         this.type = GLUON_TYPE;
+        this.draw = false;
     }
 }

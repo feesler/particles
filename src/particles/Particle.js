@@ -10,6 +10,7 @@ export class Particle {
         this.charge = charge;
         this.r = 0;
         this.type = 0;
+        this.draw = true;
         this.drawPath = false;
         this.path = [];
 
