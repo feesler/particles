@@ -28,7 +28,4 @@ export default {
             template: 'src/index.html'
         }),
     ],
-    optimization: {
-        minimize: true,
-    },
 };
