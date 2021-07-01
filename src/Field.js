@@ -96,16 +96,22 @@ export class Field {
         this.canvas.context2d.strokeStyle = 'white';
         this.canvas.context2d.lineWidth = 1;
 
-        for (const particle of this.particles) {
-            this.canvas.context2d.fillStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b})`;
-            this.canvas.context2d.strokeStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b})`;
+        const p = new Vector();
 
-            const p = this.project(particle.pos);
+        for (const particle of this.particles) {
+            const circleStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b})`;
+            this.canvas.context2d.fillStyle = circleStyle;
+            this.canvas.context2d.strokeStyle = circleStyle;
+
+            p.set(particle.pos);
+            p.add(this.center);
+
+            const p0 = this.project(p);
 
             this.canvas.context2d.beginPath();
             this.canvas.context2d.arc(
-                p.x,
-                p.y,
+                p0.x,
+                p0.y,
                 0.5,
                 0,
                 Math.PI * 2,
@@ -260,7 +266,7 @@ export class Field {
     }
 
     drawFrame() {
-        this.drawFrameByPixels();
+        this.drawFrameByCircles();
     }
 
     setScaleFactor(scaleFactor) {
