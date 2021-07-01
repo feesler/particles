@@ -18,6 +18,14 @@ export class MainView {
             ...props,
         };
 
+        if (this.props.demo && this.props.demo.getProps) {
+            const props = this.props.demo.getProps();
+            this.props = {
+                ...this.props,
+                ...props,
+            };
+        }
+
         this.scaleFactorElem = null;
         this.scaleFactorInp = null;
         this.countElem = null;
@@ -52,26 +60,41 @@ export class MainView {
         this.canvas = new Canvas(document.getElementById('cnv'));
 
         this.scaleFactorInp = document.getElementById('scaleFactorInp');
-        this.scaleFactorInp.addEventListener('input', (e) => this.onScale(e));
+        this.scaleFactorInp.disabled = !this.props.useField;
+        if (this.props.useField) {
+            this.scaleFactorInp.addEventListener('input', (e) => this.onScale(e));
+        }
         this.scaleFactorElem = document.getElementById('scalefactor');
 
         this.countElem = document.getElementById('particlescount');
         this.perfElem = document.getElementById('perfvalue');
 
         this.xRotationInp = document.getElementById('xRotationInp');
-        this.xRotationInp.addEventListener('input', (e) => this.onXRotate(e));
+        this.xRotationInp.disabled = !this.props.useField;
+        if (this.props.useField) {
+            this.xRotationInp.addEventListener('input', (e) => this.onXRotate(e));
+        }
         this.xRotationText = document.getElementById('xrotate');
 
         this.yRotationInp = document.getElementById('yRotationInp');
-        this.yRotationInp.addEventListener('input', (e) => this.onYRotate(e));
+        this.yRotationInp.disabled = !this.props.useField;
+        if (this.props.useField) {
+            this.yRotationInp.addEventListener('input', (e) => this.onYRotate(e));
+        }
         this.yRotationText = document.getElementById('yrotate');
 
         this.zRotationInp = document.getElementById('zRotationInp');
-        this.zRotationInp.addEventListener('input', (e) => this.onZRotate(e));
+        this.zRotationInp.disabled = !this.props.useField;
+        if (this.props.useField) {
+            this.zRotationInp.addEventListener('input', (e) => this.onZRotate(e));
+        }
         this.zRotationText = document.getElementById('zrotate');
 
         this.toggleRunBtn = document.getElementById('toggleRunBtn');
-        this.toggleRunBtn.addEventListener('click', () => this.onToggleRun());
+        this.toggleRunBtn.disabled = !this.props.useField;
+        if (!this.toggleRunBtn.disabled) {
+            this.toggleRunBtn.addEventListener('click', () => this.onToggleRun());
+        }
 
         this.start();
     }
@@ -86,7 +109,11 @@ export class MainView {
         }
 
         if (this.props.demo) {
-            this.props.demo(this);
+            if (this.props.demo.init) {
+                this.props.demo.init(this);
+            } else {
+                this.props.demo(this);
+            }
         }
 
         if (this.props.useField) {
@@ -216,6 +243,10 @@ export class MainView {
     }
 
     render() {
+        if (!this.props.useField) {
+            return;
+        }
+
         const sfText = this.field.scaleFactor.toFixed(3);
         const sfValue = parseFloat(sfText);
 
