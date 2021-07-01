@@ -100,10 +100,12 @@ export class Field {
             this.canvas.context2d.fillStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b})`;
             this.canvas.context2d.strokeStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b})`;
 
+            const p = this.project(particle.pos);
+
             this.canvas.context2d.beginPath();
             this.canvas.context2d.arc(
-                this.xF(particle.pos),
-                this.yF(particle.pos),
+                p.x,
+                p.y,
                 0.5,
                 0,
                 Math.PI * 2,
@@ -113,18 +115,20 @@ export class Field {
         }
     }
 
-    yF(v) {
-        return (
-            this.center.y - (this.DIST * (this.center.y - v.y))
-            / (this.DIST + v.z + this.Z_SHIFT)
-        );
-    }
+    project(vector) {
+        const zDist = this.DIST + vector.z + this.Z_SHIFT;
 
-    xF(v) {
-        return (
-            this.center.x - (this.DIST * (this.center.x - v.x))
-            / (this.DIST + v.z + this.Z_SHIFT)
-        );
+        return {
+            x: (
+                this.center.x - (this.DIST * (this.center.x - vector.x))
+                / zDist
+            ),
+            y: (
+                this.center.y - (this.DIST * (this.center.y - vector.y))
+                / zDist
+            ),
+            z: vector.z,
+        };
     }
 
     calculateBoundingSize() {
@@ -173,8 +177,7 @@ export class Field {
         p.set(particle.pos);
         p.add(this.center);
 
-        let x1 = this.xF(p);
-        let y1 = this.yF(p);
+        let p1 = this.project(p);
 
         while (particle.path.length > 0) {
             const prevPos = particle.path.pop();
@@ -182,21 +185,19 @@ export class Field {
             p.set(prevPos);
             p.add(this.center);
 
-            const x0 = this.xF(p);
-            const y0 = this.yF(p);
+            const p0 = this.project(p);
             frame.drawLine(
-                x0,
-                y0,
-                x1,
-                y1,
+                p0.x,
+                p0.y,
+                p1.x,
+                p1.y,
                 particle.color.r,
                 particle.color.g,
                 particle.color.b,
                 255,
             );
 
-            x1 = x0;
-            y1 = y0;
+            p1 = p0;
         }
     }
 
@@ -210,7 +211,7 @@ export class Field {
         const boxCenter = node.offset.copy();
         boxCenter.addScalar(node.half);
 
-        nodeBox.draw(frame, boxCenter, (v) => this.xF(v), (v) => this.yF(v));
+        nodeBox.draw(frame, boxCenter, (v) => this.project(v));
         for (const child of node.nodes) {
             if (child && child.nodes) {
                 this.drawNode(frame, child);
@@ -221,7 +222,7 @@ export class Field {
     drawFrameByPixels() {
         const frame = this.canvas.createFrame();
 
-        this.box.draw(frame, this.center, (v) => this.xF(v), (v) => this.yF(v));
+        this.box.draw(frame, this.center, (v) => this.project(v));
 
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
@@ -235,12 +236,11 @@ export class Field {
             p.set(particle.pos);
             p.add(this.center);
 
-            const x = this.xF(p);
-            const y = this.yF(p);
+            const p0 = this.project(p);
 
             frame.putPixel(
-                x,
-                y,
+                p0.x,
+                p0.y,
                 particle.color.r,
                 particle.color.g,
                 particle.color.b,

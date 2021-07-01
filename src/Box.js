@@ -85,7 +85,7 @@ export class Box {
         return new Vector(x, y, 0);
     }
 
-    draw(frame, shift, xF, yF) {
+    draw(frame, shift, projectionFunc) {
         let maxZ = 0;
 
         for (const vert of this.vertices) {
@@ -116,12 +116,10 @@ export class Box {
             const midZ = (fromVert.z + toVert.z) / 2;
             const rC = Math.round(255 * (1 - (midZ / maxZ)));
 
-            const x0 = xF(fromVert);
-            const y0 = yF(fromVert);
-            const x1 = xF(toVert);
-            const y1 = yF(toVert);
+            const p0 = projectionFunc(fromVert);
+            const p1 = projectionFunc(toVert);
 
-            frame.drawLine(x0, y0, x1, y1, rC, rC, rC, 255);
+            frame.drawLine(p0.x, p0.y, p1.x, p1.y, rC, rC, rC, 255);
         }
     }
 
