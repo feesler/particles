@@ -1,6 +1,6 @@
 import { CanvasFrame } from './CanvasFrame.js';
 
-export class Canvas {
+export class Canvas2D {
     constructor(elem) {
         if (!(elem instanceof HTMLCanvasElement)) {
             throw new Error('Invalid canvas element');

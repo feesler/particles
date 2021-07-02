@@ -1,4 +1,4 @@
-import { Canvas } from './Canvas.js';
+import { Canvas2D } from './Canvas2D.js';
 import { Field } from './Field.js';
 
 const defaultProps = {
@@ -57,7 +57,7 @@ export class MainView {
     }
 
     init() {
-        this.canvas = new Canvas(document.getElementById('cnv'));
+        this.canvas = new Canvas2D(document.getElementById('cnv'));
 
         this.scaleFactorInp = document.getElementById('scaleFactorInp');
         this.scaleFactorInp.disabled = !this.props.useField;
