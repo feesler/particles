@@ -91,33 +91,17 @@ export class Field {
     }
 
     drawFrameByCircles() {
-        this.canvas.context2d.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.canvas.context2d.fillStyle = 'white';
-        this.canvas.context2d.strokeStyle = 'white';
-        this.canvas.context2d.lineWidth = 1;
+        this.canvas.clear();
 
         const p = new Vector();
 
         for (const particle of this.particles) {
-            const circleStyle = `rgb(${particle.color.r}, ${particle.color.g}, ${particle.color.b})`;
-            this.canvas.context2d.fillStyle = circleStyle;
-            this.canvas.context2d.strokeStyle = circleStyle;
-
             p.set(particle.pos);
             p.add(this.center);
 
             const p0 = this.project(p);
 
-            this.canvas.context2d.beginPath();
-            this.canvas.context2d.arc(
-                p0.x,
-                p0.y,
-                0.5,
-                0,
-                Math.PI * 2,
-                true,
-            );
-            this.canvas.context2d.stroke();
+            this.canvas.drawCircle(p0.x, p0.y, 0.5, particle.color);
         }
     }
 
