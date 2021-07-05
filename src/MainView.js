@@ -11,6 +11,7 @@ const defaultProps = {
     useField: true,
     useWebGL: true,
     demo: null,
+    depth: 2000,
 };
 
 export class MainView {
@@ -62,6 +63,12 @@ export class MainView {
         const canvasElem = document.getElementById('cnv');
         if (this.props.useWebGL) {
             this.canvas = new CanvasWebGL(canvasElem);
+            this.canvas.setMatrix(
+                [canvasElem.clientWidth, canvasElem.clientHeight, this.props.depth],
+                [canvasElem.clientWidth / 2, canvasElem.clientHeight / 2, 0],
+                [this.state.rotation.alpha, this.state.rotation.beta, this.state.rotation.gamma],
+                [1, 1, 1],
+            );
         } else {
             this.canvas = new Canvas2D(canvasElem);
         }
@@ -167,7 +174,18 @@ export class MainView {
             setTimeout(() => this.processRotation(a, b, g, pb), 10);
         }
 
-        this.field.rotate(a, b, g);
+        if (this.props.useWebGL) {
+            const canvasElem = this.canvas.elem;
+            this.canvas.setMatrix(
+                [canvasElem.clientWidth, canvasElem.clientHeight, this.props.depth],
+                [canvasElem.clientWidth / 2, canvasElem.clientHeight / 2, 0],
+                [this.state.rotation.alpha, this.state.rotation.beta, this.state.rotation.gamma],
+                [1, 1, 1],
+            );
+        } else {
+            this.field.rotate(a, b, g);
+        }
+
         this.field.drawFrame();
 
         if (pb) {

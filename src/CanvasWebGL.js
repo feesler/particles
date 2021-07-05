@@ -1,3 +1,5 @@
+import * as m4 from './Matrix4.js';
+
 export class CanvasWebGL {
     constructor(elem) {
         if (!(elem instanceof HTMLCanvasElement)) {
@@ -13,17 +15,13 @@ export class CanvasWebGL {
         this.height = elem.height;
 
         this.vertexShaderSrc = `
-            attribute vec2 a_position;
+            attribute vec4 a_position;
             attribute vec3 a_color;
             varying vec3 v_color;
-            uniform vec2 u_resolution;
+            uniform mat4 u_matrix;
 
             void main() {
-                vec2 zeroToOne = a_position / u_resolution;
-                vec2 zeroToTwo = zeroToOne * 2.0;
-                vec2 clipSpace = zeroToTwo - 1.0;
-
-                gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+                gl_Position = u_matrix * a_position;
                 gl_PointSize = 1.0;
 
                 v_color = a_color;
@@ -76,7 +74,7 @@ export class CanvasWebGL {
         this.program = this.createProgram(this.vertexShader, this.fragmentShader);
 
         this.positionAttributeLocation = this.context.getAttribLocation(this.program, 'a_position');
-        this.resolutionUniformLocation = this.context.getUniformLocation(this.program, 'u_resolution');
+        this.matrixUniformLocation = this.context.getUniformLocation(this.program, 'u_matrix');
         this.colorAttributeLocation = this.context.getAttribLocation(this.program, 'a_color');
 
         this.positionBuffer = this.context.createBuffer();
@@ -84,6 +82,7 @@ export class CanvasWebGL {
 
         this.positions = [];
         this.colors = [];
+        this.matrix = null;
     }
 
     resizeCanvasToDisplaySize(multiplier = 1) {
@@ -97,16 +96,30 @@ export class CanvasWebGL {
         return false;
     }
 
+    setMatrix(scene, translation, rotation, scale) {
+        let matrix = m4.projection(scene[0], scene[1], scene[2]);
+        matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
+        matrix = m4.xRotate(matrix, rotation[0]);
+        matrix = m4.yRotate(matrix, rotation[1]);
+        matrix = m4.zRotate(matrix, rotation[2]);
+        matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+
+        this.matrix = matrix;
+    }
+
     drawScene(time) {
         this.resizeCanvasToDisplaySize();
         this.context.viewport(0, 0, this.context.canvas.width, this.context.canvas.height);
 
+        // Clear the canvas AND the depth buffer.
+        this.context.clear(this.context.COLOR_BUFFER_BIT | this.context.DEPTH_BUFFER_BIT);
+        // Enable the depth buffer
+        this.context.enable(this.context.DEPTH_TEST);
+
         this.context.useProgram(this.program);
-/*
-        this.context.clearColor(0, 0, 0, 0);
-        this.context.clear(this.context.COLOR_BUFFER_BIT);
-*/
-        this.context.uniform2f(this.resolutionUniformLocation, this.context.canvas.width, this.context.canvas.height);
+
+        // Transform matrix
+        this.context.uniformMatrix4fv(this.matrixUniformLocation, false, this.matrix);
 
         this.context.bindBuffer(this.context.ARRAY_BUFFER, this.positionBuffer);
         this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(this.positions), this.context.STATIC_DRAW);
@@ -114,24 +127,24 @@ export class CanvasWebGL {
         this.context.bindBuffer(this.context.ARRAY_BUFFER, this.colorBuffer);
         this.context.bufferData(this.context.ARRAY_BUFFER, new Uint8Array(this.colors), this.context.STATIC_DRAW);
 
-
+        // Set up positions buffer
         this.context.enableVertexAttribArray(this.positionAttributeLocation);
         this.context.bindBuffer(this.context.ARRAY_BUFFER, this.positionBuffer);
         this.context.vertexAttribPointer(
             this.positionAttributeLocation,
-            2, // 2 components per iteration
+            3, // components per iteration
             this.context.FLOAT,
-            false, // don't normalize the data
+            false, // data normalization
             0, // 0 = move forward size * sizeof(type) each iteration to get the next position
             0, // start at the beginning of the buffer
         );
 
-        // Tell the attribute how to get data out of colorBuffer (ARRAY_BUFFER)
+        // Set up colors buffer
         this.context.enableVertexAttribArray(this.colorAttributeLocation);
         this.context.bindBuffer(this.context.ARRAY_BUFFER, this.colorBuffer);
         this.context.vertexAttribPointer(
             this.colorAttributeLocation,
-            3, // 3 components per iteration
+            3, // components per iteration
             this.context.UNSIGNED_BYTE,
             true, // normalize the data (convert from 0-255 to 0-1)
             0, // 0 = move forward size * sizeof(type) each iteration to get the next position
@@ -139,22 +152,22 @@ export class CanvasWebGL {
         );
 
         const drawOffset = 0;
-        const drawCount = this.positions.length / 2;
+        const drawCount = this.positions.length / 3;
         this.context.drawArrays(this.context.POINTS, drawOffset, drawCount);
-
     }
 
     clear() {
-        /*
-            this.context.clearColor(0, 0, 0, 0);
-            this.context.clear(this.context.COLOR_BUFFER_BIT);
-            */
         this.positions = [];
         this.colors = [];
     }
 
     drawCircle(x, y, radius, color) {
         this.positions.push(x, y);
+        this.colors.push(color.r, color.g, color.b);
+    }
+
+    drawPoint(pos, color) {
+        this.positions.push(pos.x, pos.y, pos.z);
         this.colors.push(color.r, color.g, color.b);
     }
 }

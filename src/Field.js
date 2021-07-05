@@ -107,10 +107,20 @@ export class Field {
 
             this.canvas.drawCircle(p0.x, p0.y, 0.5, particle.color);
         }
+    }
 
-        if (this.canvas.drawScene) {
-            this.canvas.drawScene();
+    drawFrameWebGl() {
+        this.canvas.clear();
+
+        for (const particle of this.particles) {
+            if (!particle.draw) {
+                continue;
+            }
+
+            this.canvas.drawPoint(particle.pos, particle.color);
         }
+
+        this.canvas.drawScene();
     }
 
     project(vector) {
@@ -258,7 +268,7 @@ export class Field {
     }
 
     drawFrame() {
-        this.drawFrameByCircles();
+        this.drawFrameWebGl();
     }
 
     setScaleFactor(scaleFactor) {
