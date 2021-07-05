@@ -1,4 +1,5 @@
 import { Canvas2D } from './Canvas2D.js';
+import { CanvasWebGL } from './CanvasWebGL.js';
 import { Field } from './Field.js';
 
 const defaultProps = {
@@ -8,6 +9,7 @@ const defaultProps = {
     timeStep: 0.1,
     scaleStep: 0,
     useField: true,
+    useWebGL: true,
     demo: null,
 };
 
@@ -57,7 +59,12 @@ export class MainView {
     }
 
     init() {
-        this.canvas = new Canvas2D(document.getElementById('cnv'));
+        const canvasElem = document.getElementById('cnv');
+        if (this.props.useWebGL) {
+            this.canvas = new CanvasWebGL(canvasElem);
+        } else {
+            this.canvas = new Canvas2D(canvasElem);
+        }
 
         this.scaleFactorInp = document.getElementById('scaleFactorInp');
         this.scaleFactorInp.disabled = !this.props.useField;

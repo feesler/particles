@@ -96,12 +96,20 @@ export class Field {
         const p = new Vector();
 
         for (const particle of this.particles) {
+            if (!particle.draw) {
+                continue;
+            }
+
             p.set(particle.pos);
             p.add(this.center);
 
             const p0 = this.project(p);
 
             this.canvas.drawCircle(p0.x, p0.y, 0.5, particle.color);
+        }
+
+        if (this.canvas.drawScene) {
+            this.canvas.drawScene();
         }
     }
 
