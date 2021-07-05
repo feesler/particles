@@ -3,61 +3,64 @@ import { Star } from '../particles/Star.js';
 import { DarkParticle } from '../particles/DarkParticle.js';
 import { rand } from '../utils.js';
 
+const randExpo = (max, lambda) => {
+    const u = rand(0, max) / (max + 1);
+    return -Math.log(1 - u) / lambda;
+};
+
+
 export function initGalaxies(view) {
     const G_SIZE_LEFT = 150;
-    const G_SIZE_RIGHT = 80;
+    const G_STARS_COUNT = 1000;
     const { field } = view;
 
     field.setScaleFactor(4);
     field.setTimeStep(0.1);
     field.useCollide = false;
-    view.setScaleStep(0.01);
+    field.useSoftening = false;
+    view.setScaleStep(0);
 
-    const leftPos = new Vector(-field.width / 4, 0, 0);
-    const rightPos = new Vector(field.width / 4, 0, 0);
+    const leftPos = new Vector(0, 0, 0);
+    const dist = new Vector();
+    const pos = new Vector();
 
-    for (let i = 0; i < 1000; i += 1) {
+    let particle;
+    let mass = 10000000000;
+
+    particle = new Star(leftPos.x, leftPos.y, leftPos.z, mass);
+    field.push(particle);
+
+    for (let i = 0; i < G_STARS_COUNT; i += 1) {
         const chance = rand();
-        const dist = rand(0, G_SIZE_LEFT);
+        const d = randExpo(G_SIZE_LEFT, 0.005);
         const a = rand(0, Math.PI * 2);
-        const xPos = Math.round(leftPos.x + dist * Math.cos(a));
-        const yPos = Math.round(leftPos.y + dist * Math.sin(a));
-        const zPos = Math.round(leftPos.z + rand(0, 10));
 
-        let particle;
+        dist.x = d * Math.cos(a);
+        dist.y = randExpo(10, 0.05);
+        dist.z = d * Math.sin(a);
+
+        pos.set(dist);
+        pos.add(leftPos);
 
         if (chance > 0.9) {
-            particle = new Star(xPos, yPos, zPos, 1000000000);
-        } else if (chance > 0.7) {
-            const mass = rand(100000, 10000000);
-            particle = new Star(xPos, yPos, zPos, mass);
+            mass = rand(100000000, 1000000000);
+        } else if (chance > 0.5) {
+            mass = rand(10000000, 100000000);
         } else {
-            particle = new DarkParticle(xPos, yPos, zPos);
+            mass = rand(100000, 10000000);
         }
+        particle = new Star(pos.x, pos.y, pos.z, mass);
 
-        particle.velocity.x = rand() * 200;
+        particle.velocity.set(dist);
+        particle.velocity.normalize();
+
+        const starMassDelta = d / Math.log(mass);
+        const V_SCALE = 0.5;
+        particle.velocity.rotateAroundY(starMassDelta + (3 * Math.PI / 2));
+        particle.velocity.multiplyByScalar(starMassDelta * V_SCALE);
 
         field.push(particle);
-    }
-
-    for (let i = 0; i < 500; i += 1) {
-        const chance = rand();
-        const dist = rand() * G_SIZE_RIGHT;
-        const a = rand() * Math.PI * 2;
-        const xPos = Math.round(rightPos.x + dist * Math.cos(a));
-        const yPos = Math.round(rightPos.y + dist * Math.sin(a));
-        const zPos = Math.round(rightPos.z + rand(0, 10));
-
-        let particle;
-
-        if (chance > 0.5) {
-            particle = new Star(xPos, yPos, zPos, 1000000000);
-        } else {
-            particle = new DarkParticle(xPos, yPos, zPos);
-        }
-
-        particle.velocity.x = -rand() * 200;
-
+        particle = new DarkParticle(pos.x, pos.y, pos.z);
         field.push(particle);
     }
 }
