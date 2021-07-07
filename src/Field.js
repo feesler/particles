@@ -29,6 +29,7 @@ const DEPTH = 2000;
 const MIN_DISTANCE = 0.05;
 const MIN_HARD_DIST = 0.005;
 const BORDER_LOSS = 0.1;
+const BOUNDING_GAP = 10;
 
 export class Field {
     constructor(canvas, scaleFactor, timeStep) {
@@ -68,6 +69,8 @@ export class Field {
             this.tree = null;
             this.boundingOffset = 0;
             this.boundingSize = 0;
+            this.particleMin = 0;
+            this.particleMax = 0;
             this.theta = 0.5;
             this.dist = new Vector();
         }
@@ -84,10 +87,6 @@ export class Field {
         this.particles = [];
         this.setScaleFactor(scaleFactor);
         this.setTimeStep(timeStep);
-
-        if (this.useBarnesHut) {
-            this.calculateBoundingSize();
-        }
     }
 
     drawFrameByCircles() {
@@ -140,19 +139,23 @@ export class Field {
     }
 
     calculateBoundingSize() {
-        const BOUNDING_GAP = 10;
-        let min = 0;
-        let max = 0;
-
-        for (const axis of AXES) {
-            const values = this.box.vertices.map(
-                (vert) => vert.dotProduct(this.sceneNormals[axis]),
+        for (const particle of this.particles) {
+            this.particleMin = Math.min(
+                this.particleMin,
+                particle.pos.x,
+                particle.pos.y,
+                particle.pos.z,
             );
-            min = Math.min(min, ...values);
-            max = Math.max(max, ...values);
+
+            this.particleMax = Math.max(
+                this.particleMax,
+                particle.pos.x,
+                particle.pos.y,
+                particle.pos.z,
+            );
         }
-        this.boundingOffset = min - BOUNDING_GAP;
-        this.boundingSize = max - min + BOUNDING_GAP * 2;
+        this.boundingOffset = this.particleMin - BOUNDING_GAP;
+        this.boundingSize = this.particleMax - this.particleMin + BOUNDING_GAP * 2;
     }
 
     rotateVector(vector, alpha, beta, gamma) {
@@ -634,6 +637,22 @@ export class Field {
         }
 
         this.borderCondition(particle);
+
+        if (this.useBarnesHut) {
+            this.particleMin = Math.min(
+                this.particleMin,
+                particle.pos.x,
+                particle.pos.y,
+                particle.pos.z,
+            );
+
+            this.particleMax = Math.max(
+                this.particleMax,
+                particle.pos.x,
+                particle.pos.y,
+                particle.pos.z,
+            );
+        }
     }
 
     fixVelocity(particle) {
@@ -729,6 +748,10 @@ export class Field {
         }
 
         if (this.useBarnesHut) {
+            if (!this.boundingOffset && !this.boundingSize) {
+                this.calculateBoundingSize();
+            }
+
             this.tree = new OctTree({
                 x: this.boundingOffset,
                 y: this.boundingOffset,
@@ -757,6 +780,16 @@ export class Field {
             this.spontaneous();
         }
 
+        if (this.useBarnesHut) {
+            this.particleMin = 0;
+            this.particleMax = 0;
+        }
+
         this.particles.forEach((p) => this.applyForce(p, dt));
+
+        if (this.useBarnesHut) {
+            this.boundingOffset = this.particleMin - BOUNDING_GAP;
+            this.boundingSize = this.particleMax - this.particleMin + BOUNDING_GAP * 2;
+        }
     }
 }
