@@ -56,6 +56,7 @@ export class Field {
         this.addInstantly = true;
         this.newParticles = [];
         this.useSpontaneous = false;
+        this.useBoxBorder = true;
 
         this.useBarnesHut = true;
         this.drawNodes = false;
@@ -619,6 +620,10 @@ export class Field {
         } while (true);
     }
 
+    sBorderCondition(particle) {
+        particle.pos.add(particle.velocity);
+    }
+
     applyForce(particle, dt) {
         const { velocity, force } = particle;
 
@@ -636,7 +641,11 @@ export class Field {
             this.fixVelocity(particle);
         }
 
-        this.borderCondition(particle);
+        if (this.useBoxBorder) {
+            this.borderCondition(particle);
+        } else {
+            this.sBorderCondition(particle);
+        }
 
         if (this.useBarnesHut) {
             this.particleMin = Math.min(
