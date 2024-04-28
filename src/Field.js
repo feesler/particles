@@ -294,8 +294,13 @@ export class Field {
 
         if (this.addInstantly) {
             this.particles.push(particle);
-            if (this.useBarnesHut && this.tree) {
-                this.tree.insert(particle);
+            if (this.useBarnesHut) {
+                const validPos = this.tree?.isValidPosition(particle.pos);
+                if (validPos) {
+                    this.tree.insert(particle);
+                } else {
+                    particle.remove();
+                }
             }
         } else {
             this.newParticles.push(particle);

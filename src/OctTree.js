@@ -27,6 +27,18 @@ export class OctTree {
         ];
     }
 
+    isValidPosition(pos) {
+        return (
+            pos?.isValid()
+            && pos.x >= this.offset.x
+            && pos.x <= this.corner.x
+            && pos.y >= this.offset.y
+            && pos.y <= this.corner.y
+            && pos.z >= this.offset.z
+            && pos.z <= this.corner.z
+        );
+    }
+
     getNodeIndexByPos(pos) {
         if (!pos.isValid()) {
             throw new Error('Invalid position');
