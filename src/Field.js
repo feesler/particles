@@ -293,14 +293,16 @@ export class Field {
         }
 
         if (this.addInstantly) {
-            this.particles.push(particle);
             if (this.useBarnesHut) {
                 const validPos = this.tree?.isValidPosition(particle.pos);
                 if (validPos) {
                     this.tree.insert(particle);
+                    this.particles.push(particle);
                 } else {
                     particle.remove();
                 }
+            } else {
+                this.particles.push(particle);
             }
         } else {
             this.newParticles.push(particle);
@@ -766,11 +768,12 @@ export class Field {
                 this.calculateBoundingSize();
             }
 
-            this.tree = new OctTree({
-                x: this.boundingOffset,
-                y: this.boundingOffset,
-                z: this.boundingOffset,
-            },
+            this.tree = new OctTree(
+                {
+                    x: this.boundingOffset,
+                    y: this.boundingOffset,
+                    z: this.boundingOffset,
+                },
                 this.boundingSize,
             );
             this.particles.forEach((p) => {
