@@ -1,6 +1,9 @@
 export class MaxVelocityDemo {
     getProps() {
-        return { useField: false };
+        return {
+            useWebGL: false,
+            useField: false,
+        };
     }
 
     init(view) {

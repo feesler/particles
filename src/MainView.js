@@ -1,5 +1,6 @@
 import { Canvas2D } from './Canvas2D.js';
 import { CanvasWebGL } from './CanvasWebGL.js';
+import { demos, findDemoById } from './demos.js';
 import { Field } from './Field.js';
 import { getEventPageCoordinates } from './utils.js';
 
@@ -21,14 +22,6 @@ export class MainView {
             ...defaultProps,
             ...props,
         };
-
-        if (this.props.demo && this.props.demo.getProps) {
-            const props = this.props.demo.getProps();
-            this.props = {
-                ...this.props,
-                ...props,
-            };
-        }
 
         this.scaleFactorElem = null;
         this.scaleFactorInp = null;
@@ -62,28 +55,36 @@ export class MainView {
         document.addEventListener('DOMContentLoaded', () => this.init());
     }
 
+    createDemoOption(demo) {
+        const option = document.createElement('option');
+        option.textContent = demo.id;
+        option.value = demo.id;
+
+        return option;
+    }
+
     init() {
-        const canvasElem = document.getElementById('cnv');
-        if (this.props.useWebGL) {
-            this.canvas = new CanvasWebGL(canvasElem);
-            this.canvas.setMatrix(
-                [canvasElem.clientWidth, canvasElem.clientHeight, this.props.depth],
-                [canvasElem.clientWidth / 2, canvasElem.clientHeight / 2, 0],
-                [this.state.rotation.alpha, this.state.rotation.beta, this.state.rotation.gamma],
-                [1, 1, 1],
-            );
-        } else {
-            this.canvas = new Canvas2D(canvasElem);
-        }
+        this.maincontainer = document.getElementById('maincontainer');
 
-        canvasElem.addEventListener('touchstart', (e) => this.onMouseDown(e));
-        canvasElem.addEventListener('touchmove', (e) => this.onMouseMove(e));
-        canvasElem.addEventListener('touchend', (e) => this.onMouseUp(e));
-        canvasElem.addEventListener('touchcancel', (e) => this.onMouseUp(e));
-        canvasElem.addEventListener('mousedown', (e) => this.onMouseDown(e));
-        canvasElem.addEventListener('mousemove', (e) => this.onMouseMove(e));
-        canvasElem.addEventListener('mouseup', (e) => this.onMouseUp(e));
+        // Demo select
+        this.demoSelect = document.getElementById('demoSelect');
+        this.demoSelect.addEventListener('change', (e) => this.onChangeDemo(e));
+        demos.forEach((item) => {
+            if (item.type === 'group') {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = item.title;
 
+                const groupOptions = item.items.map((i) => this.createDemoOption(i));
+                optgroup.append(...groupOptions);
+
+                this.demoSelect.append(optgroup);
+            } else {
+                const option = this.createDemoOption(item);
+                this.demoSelect.append(option);
+            }
+        });
+
+        // Scale Factor input
         this.scaleFactorInp = document.getElementById('scaleFactorInp');
         this.scaleFactorInp.disabled = !this.props.useField;
         if (this.props.useField) {
@@ -124,11 +125,67 @@ export class MainView {
         this.start();
     }
 
+    createCanvas() {
+        if (this.canvasElem) {
+            this.canvasElem.remove();
+        }
+
+        this.canvasElem = document.createElement('canvas');
+        this.canvasElem.setAttribute('width', '1500');
+        this.canvasElem.setAttribute('height', '800');
+
+        this.maincontainer.prepend(this.canvasElem);
+        if (!this.canvasElem) {
+            return;
+        }
+
+        this.canvasElem.addEventListener('touchstart', (e) => this.onMouseDown(e));
+        this.canvasElem.addEventListener('touchmove', (e) => this.onMouseMove(e));
+        this.canvasElem.addEventListener('touchend', (e) => this.onMouseUp(e));
+        this.canvasElem.addEventListener('touchcancel', (e) => this.onMouseUp(e));
+        this.canvasElem.addEventListener('mousedown', (e) => this.onMouseDown(e));
+        this.canvasElem.addEventListener('mousemove', (e) => this.onMouseMove(e));
+        this.canvasElem.addEventListener('mouseup', (e) => this.onMouseUp(e));
+
+        if (this.props.useWebGL) {
+            this.canvas = new CanvasWebGL(this.canvasElem);
+            this.canvas.setMatrix(
+                [this.canvasElem.clientWidth, this.canvasElem.clientHeight, this.props.depth],
+                [this.canvasElem.clientWidth / 2, this.canvasElem.clientHeight / 2, 0],
+                [this.state.rotation.alpha, this.state.rotation.beta, this.state.rotation.gamma],
+                [1, 1, 1],
+            );
+        } else {
+            this.canvas = new Canvas2D(this.canvasElem);
+        }
+    }
+
+    initDemo(demo) {
+        if (!demo?.getProps) {
+            this.props = {
+                ...this.props,
+                ...defaultProps,
+                demo,
+            };
+
+            return;
+        }
+
+        const props = demo.getProps();
+        this.props = {
+            ...this.props,
+            ...props,
+            demo,
+        };
+    }
+
     setScaleStep(step) {
         this.props.scaleStep = step;
     }
 
     start() {
+        this.createCanvas();
+
         if (this.props.useField) {
             this.field = new Field(this.canvas, this.props.initialScale, this.props.timeStep);
         }
@@ -169,6 +226,33 @@ export class MainView {
         this.state.paused = false;
         this.render();
         requestAnimationFrame((t) => this.update(t));
+    }
+
+    onChangeDemo(e) {
+        const id = e.target.value;
+        const demoItem = findDemoById(id);
+
+        let demo;
+        if (demoItem.type === 'canvas') {
+            const DemoClass = demoItem.init;
+            demo = new DemoClass();
+        } else if (demoItem.type === 'field') {
+            demo = demoItem.init;
+        }
+
+        this.state = {
+            paused: true,
+            updating: false,
+            rotating: false,
+            rotation: { alpha: 0, beta: 0, gamma: 0 },
+            timestamp: undefined,
+            perfValue: 0,
+            dragging: false,
+            startPoint: null,
+        };
+
+        this.initDemo(demo);
+        this.start();
     }
 
     onScale(e) {

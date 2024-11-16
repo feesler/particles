@@ -3,7 +3,10 @@ import { Box } from '../../Box.js';
 
 export class Box3dDemo {
     getProps() {
-        return { useField: false };
+        return {
+            useWebGL: false,
+            useField: false,
+        };
     }
 
     init(view) {

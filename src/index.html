@@ -1,65 +1,72 @@
 <html>
+
 <head>
-<style>
-html {
-    background-color: black;
-}
+    <style>
+        html {
+            background-color: black;
+        }
 
-.container {
-    display: flex;
-    flex-flow: row nowrap;
-}
+        .container {
+            display: flex;
+            flex-flow: row nowrap;
+        }
 
-.data-section {
-    display: flex;
-    flex-flow: column nowrap;
-    width: 100%;
-}
+        .data-section {
+            display: flex;
+            flex-flow: column nowrap;
+            width: 100%;
+        }
 
-.date-value {
-    display: flex;
-    flex-flow: column nowrap;
-    color: #dddddd;
-    margin-bottom: 1rem;
-}
-</style>
+        .date-value {
+            display: flex;
+            flex-flow: column nowrap;
+            color: #dddddd;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
-    <canvas id="cnv" width="1500" height="800"></canvas>
-    <section class="data-section">
-        <div class="date-value">
-            <label>Scale factor</label>
-            <input id="scaleFactorInp" type="range" min="0.001" max="20" step="0.01" value="1">
-            <span id="scalefactor"></span>
-        </div>
-        <div class="date-value">
-            <label>Particles</label>
-            <span id="particlescount"></span>
-        </div>
-        <div class="date-value">
-            <label>Performance</label>
-            <span id="perfvalue"></span>
-        </div>
-        <div class="date-value">
-            <label>Rotate X</label>
-            <input id="xRotationInp" type="range" min="-3" max="3" step="0.01" value="0">
-            <span id="xrotate">0</span>
-        </div>
-        <div class="date-value">
-            <label>Rotate Y</label>
-            <input id="yRotationInp" type="range" min="-3" max="3" step="0.01" value="0">
-            <span id="yrotate">0</span>
-        </div>
-        <div class="date-value">
-            <label>Rotate Z</label>
-            <input id="zRotationInp" type="range" min="-3" max="3" step="0.01" value="0">
-            <span id="zrotate">0</span>
-        </div>
-        <div>
-            <button id="toggleRunBtn" type="button">Run</button>
-        </div>
-    </section>
-</div>
+    <div id="maincontainer" class="container">
+        <section class="data-section">
+            <div class="date-value">
+                <label>Demo</label>
+                <select id="demoSelect">
+                </select>
+            </div>
+            <div class="date-value">
+                <label>Scale factor</label>
+                <input id="scaleFactorInp" type="range" min="0.001" max="20" step="0.01" value="1">
+                <span id="scalefactor"></span>
+            </div>
+            <div class="date-value">
+                <label>Particles</label>
+                <span id="particlescount"></span>
+            </div>
+            <div class="date-value">
+                <label>Performance</label>
+                <span id="perfvalue"></span>
+            </div>
+            <div class="date-value">
+                <label>Rotate X</label>
+                <input id="xRotationInp" type="range" min="-3" max="3" step="0.01" value="0">
+                <span id="xrotate">0</span>
+            </div>
+            <div class="date-value">
+                <label>Rotate Y</label>
+                <input id="yRotationInp" type="range" min="-3" max="3" step="0.01" value="0">
+                <span id="yrotate">0</span>
+            </div>
+            <div class="date-value">
+                <label>Rotate Z</label>
+                <input id="zRotationInp" type="range" min="-3" max="3" step="0.01" value="0">
+                <span id="zrotate">0</span>
+            </div>
+            <div>
+                <button id="toggleRunBtn" type="button">Run</button>
+            </div>
+        </section>
+    </div>
 </body>
+
 </html>
