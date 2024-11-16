@@ -1,6 +1,7 @@
 import { Canvas2D } from './Canvas2D.js';
 import { CanvasWebGL } from './CanvasWebGL.js';
 import { Field } from './Field.js';
+import { getEventPageCoordinates } from './utils.js';
 
 const defaultProps = {
     autoStart: false,
@@ -54,6 +55,8 @@ export class MainView {
             rotation: { alpha: 0, beta: 0, gamma: 0 },
             timestamp: undefined,
             perfValue: 0,
+            dragging: false,
+            startPoint: null,
         };
 
         document.addEventListener('DOMContentLoaded', () => this.init());
@@ -72,6 +75,14 @@ export class MainView {
         } else {
             this.canvas = new Canvas2D(canvasElem);
         }
+
+        canvasElem.addEventListener('touchstart', (e) => this.onMouseDown(e));
+        canvasElem.addEventListener('touchmove', (e) => this.onMouseMove(e));
+        canvasElem.addEventListener('touchend', (e) => this.onMouseUp(e));
+        canvasElem.addEventListener('touchcancel', (e) => this.onMouseUp(e));
+        canvasElem.addEventListener('mousedown', (e) => this.onMouseDown(e));
+        canvasElem.addEventListener('mousemove', (e) => this.onMouseMove(e));
+        canvasElem.addEventListener('mouseup', (e) => this.onMouseUp(e));
 
         this.scaleFactorInp = document.getElementById('scaleFactorInp');
         this.scaleFactorInp.disabled = !this.props.useField;
@@ -195,6 +206,46 @@ export class MainView {
         }
 
         this.state.rotating = false;
+    }
+
+    onMouseDown(e) {
+        if (this.state.dragging) {
+            return;
+        }
+
+        this.state.startPoint = getEventPageCoordinates(e);
+
+        this.state.dragging = true;
+    }
+
+    onMouseMove(e) {
+        const { dragging, startPoint } = this.state;
+        if (!dragging || !startPoint) {
+            return;
+        }
+
+        const newPoint = getEventPageCoordinates(e);
+
+        const deltaScale = 0.0001;
+
+        const deltaX = (newPoint.x - startPoint.x) * deltaScale;
+        const deltaY = (newPoint.y - startPoint.y) * deltaScale;
+
+        const pausedBefore = this.state.paused;
+        this.pause();
+
+        const valY = deltaY + this.state.rotation.alpha;
+        const valX = deltaX + this.state.rotation.beta;
+
+        this.state.rotation.alpha = valY;
+        this.state.rotation.beta = valX;
+
+        this.processRotation(valY, valX, 0, pausedBefore);
+    }
+
+    onMouseUp() {
+        this.state.dragging = false;
+        this.state.startPoint = null;
     }
 
     onXRotate(e) {

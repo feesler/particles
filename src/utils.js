@@ -25,3 +25,33 @@ export function rand(from = 0, to = 1) {
 
     return Math.random() * d + mfrom;
 }
+
+export function getEventCoordinatesObject(e) {
+    if ('touches' in e) {
+        if (e.type === 'touchend' || e.type === 'touchcancel') {
+            return e.changedTouches[0];
+        }
+
+        return e.touches[0];
+    }
+
+    return e;
+}
+
+export function getEventPageCoordinates(e) {
+    const coords = getEventCoordinatesObject(e);
+
+    return {
+        x: coords.pageX,
+        y: coords.pageY,
+    };
+}
+
+export function getEventClientCoordinates(e) {
+    const coords = getEventCoordinatesObject(e);
+
+    return {
+        x: coords.clientX,
+        y: coords.clientY,
+    };
+}
