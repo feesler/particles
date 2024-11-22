@@ -1,5 +1,5 @@
-import { Vector } from '../../Vector.js';
-import { Box } from '../../Box.js';
+import { Vector } from '../../engine/Vector.js';
+import { Box } from '../../engine/Box.js';
 
 export class Box3dDemo {
     getProps() {

@@ -7,6 +7,8 @@ import { initVelocityTest } from './demos/velocity.js';
 import { MaxVelocityDemo } from './demos/canvas/maxVelocity.js';
 import { Box3dDemo } from './demos/canvas/box3d.js';
 
+import { findMenuItem } from './utils.js';
+
 export const demos = [
     {
         id: 'planetarySystem',
@@ -57,37 +59,6 @@ export const demos = [
     },
 ];
 
-/**
- * Searches for first tree item for which callback function return true
- *
- * @param {SortableTreeItem[]} items array of items to search in
- * @param {Function} callback function to
- */
-export function findTreeItem(items, callback) {
-    if (!Array.isArray(items)) {
-        throw new Error('Invalid items parameter');
-    }
-    if (typeof callback !== 'function') {
-        throw new Error('Invalid callback parameter');
-    }
-
-    for (let index = 0; index < items.length; index += 1) {
-        const item = items[index];
-        if (callback(item, index, items)) {
-            return item;
-        }
-
-        if (Array.isArray(item?.items)) {
-            const childRes = findTreeItem(item.items, callback);
-            if (childRes) {
-                return childRes;
-            }
-        }
-    }
-
-    return null;
-}
-
 export const findDemoById = (id) => (
-    findTreeItem(demos, (item) => item?.id === id)
+    findMenuItem(demos, (item) => item?.id === id)
 );

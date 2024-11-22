@@ -1,4 +1,4 @@
-import * as m4 from './Matrix4.js';
+import * as m4 from './engine/Matrix4.js';
 
 export class CanvasWebGL {
     constructor(elem) {
@@ -107,7 +107,7 @@ export class CanvasWebGL {
         this.matrix = matrix;
     }
 
-    drawScene(time) {
+    drawScene() {
         this.resizeCanvasToDisplaySize();
         this.context.viewport(0, 0, this.context.canvas.width, this.context.canvas.height);
 
@@ -119,7 +119,9 @@ export class CanvasWebGL {
         this.context.useProgram(this.program);
 
         // Transform matrix
-        this.context.uniformMatrix4fv(this.matrixUniformLocation, false, this.matrix);
+        if (this.matrix) {
+            this.context.uniformMatrix4fv(this.matrixUniformLocation, false, this.matrix);
+        }
 
         this.context.bindBuffer(this.context.ARRAY_BUFFER, this.positionBuffer);
         this.context.bufferData(this.context.ARRAY_BUFFER, new Float32Array(this.positions), this.context.STATIC_DRAW);

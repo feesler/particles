@@ -1,14 +1,13 @@
 import { Box } from './Box.js';
-import { Particle } from './particles/Particle.js';
-import { Star } from './particles/Star.js';
+import { Particle } from '../particles/Particle.js';
+import { Star } from '../particles/Star.js';
 import { Vector } from './Vector.js';
-import { Quantum } from './particles/Quantum.js';
-import { Planet } from './particles/Planet.js';
-import { AXES, rand } from './utils.js';
-import { Photon } from './particles/Photon.js';
-import { Electron } from './particles/Electron.js';
-import { Positron } from './particles/Positron.js';
-import { Gluon } from './particles/Gluon.js';
+import { Planet } from '../particles/Planet.js';
+import { rand } from '../utils.js';
+import { Photon } from '../particles/Photon.js';
+import { Electron } from '../particles/Electron.js';
+import { Positron } from '../particles/Positron.js';
+import { Gluon } from '../particles/Gluon.js';
 import {
     DARK_TYPE,
     ELECTRON_TYPE,
@@ -19,7 +18,7 @@ import {
     POSITRON_TYPE,
     PROTON_TYPE,
     STAR_TYPE,
-} from './particles/types.js';
+} from '../particles/types.js';
 import { OctTree } from './OctTree.js';
 
 const K = 8.9 * 10;
@@ -48,7 +47,7 @@ export class Field {
         this.DIST = 1000;
         this.Z_SHIFT = 0;
 
-        this.drawAllPaths = false;
+        this.drawAllPaths = false; // true;
         this.useCollide = true;
         this.restoreCollided = true;
         this.useSoftening = false;
@@ -57,6 +56,7 @@ export class Field {
         this.newParticles = [];
         this.useSpontaneous = false;
         this.useBoxBorder = true;
+        this.useWebGL = false;
 
         this.useBarnesHut = true;
         this.drawNodes = false;
@@ -272,7 +272,11 @@ export class Field {
     }
 
     drawFrame() {
-        this.drawFrameWebGl();
+        if (this.useWebGL) {
+            this.drawFrameWebGl();
+        } else {
+            this.drawFrameByPixels();
+        }
     }
 
     setScaleFactor(scaleFactor) {
@@ -351,7 +355,7 @@ export class Field {
             if (this.useCollide) {
                 const rr = (particle.r + nq.r) / (2 * this.scaleFactor);
                 if (distLength - rr < this.minDistance) {
-                    const collideResult = this.collide(particle, nq);
+                    this.collide(particle, nq);
                     if (particle.removed) {
                         return;
                     }
@@ -624,6 +628,7 @@ export class Field {
             if (!remVelocity.getLength()) {
                 break;
             }
+            // eslint-disable-next-line no-constant-condition
         } while (true);
     }
 

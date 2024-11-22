@@ -1,4 +1,4 @@
-import { Vector } from '../Vector.js';
+import { Vector } from '../engine/Vector.js';
 
 export class Particle {
     constructor(x, y, z, charge, m) {
