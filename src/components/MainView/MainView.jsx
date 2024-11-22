@@ -1,10 +1,10 @@
+import { useStore } from '@jezvejs/react';
 import { useEffect, useRef } from 'react';
 import { Canvas2D } from '../../Canvas2D.js';
 import { CanvasWebGL } from '../../CanvasWebGL.js';
 import { demos, findDemoById } from '../../demos.js';
 import { Field } from '../../engine/Field.js';
 import { getEventPageCoordinates, mapItems } from '../../utils.js';
-import { useStore } from '../../utils/Store/StoreProvider.jsx';
 
 const demosList = mapItems(demos, (item) => ({
     ...item,
