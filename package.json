@@ -5,8 +5,8 @@
   "description": "Fields and particles simulation",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "lint": "eslint --quiet ./src",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
     "prestart": "npm install",
     "start": "vite",
     "preview": "vite preview"
@@ -36,15 +36,17 @@
   "homepage": "https://github.com/feesler/particles#readme",
   "devDependencies": {
     "@eslint/js": "^9.13.0",
+    "@tsconfig/vite-react": "^3.0.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "eslint": "^9.15.0",
-    "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.12.0",
     "sass-embedded": "^1.81.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.15.0",
     "vite": "^5.4.11"
   }
 }

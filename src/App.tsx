@@ -1,5 +1,5 @@
 import { createSlice, StoreProvider } from '@jezvejs/react';
-import { getInitialState, MainView } from './components/MainView/MainView.jsx';
+import { getInitialState, MainView } from './components/MainView/MainView.tsx';
 import './App.css';
 
 const slice = createSlice({});

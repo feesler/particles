@@ -1,5 +1,5 @@
-import { Vector } from './Vector.js';
-import { EPSILON, AXES, intersectPlane } from '../utils.js';
+import { Vector } from './Vector.ts';
+import { EPSILON, AXES, intersectPlane } from '../utils.ts';
 
 export class Box {
     constructor(width, height, depth) {

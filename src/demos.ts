@@ -1,13 +1,13 @@
-import { initStars } from './demos/stars.js';
-import { initGalaxies } from './demos/galaxies.js';
-import { initPlanetarySystem } from './demos/planetary.js';
-import { initGas } from './demos/gas.js';
-import { initParticles } from './demos/particles.js';
-import { initVelocityTest } from './demos/velocity.js';
-import { MaxVelocityDemo } from './demos/canvas/maxVelocity.js';
-import { Box3dDemo } from './demos/canvas/box3d.js';
+import { initStars } from './demos/stars.ts';
+import { initGalaxies } from './demos/galaxies.ts';
+import { initPlanetarySystem } from './demos/planetary.ts';
+import { initGas } from './demos/gas.ts';
+import { initParticles } from './demos/particles.ts';
+import { initVelocityTest } from './demos/velocity.ts';
+import { MaxVelocityDemo } from './demos/canvas/maxVelocity.ts';
+import { Box3dDemo } from './demos/canvas/box3d.ts';
 
-import { findMenuItem } from './utils.js';
+import { findMenuItem } from './utils.ts';
 
 export const demos = [
     {

@@ -1,5 +1,5 @@
-import { Particle } from './Particle.js';
-import { DARK_TYPE } from './types.js';
+import { Particle } from './Particle.ts';
+import { DARK_TYPE } from './types.ts';
 
 const DARK_MASS = 10000000;
 
