@@ -1,10 +1,12 @@
-import { Quantum } from './Quantum.js';
-import { PHOTON_TYPE } from './types.js';
+import { Quantum } from './Quantum.ts';
+import { PHOTON_TYPE } from './types.ts';
 
 const PHOTON_REFLECT_LIMIT = 2;
 
 export class Photon extends Quantum {
-    constructor(x, y, z) {
+    reflectCount: number;
+
+    constructor(x: number, y: number, z: number) {
         super(x, y, z, 0, 0);
         this.color = { r: 0xFF, g: 0xFF, b: 0x00 };
         this.type = PHOTON_TYPE;

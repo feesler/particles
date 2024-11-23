@@ -1,9 +1,17 @@
-import { Particle } from './Particle.js';
-import { STAR_TYPE } from './types.js';
+import { Particle } from './Particle.ts';
+import { STAR_TYPE } from './types.ts';
 
-const clamp = (num, min, max) => (num < min) ? min : ((num > max) ? max : num);
+const clamp = (num: number, min: number, max: number) => (
+    (num < min) ? min : ((num > max) ? max : num)
+);
 
-const temperatureToColor = (temperature) => {
+export type RGBColor = {
+    r: number;
+    g: number;
+    b: number;
+};
+
+const temperatureToColor = (temperature: number): RGBColor => {
     const tK = clamp(temperature, 1000, 40000) / 100;
 
     return {
@@ -30,7 +38,9 @@ const temperatureToColor = (temperature) => {
 };
 
 export class Star extends Particle {
-    constructor(x, y, z, mass = 500000) {
+    color: RGBColor;
+
+    constructor(x: number, y: number, z: number, mass: number = 500000) {
         super(x, y, z, 0, mass);
         this.r = Math.log(mass) / 10;
         this.color = this.getColor(mass);
@@ -38,13 +48,13 @@ export class Star extends Particle {
         this.isQuantum = false;
     }
 
-    getColor(mass) {
+    getColor(mass: number) {
         const temp = Math.pow(mass, 0.5);
 
         return temperatureToColor(temp);
     }
 
-    setMass(mass) {
+    setMass(mass: number) {
         super.setMass(mass);
 
         this.color = this.getColor(mass);

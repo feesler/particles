@@ -1,5 +1,9 @@
 export class Vector {
-    constructor(x = 0, y = 0, z = 0) {
+    x: number;
+    y: number;
+    z: number;
+
+    constructor(x: number = 0, y: number = 0, z: number = 0) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -9,7 +13,7 @@ export class Vector {
         return !Number.isNaN(this.x) && !Number.isNaN(this.y) && !Number.isNaN(this.z);
     }
 
-    set(vector) {
+    set(vector: Vector) {
         this.x = vector.x;
         this.y = vector.y;
         this.z = vector.z;
@@ -19,7 +23,7 @@ export class Vector {
         return new Vector(this.x, this.y, this.z);
     }
 
-    isEqual(vector) {
+    isEqual(vector: Vector) {
         return this.x === vector.x && this.y === vector.y && this.z === vector.z;
     }
 
@@ -31,11 +35,11 @@ export class Vector {
         return this.x * this.x + this.y * this.y + this.z * this.z;
     }
 
-    dotProduct(vector) {
+    dotProduct(vector: Vector) {
         return this.x * vector.x + this.y * vector.y + this.z * vector.z;
     }
 
-    crossProduct(vector) {
+    crossProduct(vector: Vector) {
         const x = this.y * vector.z - this.z * vector.y;
         const y = this.z * vector.x - this.x * vector.z;
         const z = this.x * vector.y - this.y * vector.x;
@@ -44,55 +48,55 @@ export class Vector {
         this.z = z;
     }
 
-    add(vector) {
+    add(vector: Vector) {
         this.x += vector.x;
         this.y += vector.y;
         this.z += vector.z;
     }
 
-    substract(vector) {
+    substract(vector: Vector) {
         this.x -= vector.x;
         this.y -= vector.y;
         this.z -= vector.z;
     }
 
-    multiply(vector) {
+    multiply(vector: Vector) {
         this.x *= vector.x;
         this.y *= vector.y;
         this.z *= vector.z;
     }
 
-    divide(vector) {
+    divide(vector: Vector) {
         this.x /= vector.x;
         this.y /= vector.y;
         this.z /= vector.z;
     }
 
-    addScalar(scalar) {
+    addScalar(scalar: number) {
         this.x += scalar;
         this.y += scalar;
         this.z += scalar;
     }
 
-    multiplyByScalar(scalar) {
+    multiplyByScalar(scalar: number) {
         this.x *= scalar;
         this.y *= scalar;
         this.z *= scalar;
     }
 
-    divideByScalar(scalar) {
+    divideByScalar(scalar: number) {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
     }
 
-    addScaled(vector, scalar) {
+    addScaled(vector: Vector, scalar: number) {
         this.x += scalar * vector.x;
         this.y += scalar * vector.y;
         this.z += scalar * vector.z;
     }
 
-    substractScaled(vector, scalar) {
+    substractScaled(vector: Vector, scalar: number) {
         this.x -= scalar * vector.x;
         this.y -= scalar * vector.y;
         this.z -= scalar * vector.z;
@@ -105,7 +109,7 @@ export class Vector {
         }
     }
 
-    reflect(normale, loss = 1) {
+    reflect(normale: Vector, loss: number = 1) {
         const dp = 2 * this.dotProduct(normale) * loss;
         this.substractScaled(normale, dp);
     }
@@ -121,7 +125,7 @@ export class Vector {
         return res;
     }
 
-    rotateAroundX(angle) {
+    rotateAroundX(angle: number) {
         if (angle === 0) {
             return;
         }
@@ -133,7 +137,7 @@ export class Vector {
         this.z = Y * Math.sin(angle) + Z * Math.cos(angle);
     }
 
-    rotateAroundY(angle) {
+    rotateAroundY(angle: number) {
         if (angle === 0) {
             return;
         }
@@ -145,7 +149,7 @@ export class Vector {
         this.z = -X * Math.sin(angle) + Z * Math.cos(angle);
     }
 
-    rotateAroundZ(angle) {
+    rotateAroundZ(angle: number) {
         if (angle === 0) {
             return;
         }

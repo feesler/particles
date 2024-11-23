@@ -1,8 +1,23 @@
 import { Vector } from './Vector.ts';
 import { EPSILON, AXES, intersectPlane } from '../utils.ts';
+import { Axis, PlanePoint, Point } from '../types.ts';
+
+export type Object3D<T> = {
+    x: T;
+    y: T;
+    z: T;
+};
 
 export class Box {
-    constructor(width, height, depth) {
+    halfSize: Vector;
+    vertices: Vector[];
+    edges: [number, number][];
+
+    normals: Object3D<Vector>;
+
+    planePoints: Object3D<PlanePoint>;
+
+    constructor(width: number, height: number, depth: number) {
         const hw = width / 2;
         const hh = height / 2;
         const hd = depth / 2;
@@ -50,7 +65,7 @@ export class Box {
     }
 
     /** Return point of plane pointed by specified vector */
-    getPlanePoint(axis, vector) {
+    getPlanePoint(axis: Axis, vector: Vector) {
         const normal = this.normals[axis];
         const dp = vector.dotProduct(normal);
 
@@ -62,7 +77,7 @@ export class Box {
         return this.vertices[(dp > 0) ? planeAxis.left : planeAxis.right];
     }
 
-    rotate(alpha, beta, gamma) {
+    rotate(alpha: number, beta: number, gamma: number) {
         for (const vert of this.vertices) {
             vert.rotateAroundX(alpha);
             vert.rotateAroundY(beta);
@@ -78,7 +93,7 @@ export class Box {
     }
 
     /** Returns intersection point of screen plane(z=0) by line specified by points A and B */
-    getIntersectPoint(A, B) {
+    getIntersectPoint(A: Point, B: Point) {
         const t = -A.z / (B.z - A.z);
         const x = t * (B.x - A.x) + A.x;
         const y = t * (B.y - A.y) + A.y;
@@ -123,7 +138,7 @@ export class Box {
         }
     }
 
-    getIntersection(A, B) {
+    getIntersection(A: Vector, B: Vector) {
         const dp = {};
         const outAxes = [];
 
@@ -135,7 +150,7 @@ export class Box {
         }
 
         for (const axis of AXES) {
-            dp[axis] = B.dotProduct(this.normals[axis]);
+            dp[axis.toString()] = B.dotProduct(this.normals[axis]);
 
             const out = Math.abs(dp[axis]) - this.halfSize[axis];
             if (out > 0) {

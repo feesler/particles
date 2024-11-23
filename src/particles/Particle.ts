@@ -1,7 +1,25 @@
-import { Vector } from '../engine/Vector.js';
+import { Vector } from '../engine/Vector.ts';
+import { RGBColor } from './Star.ts';
 
 export class Particle {
-    constructor(x, y, z, charge, m) {
+    pos: Vector;
+    force: Vector;
+    velocity: Vector;
+
+    m: number;
+    charge: number;
+    r: number;
+    type: number;
+
+    draw: boolean;
+    drawPath: boolean;
+    path: Vector[];
+
+    color: RGBColor;
+    removed: boolean;
+    isQuantum: boolean;
+
+    constructor(x: number, y: number, z: number, charge: number, m: number) {
         this.pos = new Vector(x, y, z);
         this.force = new Vector(0, 0, 0);
         this.velocity = new Vector(0, 0, 0);
@@ -16,13 +34,14 @@ export class Particle {
 
         this.color = { r: 0xFF, g: 0xFF, b: 0xFF };
         this.removed = false;
+        this.isQuantum = false;
     }
 
     remove() {
         this.removed = true;
     }
 
-    setMass(mass) {
+    setMass(mass: number) {
         this.m = mass;
     }
 
@@ -30,11 +49,11 @@ export class Particle {
         this.force.multiplyByScalar(0);
     }
 
-    attract(particle) {
+    attract(particle: Particle) {
         return Math.sign(this.charge) !== Math.sign(particle.charge);
     }
 
-    distanceTo(particle) {
+    distanceTo(particle: Particle) {
         const dx = Math.abs(this.pos.x - particle.pos.x);
         const dy = Math.abs(this.pos.y - particle.pos.y);
         const dz = Math.abs(this.pos.z - particle.pos.z);
@@ -42,7 +61,7 @@ export class Particle {
         return new Vector(dx, dy, dz);
     }
 
-    orientationTo(particle) {
+    orientationTo(particle: Particle) {
         const ox = (this.pos.x < particle.pos.x) ? 1 : -1;
         const oy = (this.pos.y < particle.pos.y) ? 1 : -1;
         const oz = (this.pos.z < particle.pos.z) ? 1 : -1;
@@ -54,7 +73,7 @@ export class Particle {
         this.path = [];
     }
 
-    setPos(pos, usePath = false) {
+    setPos(pos: Vector, usePath: boolean = false) {
         if (usePath || this.drawPath) {
             this.path.push(this.pos.copy());
         }

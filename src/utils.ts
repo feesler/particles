@@ -1,7 +1,23 @@
-export const EPSILON = 0.00000001;
-export const AXES = ['x', 'y', 'z'];
+import { Vector } from './engine/Vector.ts';
+import {
+    Axis,
+    IncludeGroupItemsParam,
+    MenuItemCallback,
+    MenuItemProps,
+    MenuLoopParam,
+    Point,
+    ToFlatListParam,
+} from './types.ts';
 
-export function intersectPlane(planePoint, planeNormal, linePoint, lineVector) {
+export const EPSILON = 0.00000001;
+export const AXES: Axis[] = ['x', 'y', 'z'];
+
+export function intersectPlane(
+    planePoint: Vector,
+    planeNormal: Vector,
+    linePoint: Vector,
+    lineVector: Vector,
+) {
     const lineNormalized = lineVector.copy();
     const planeDot = planeNormal.dotProduct(lineNormalized);
     if (Math.abs(planeDot) < EPSILON) {
@@ -15,7 +31,7 @@ export function intersectPlane(planePoint, planeNormal, linePoint, lineVector) {
 }
 
 /** Returns random value in range [from, to) */
-export function rand(from = 0, to = 1) {
+export function rand(from: number = 0, to: number = 1): number {
     const mfrom = Math.min(from, to);
     const mto = Math.max(from, to);
     const d = Math.abs(mto - mfrom);
@@ -26,7 +42,7 @@ export function rand(from = 0, to = 1) {
     return Math.random() * d + mfrom;
 }
 
-export function getEventCoordinatesObject(e) {
+export function getEventCoordinatesObject(e: TouchEvent | MouseEvent) {
     if ('touches' in e) {
         if (e.type === 'touchend' || e.type === 'touchcancel') {
             return e.changedTouches[0];
@@ -38,7 +54,7 @@ export function getEventCoordinatesObject(e) {
     return e;
 }
 
-export function getEventPageCoordinates(e) {
+export function getEventPageCoordinates(e: TouchEvent | MouseEvent): Point {
     const coords = getEventCoordinatesObject(e);
 
     return {
@@ -47,7 +63,7 @@ export function getEventPageCoordinates(e) {
     };
 }
 
-export function getEventClientCoordinates(e) {
+export function getEventClientCoordinates(e: TouchEvent | MouseEvent): Point {
     const coords = getEventCoordinatesObject(e);
 
     return {
@@ -62,7 +78,7 @@ export function getEventClientCoordinates(e) {
  * @param {T = MenuItemProps} item
  * @returns {boolean}
  */
-export function isChildItemsAvailable(item) {
+export function isChildItemsAvailable<T extends MenuItemProps = MenuItemProps>(item: T): boolean {
     return (
         item.type === 'group'
         || item.type === 'parent'
@@ -76,7 +92,10 @@ export function isChildItemsAvailable(item) {
  * @param {ToFlatListParam} options
  * @returns {boolean}
  */
-export function shouldIncludeParentItem(item, options) {
+export function shouldIncludeParentItem<T extends MenuItemProps = MenuItemProps>(
+    item: T,
+    options: ToFlatListParam,
+): boolean {
     return !!(
         (item.type === 'group' && options?.includeGroupItems)
         || (item.type === 'parent' && options?.includeChildItems)
@@ -84,12 +103,17 @@ export function shouldIncludeParentItem(item, options) {
 }
 
 /**
- * Searches for first tree item for which callback function return true
+ * Searches for first menu item for which callback function return true
  *
- * @param {SortableTreeItem[]} items array of items to search in
- * @param {Function} callback function to
+ * @param {<T = MenuItemProps>[]} items array of items to search in
+ * @param {MenuItemCallback<T>} callback
+ * @param {ToFlatListParam} options
  */
-export function findMenuItem(items, callback) {
+export function findMenuItem<T extends MenuItemProps = MenuItemProps>(
+    items: T[],
+    callback: MenuItemCallback<T>,
+    options?: ToFlatListParam,
+): T | null {
     if (!Array.isArray(items)) {
         throw new Error('Invalid items parameter');
     }
@@ -98,15 +122,15 @@ export function findMenuItem(items, callback) {
     }
 
     for (let index = 0; index < items.length; index += 1) {
-        const item = items[index];
-        if (callback(item, index, items)) {
+        let item: T | null = items[index];
+        if (callback(item)) {
             return item;
         }
 
-        if (Array.isArray(item?.items)) {
-            const childRes = findMenuItem(item.items, callback);
-            if (childRes) {
-                return childRes;
+        if (isChildItemsAvailable(item) && Array.isArray(item.items)) {
+            item = findMenuItem<T>((item.items ?? []) as T[], callback, options);
+            if (item) {
+                return item;
             }
         }
     }
@@ -116,33 +140,37 @@ export function findMenuItem(items, callback) {
 
 /**
  * Returns list of menu items transformed with callback function
- * @param {T} items menu items array
- * @param {MenuItemCallback} callback
+ * @param {T[]} items menu items array
+ * @param {MenuItemCallback<T, T>} callback
  * @param {MenuLoopParam<T>} options
- * @returns {T}
+ * @returns {T[]}
  */
-export function mapItems(items, callback, options = null) {
+export function mapItems<T extends MenuItemProps = MenuItemProps>(
+    items: T[],
+    callback: MenuItemCallback<T, T>,
+    options: MenuLoopParam<T> | null = null,
+): T[] {
     if (typeof callback !== 'function') {
         throw new Error('Invalid callback parameter');
     }
 
-    const res = [];
+    const res: T[] = [];
 
     for (let index = 0; index < items.length; index += 1) {
-        const item = {
+        const item: T = {
             ...items[index],
             group: options?.group?.id,
         };
 
         if (isChildItemsAvailable(item)) {
-            const group = shouldIncludeParentItem(item, options)
+            const group = shouldIncludeParentItem(item, options as IncludeGroupItemsParam)
                 ? callback(item, index, items)
                 : item;
 
             res.push({
                 ...group,
-                items: mapItems(
-                    (item.items ?? []),
+                items: mapItems<T>(
+                    (item.items ?? []) as T[],
                     callback,
                     {
                         ...(options ?? {}),

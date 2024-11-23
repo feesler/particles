@@ -1,6 +1,14 @@
 import { Vector } from './Vector.js';
 
 export class OctTree {
+    offset: Vector;
+    centerOfMass: Vector;
+    corner: Vector;
+    size: number;
+    half: number;
+    mass: number;
+    charge: number;
+
     constructor(offset, size) {
         this.offset = new Vector();
         this.offset.set(offset);

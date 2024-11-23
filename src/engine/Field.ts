@@ -1,13 +1,13 @@
-import { Box } from './Box.js';
-import { Particle } from '../particles/Particle.js';
-import { Star } from '../particles/Star.js';
-import { Vector } from './Vector.js';
-import { Planet } from '../particles/Planet.js';
-import { rand } from '../utils.js';
-import { Photon } from '../particles/Photon.js';
-import { Electron } from '../particles/Electron.js';
-import { Positron } from '../particles/Positron.js';
-import { Gluon } from '../particles/Gluon.js';
+import { Box } from './Box.ts';
+import { Particle } from '../particles/Particle.ts';
+import { Star } from '../particles/Star.ts';
+import { Vector } from './Vector.ts';
+import { Planet } from '../particles/Planet.ts';
+import { rand } from '../utils.ts';
+import { Photon } from '../particles/Photon.ts';
+import { Electron } from '../particles/Electron.ts';
+import { Positron } from '../particles/Positron.ts';
+import { Gluon } from '../particles/Gluon.ts';
 import {
     DARK_TYPE,
     ELECTRON_TYPE,
@@ -18,8 +18,8 @@ import {
     POSITRON_TYPE,
     PROTON_TYPE,
     STAR_TYPE,
-} from '../particles/types.js';
-import { OctTree } from './OctTree.js';
+} from '../particles/types.ts';
+import { OctTree } from './OctTree.ts';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.0000001;
@@ -31,7 +31,33 @@ const BORDER_LOSS = 0.1;
 const BOUNDING_GAP = 10;
 
 export class Field {
-    constructor(canvas, scaleFactor, timeStep) {
+    depth: number;
+    xShift: number;
+    yShift: number;
+    width: number;
+    height: number;
+
+    drawAllPaths: boolean;
+    useCollide: boolean;
+    restoreCollided: boolean;
+    useSoftening: boolean;
+    SOFTENING: number;
+
+    addInstantly: boolean;
+    useBarnesHut: boolean;
+    newParticles: [];
+    useSpontaneous: boolean;
+    useBoxBorder: boolean;
+    useWebGL: boolean;
+    drawNodes: boolean;
+
+    sceneNormals: {
+        x: Vector;
+        y: Vector;
+        z: Vector;
+    };
+
+    constructor(canvas, scaleFactor: number, timeStep: number) {
         if (!canvas) {
             throw new Error('Invalid canvas');
         }
@@ -585,7 +611,7 @@ export class Field {
         ));
     }
 
-    relVelocity(velocity) {
+    relVelocity(velocity: number) {
         return this.maxVelocity * Math.tanh(velocity / this.maxVelocity);
     }
 

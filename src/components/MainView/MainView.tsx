@@ -5,6 +5,7 @@ import { CanvasWebGL } from '../../CanvasWebGL.ts';
 import { demos, findDemoById } from '../../demos.ts';
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
+import { Point } from '../../types.ts';
 
 const demosList = mapItems(demos, (item) => ({
     ...item,
@@ -62,14 +63,32 @@ export const getInitialState = (props = {}, defProps = defaultProps) => ({
     ...initialState,
 });
 
-export const MainView = () => {
-    const { state, getState, setState } = useStore();
+export interface AppState {
+    scaleStep: number;
+    scaleFactor: number;
 
-    const fieldRef = useRef(null);
+    paused: boolean;
+    updating: boolean;
+    rotating: boolean;
+
+    rotation: { alpha: 0, beta: 0, gamma: 0; },
+
+    timestamp: number;
+    perfValue: number;
+
+    dragging: boolean;
+
+    startPoint: Point | null;
+}
+
+export const MainView = () => {
+    const { state, getState, setState } = useStore<AppState>();
+
+    const fieldRef = useRef<Field | null>(null);
     const canvasRef = useRef(null);
     const canvasHandlerRef = useRef(null);
 
-    const update = (timestamp) => {
+    const update = (timestamp: number) => {
         let st = getState();
         if (st.rotating || st.paused) {
             return;
@@ -82,11 +101,14 @@ export const MainView = () => {
         setState((prev) => ({ ...prev, timestamp }));
 
         const field = fieldRef.current;
+        if (!field) {
+            return;
+        }
 
         field.calculate(dt);
         field.drawFrame();
         if (st.scaleStep !== 0) {
-            setState((prev) => ({
+            setState((prev: AppState) => ({
                 ...prev,
                 scaleFactor: prev.scaleFactor + prev.scaleStep,
             }));
@@ -175,7 +197,7 @@ export const MainView = () => {
         }
     };
 
-    const processRotation = (a, b, g, pb) => {
+    const processRotation = (a: number, b: number, g: number, pb: boolean) => {
         setState((prev) => ({ ...prev, rotating: true }));
 
         const st = getState();
@@ -295,7 +317,7 @@ export const MainView = () => {
         fieldRef.current.setScaleFactor(scaleFactor);
     };
 
-    const onXRotate = (e) => {
+    const onXRotate = (e?: Event) => {
         const st = getState();
 
         const pausedBefore = st.paused;
@@ -304,7 +326,7 @@ export const MainView = () => {
         const val = parseFloat(e.target.value);
         const delta = val - st.rotation.alpha;
 
-        setState((prev) => ({
+        setState((prev: AppState) => ({
             ...prev,
             rotation: {
                 ...prev.rotation,
@@ -315,7 +337,7 @@ export const MainView = () => {
         processRotation(delta, 0, 0, pausedBefore);
     };
 
-    const onYRotate = (e) => {
+    const onYRotate = (e?: Event) => {
         const st = getState();
         const pausedBefore = st.paused;
         pause();
@@ -334,7 +356,7 @@ export const MainView = () => {
         processRotation(0, delta, 0, pausedBefore);
     };
 
-    const onZRotate = (e) => {
+    const onZRotate = (e?: Event) => {
         const st = getState();
         const pausedBefore = st.paused;
         pause();

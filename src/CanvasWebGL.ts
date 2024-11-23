@@ -1,7 +1,12 @@
-import * as m4 from './engine/Matrix4.js';
+import * as m4 from './engine/Matrix4.ts';
 
 export class CanvasWebGL {
-    constructor(elem) {
+    elem: HTMLCanvasElement;
+    context: WebGLRenderingContext | null;
+    width: number;
+    height: number;
+
+    constructor(elem: HTMLElement) {
         if (!(elem instanceof HTMLCanvasElement)) {
             throw new Error('Invalid canvas element');
         }

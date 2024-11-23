@@ -1,7 +1,12 @@
 import { CanvasFrame } from './CanvasFrame.js';
 
 export class Canvas2D {
-    constructor(elem) {
+    elem: HTMLDivElement;
+    context: CanvasRenderingContext2D | null;
+    width: number;
+    height: number;
+
+    constructor(elem: HTMLElement) {
         if (!(elem instanceof HTMLCanvasElement)) {
             throw new Error('Invalid canvas element');
         }
@@ -25,7 +30,7 @@ export class Canvas2D {
         this.context.clearRect(0, 0, this.width, this.height);
     }
 
-    drawCircle(x, y, radius, color) {
+    drawCircle(x: number, y: number, radius: number, color: number) {
         const circleStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
         this.context.fillStyle = circleStyle;
         this.context.strokeStyle = circleStyle;

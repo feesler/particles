@@ -1,13 +1,16 @@
 export class CanvasFrame {
-    constructor(image) {
+    image: ImageData | null;
+
+    constructor(image: ImageData | null) {
         this.image = image;
     }
 
-    putPixel(x, y, r, g, b, a) {
+    putPixel(x: number, y: number, r: number, g: number, b: number, a: number) {
         const rx = Math.round(x);
         const ry = Math.round(y);
         if (
-            rx < 0
+            !this.image
+            || rx < 0
             || rx > this.image.width
             || ry < 0
             || ry > this.image.height
@@ -22,12 +25,21 @@ export class CanvasFrame {
         this.image.data[ind + 3] = a;
     }
 
-    drawLine(x0, y0, x1, y1, r, g, b, a) {
-        const steep = (Math.abs(x0 - x1) < Math.abs(y0 - y1));
-        let lx0 = (steep) ? y0 : x0;
-        let ly0 = (steep) ? x0 : y0;
-        let lx1 = (steep) ? y1 : x1;
-        let ly1 = (steep) ? x1 : y1;
+    drawLine(
+        x0: number,
+        y0: number,
+        x1: number,
+        y1: number,
+        r: number,
+        g: number,
+        b: number,
+        a: number
+    ) {
+        const steep = Math.abs(x0 - x1) < Math.abs(y0 - y1);
+        let lx0 = steep ? y0 : x0;
+        let ly0 = steep ? x0 : y0;
+        let lx1 = steep ? y1 : x1;
+        let ly1 = steep ? x1 : y1;
 
         if (lx0 > lx1) {
             let t = lx0;
@@ -45,18 +57,11 @@ export class CanvasFrame {
         let error2 = 0;
         let y = ly0;
         for (let x = lx0; x <= lx1; x += 1) {
-            this.putPixel(
-                (steep) ? y : x,
-                (steep) ? x : y,
-                r,
-                g,
-                b,
-                a,
-            );
+            this.putPixel(steep ? y : x, steep ? x : y, r, g, b, a);
 
             error2 += derror2;
             if (error2 > dx) {
-                y += (ly1 > ly0 ? 1 : -1);
+                y += ly1 > ly0 ? 1 : -1;
                 error2 -= dx * 2;
             }
         }
