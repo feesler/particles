@@ -1,53 +1,60 @@
 {
-  "name": "particles",
-  "version": "0.9.0",
-  "private": true,
-  "description": "Fields and particles simulation",
-  "type": "module",
-  "scripts": {
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "prestart": "npm install",
-    "start": "vite",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@jezvejs/react": "^1.6.7",
-    "@jezvejs/types": "^1.1.0",
-    "classnames": "^2.5.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/feesler/particles.git"
-  },
-  "keywords": [
-    "simulation",
-    "canvas",
-    "particle",
-    "physics"
-  ],
-  "author": "Ilya Makarov",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/feesler/particles/issues"
-  },
-  "homepage": "https://github.com/feesler/particles#readme",
-  "devDependencies": {
-    "@eslint/js": "^9.13.0",
-    "@tsconfig/vite-react": "^3.4.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^9.16.0",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.14",
-    "globals": "^15.13.0",
-    "sass-embedded": "^1.81.0",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.16.0",
-    "vite": "^5.4.11",
-    "vite-plugin-svgr": "^4.3.0"
-  }
+    "name": "particles",
+    "version": "0.9.0",
+    "private": true,
+    "description": "Fields and particles simulation",
+    "type": "module",
+    "scripts": {
+        "build": "tsc -b && vite build",
+        "lint": "eslint .",
+        "prestart": "npm install",
+        "start": "vite",
+        "preview": "vite preview",
+        "all": "npm-run-all lint build",
+        "deploy": "node ./scripts/deploy.js",
+        "commit-version": "node ./scripts/commit-version.js",
+        "release": "node ./scripts/release.js"
+    },
+    "dependencies": {
+        "@jezvejs/react": "^1.6.7",
+        "@jezvejs/types": "^1.1.0",
+        "classnames": "^2.5.1",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/feesler/particles.git"
+    },
+    "keywords": [
+        "simulation",
+        "canvas",
+        "particle",
+        "physics"
+    ],
+    "author": "Ilya Makarov",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/feesler/particles/issues"
+    },
+    "homepage": "https://github.com/feesler/particles#readme",
+    "devDependencies": {
+        "@eslint/js": "^9.13.0",
+        "@jezvejs/release-tools": "^1.0.0",
+        "@tsconfig/vite-react": "^3.4.0",
+        "@types/react": "^18.3.12",
+        "@types/react-dom": "^18.3.1",
+        "@vitejs/plugin-react": "^4.3.4",
+        "dotenv": "^16.4.5",
+        "eslint": "^9.16.0",
+        "eslint-plugin-react-hooks": "^5.0.0",
+        "eslint-plugin-react-refresh": "^0.4.14",
+        "globals": "^15.13.0",
+        "npm-run-all": "^4.1.5",
+        "sass-embedded": "^1.81.0",
+        "typescript": "^5.7.2",
+        "typescript-eslint": "^8.16.0",
+        "vite": "^5.4.11",
+        "vite-plugin-svgr": "^4.3.0"
+    }
 }
