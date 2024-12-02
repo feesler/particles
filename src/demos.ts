@@ -23,6 +23,7 @@ export class DemoClass {
         };
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     init(_: View) {
     }
 };

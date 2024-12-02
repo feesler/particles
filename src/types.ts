@@ -1,6 +1,6 @@
 import { Canvas2D } from './Canvas2D.ts';
 import { CanvasWebGL } from './CanvasWebGL.ts';
-import { DemoItem } from './demos.ts';
+import { DemoClass, DemoItem, DemoItemFunc } from './demos.ts';
 import { Field } from './engine/Field.ts';
 
 /**
@@ -52,4 +52,33 @@ export interface View {
     canvas: Canvas;
     field: Field | null;
     setScaleStep: (scaleStep: number) => void;
+}
+
+export interface AppState {
+    autoStart: boolean;
+    useField: boolean;
+    useWebGL: boolean;
+
+    animationDelay: number;
+
+    initialScale: number;
+    timeStep: number;
+    scaleStep: number;
+    scaleFactor: number;
+
+    paused: boolean;
+    updating: boolean;
+    rotating: boolean;
+
+    rotation: { alpha: 0, beta: 0, gamma: 0; },
+
+    timestamp: number;
+    perfValue: number;
+    depth: number;
+
+    dragging: boolean;
+
+    startPoint: Point | null;
+
+    demo: DemoClass | DemoItemFunc;
 }

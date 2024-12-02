@@ -2,99 +2,18 @@ import { useStore } from '@jezvejs/react';
 import { ChangeEvent, useEffect, useRef } from 'react';
 import { Canvas2D } from '../../Canvas2D.ts';
 import { CanvasWebGL } from '../../CanvasWebGL.ts';
-import { DemoClass, DemoItem, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
+import { DemoClass, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
-import { Canvas, Point, View } from '../../types.ts';
+import { AppState, Canvas, View } from '../../types.ts';
+import { initialState } from './initialState.ts';
+import { DemoSelect } from '../DemoSelect/DemoSelect.tsx';
 
 const demosList = mapItems(demos, (item) => ({
     ...item,
     title: item.id,
     type: (['field', 'canvas'].includes(item.type)) ? 'button' : item.type,
 }));
-
-const SelectOption = (item: DemoItem) => (
-    <option value={item.id}>{item.id}</option>
-);
-
-type DemoSelectProps = React.HTMLAttributes<HTMLSelectElement> & {
-    items: DemoItem[];
-};
-
-const DemoSelect = ({ items, ...props }: DemoSelectProps) => (
-    <select {...props}>
-        {items?.map((item) => (
-            (item.type === 'group')
-                ? (
-                    <optgroup label={item.title} key={`demogr_${item.id}`}>
-                        {item.items?.map((child) => (
-                            <SelectOption {...child} key={`demochild_${child.id}`} />
-                        ))}
-                    </optgroup>
-                )
-                : <SelectOption {...item} key={`demosel_${item.id}`} />
-        ))}
-    </select>
-);
-
-const defaultProps = {
-    autoStart: false,
-    animationDelay: 10,
-    initialScale: 0.1,
-    timeStep: 0.1,
-    scaleFactor: 0,
-    scaleStep: 0,
-    useField: true,
-    useWebGL: true,
-    demo: null,
-    depth: 2000,
-};
-
-const initialState = {
-    paused: true,
-    updating: false,
-    rotating: false,
-    rotation: { alpha: 0, beta: 0, gamma: 0 },
-    timestamp: undefined,
-    perfValue: 0,
-    dragging: false,
-    startPoint: null,
-};
-
-export const getInitialState = (props = {}, defProps = defaultProps) => ({
-    ...props,
-    ...defProps,
-    ...initialState,
-});
-
-export interface AppState {
-    autoStart: boolean;
-    useField: boolean;
-    useWebGL: boolean;
-
-    animationDelay: number;
-
-    initialScale: number;
-    timeStep: number;
-    scaleStep: number;
-    scaleFactor: number;
-
-    paused: boolean;
-    updating: boolean;
-    rotating: boolean;
-
-    rotation: { alpha: 0, beta: 0, gamma: 0; },
-
-    timestamp: number;
-    perfValue: number;
-    depth: number;
-
-    dragging: boolean;
-
-    startPoint: Point | null;
-
-    demo: DemoClass | DemoItemFunc;
-}
 
 export const MainView = () => {
     const { state, getState, setState } = useStore<AppState>();
@@ -449,10 +368,12 @@ export const MainView = () => {
         } else {
             canvasHandlerRef.current = new Canvas2D(canvasElem);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canvasRef.current, useWebGL]);
 
     useEffect(() => {
         start();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const canvas = (
