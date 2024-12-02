@@ -1,16 +1,17 @@
+import React from 'react';
+import { DemoItem } from './demos.ts';
+import { Axis3D } from './engine/types.ts';
 import { Vector } from './engine/Vector.ts';
 import {
-    Axis,
     IncludeGroupItemsParam,
     MenuItemCallback,
-    MenuItemProps,
     MenuLoopParam,
     Point,
     ToFlatListParam,
 } from './types.ts';
 
 export const EPSILON = 0.00000001;
-export const AXES: Axis[] = ['x', 'y', 'z'];
+export const AXES: Axis3D[] = ['x', 'y', 'z'];
 
 export function intersectPlane(
     planePoint: Vector,
@@ -42,7 +43,7 @@ export function rand(from: number = 0, to: number = 1): number {
     return Math.random() * d + mfrom;
 }
 
-export function getEventCoordinatesObject(e: TouchEvent | MouseEvent) {
+export function getEventCoordinatesObject(e: React.TouchEvent | React.MouseEvent) {
     if ('touches' in e) {
         if (e.type === 'touchend' || e.type === 'touchcancel') {
             return e.changedTouches[0];
@@ -54,7 +55,7 @@ export function getEventCoordinatesObject(e: TouchEvent | MouseEvent) {
     return e;
 }
 
-export function getEventPageCoordinates(e: TouchEvent | MouseEvent): Point {
+export function getEventPageCoordinates(e: React.TouchEvent | React.MouseEvent): Point {
     const coords = getEventCoordinatesObject(e);
 
     return {
@@ -63,7 +64,7 @@ export function getEventPageCoordinates(e: TouchEvent | MouseEvent): Point {
     };
 }
 
-export function getEventClientCoordinates(e: TouchEvent | MouseEvent): Point {
+export function getEventClientCoordinates(e: React.TouchEvent | React.MouseEvent): Point {
     const coords = getEventCoordinatesObject(e);
 
     return {
@@ -75,41 +76,37 @@ export function getEventClientCoordinates(e: TouchEvent | MouseEvent): Point {
 /**
  * Returns true if specified item support child items
  *
- * @param {T = MenuItemProps} item
+ * @param {DemoItem} item
  * @returns {boolean}
  */
-export function isChildItemsAvailable<T extends MenuItemProps = MenuItemProps>(item: T): boolean {
-    return (
-        item.type === 'group'
-        || item.type === 'parent'
-    );
+export function isChildItemsAvailable<T extends DemoItem = DemoItem>(item: T): boolean {
+    return (item.type === 'group');
 }
 
 /**
  * Returns true if specified item itself should be included to the tree data processing
  *
- * @param {T = MenuItemProps} item
+ * @param {T = DemoItem} item
  * @param {ToFlatListParam} options
  * @returns {boolean}
  */
-export function shouldIncludeParentItem<T extends MenuItemProps = MenuItemProps>(
+export function shouldIncludeParentItem<T extends DemoItem = DemoItem>(
     item: T,
     options: ToFlatListParam,
 ): boolean {
     return !!(
         (item.type === 'group' && options?.includeGroupItems)
-        || (item.type === 'parent' && options?.includeChildItems)
     );
 }
 
 /**
  * Searches for first menu item for which callback function return true
  *
- * @param {<T = MenuItemProps>[]} items array of items to search in
+ * @param {<T = DemoItem>[]} items array of items to search in
  * @param {MenuItemCallback<T>} callback
  * @param {ToFlatListParam} options
  */
-export function findMenuItem<T extends MenuItemProps = MenuItemProps>(
+export function findDemoItem<T extends DemoItem = DemoItem>(
     items: T[],
     callback: MenuItemCallback<T>,
     options?: ToFlatListParam,
@@ -128,7 +125,7 @@ export function findMenuItem<T extends MenuItemProps = MenuItemProps>(
         }
 
         if (isChildItemsAvailable(item) && Array.isArray(item.items)) {
-            item = findMenuItem<T>((item.items ?? []) as T[], callback, options);
+            item = findDemoItem<T>((item.items ?? []) as T[], callback, options);
             if (item) {
                 return item;
             }
@@ -145,7 +142,7 @@ export function findMenuItem<T extends MenuItemProps = MenuItemProps>(
  * @param {MenuLoopParam<T>} options
  * @returns {T[]}
  */
-export function mapItems<T extends MenuItemProps = MenuItemProps>(
+export function mapItems<T extends DemoItem = DemoItem>(
     items: T[],
     callback: MenuItemCallback<T, T>,
     options: MenuLoopParam<T> | null = null,

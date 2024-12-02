@@ -1,10 +1,31 @@
 import * as m4 from './engine/Matrix4.ts';
+import { Vector } from './engine/Vector.ts';
+import { RGBColor } from './particles/types.ts';
 
 export class CanvasWebGL {
     elem: HTMLCanvasElement;
     context: WebGLRenderingContext | null;
     width: number;
     height: number;
+
+    vertexShaderSrc: string;
+    fragmentShaderSrc: string;
+
+    vertexShader: WebGLShader | null = null;
+    fragmentShader: WebGLShader | null = null;
+
+    program: WebGLProgram | null = null;
+
+    positionAttributeLocation: number = 0;
+    matrixUniformLocation: WebGLUniformLocation | null = null;
+    colorAttributeLocation: number = 0;
+
+    positionBuffer: WebGLBuffer | null = null;
+    colorBuffer: WebGLBuffer | null = null;
+
+    positions: number[] = [];
+    colors: number[] = [];
+    matrix: number[] | null = null;
 
     constructor(elem: HTMLElement) {
         if (!(elem instanceof HTMLCanvasElement)) {
@@ -45,8 +66,16 @@ export class CanvasWebGL {
         this.init();
     }
 
-    createShader(type, source) {
+    createShader(type: number, source: string): WebGLShader | null {
+        if (!this.context) {
+            return null;
+        }
+
         const shader = this.context.createShader(type);
+        if (!shader) {
+            return null;
+        }
+
         this.context.shaderSource(shader, source);
         this.context.compileShader(shader);
         const success = this.context.getShaderParameter(shader, this.context.COMPILE_STATUS);
@@ -56,10 +85,20 @@ export class CanvasWebGL {
 
         console.log(this.context.getShaderInfoLog(shader));
         this.context.deleteShader(shader);
+
+        return null;
     }
 
-    createProgram(vertexShader, fragmentShader) {
+    createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader) {
+        if (!this.context) {
+            return null;
+        }
+
         const program = this.context.createProgram();
+        if (!program) {
+            return null;
+        }
+
         this.context.attachShader(program, vertexShader);
         this.context.attachShader(program, fragmentShader);
         this.context.linkProgram(program);
@@ -70,13 +109,25 @@ export class CanvasWebGL {
 
         console.log(this.context.getProgramInfoLog(program));
         this.context.deleteProgram(program);
+
+        return null;
     }
 
     init() {
+        if (!this.context) {
+            return null;
+        }
+
         this.vertexShader = this.createShader(this.context.VERTEX_SHADER, this.vertexShaderSrc);
         this.fragmentShader = this.createShader(this.context.FRAGMENT_SHADER, this.fragmentShaderSrc);
+        if (!this.vertexShader || !this.fragmentShader) {
+            return;
+        }
 
         this.program = this.createProgram(this.vertexShader, this.fragmentShader);
+        if (!this.program) {
+            return null;
+        }
 
         this.positionAttributeLocation = this.context.getAttribLocation(this.program, 'a_position');
         this.matrixUniformLocation = this.context.getUniformLocation(this.program, 'u_matrix');
@@ -101,7 +152,7 @@ export class CanvasWebGL {
         return false;
     }
 
-    setMatrix(scene, translation, rotation, scale) {
+    setMatrix(scene: number[], translation: number[], rotation: number[], scale: number[]) {
         let matrix = m4.projection(scene[0], scene[1], scene[2]);
         matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
         matrix = m4.xRotate(matrix, rotation[0]);
@@ -113,6 +164,10 @@ export class CanvasWebGL {
     }
 
     drawScene() {
+        if (!this.context) {
+            return;
+        }
+
         this.resizeCanvasToDisplaySize();
         this.context.viewport(0, 0, this.context.canvas.width, this.context.canvas.height);
 
@@ -168,12 +223,12 @@ export class CanvasWebGL {
         this.colors = [];
     }
 
-    drawCircle(x, y, radius, color) {
+    drawCircle(x: number, y: number, _: number, color: RGBColor) {
         this.positions.push(x, y);
         this.colors.push(color.r, color.g, color.b);
     }
 
-    drawPoint(pos, color) {
+    drawPoint(pos: Vector, color: RGBColor) {
         this.positions.push(pos.x, pos.y, pos.z);
         this.colors.push(color.r, color.g, color.b);
     }

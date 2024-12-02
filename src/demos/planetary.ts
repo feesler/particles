@@ -1,11 +1,15 @@
 import { Star } from '../particles/Star.js';
 import { Planet } from '../particles/Planet.js';
+import { View } from '../types.js';
 
-export function initPlanetarySystem(view) {
+export function initPlanetarySystem(view: View) {
     const AU = 150;
     const EM = 5.9;
     const V_SCALE = 1;
     const { field } = view;
+    if (!field) {
+        return;
+    }
 
     field.setScaleFactor(2);
     field.setTimeStep(0.1);

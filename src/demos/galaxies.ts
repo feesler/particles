@@ -2,17 +2,20 @@ import { Vector } from '../engine/Vector.js';
 import { Star } from '../particles/Star.js';
 import { DarkParticle } from '../particles/DarkParticle.js';
 import { rand } from '../utils.js';
+import { View } from '../types.js';
 
-const randExpo = (max, lambda) => {
+const randExpo = (max: number, lambda: number): number => {
     const u = rand(0, max) / (max + 1);
     return -Math.log(1 - u) / lambda;
 };
 
-
-export function initGalaxies(view) {
+export function initGalaxies(view: View) {
     const G_SIZE_LEFT = 150;
     const G_STARS_COUNT = 1000;
     const { field } = view;
+    if (!field) {
+        return;
+    }
 
     field.setScaleFactor(4);
     field.setTimeStep(0.1);

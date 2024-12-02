@@ -1,15 +1,9 @@
 import { Particle } from './Particle.ts';
-import { STAR_TYPE } from './types.ts';
+import { RGBColor, STAR_TYPE } from './types.ts';
 
 const clamp = (num: number, min: number, max: number) => (
     (num < min) ? min : ((num > max) ? max : num)
 );
-
-export type RGBColor = {
-    r: number;
-    g: number;
-    b: number;
-};
 
 const temperatureToColor = (temperature: number): RGBColor => {
     const tK = clamp(temperature, 1000, 40000) / 100;
@@ -38,10 +32,9 @@ const temperatureToColor = (temperature: number): RGBColor => {
 };
 
 export class Star extends Particle {
-    color: RGBColor;
-
     constructor(x: number, y: number, z: number, mass: number = 500000) {
         super(x, y, z, 0, mass);
+
         this.r = Math.log(mass) / 10;
         this.color = this.getColor(mass);
         this.type = STAR_TYPE;

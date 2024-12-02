@@ -1,12 +1,12 @@
 
-export const translation = (tx, ty, tz) => ([
+export const translation = (tx: number, ty: number, tz: number): number[] => ([
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
     tx, ty, tz, 1,
 ]);
 
-export const xRotation = (angle) => {
+export const xRotation = (angle: number): number[] => {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
 
@@ -18,7 +18,7 @@ export const xRotation = (angle) => {
     ];
 };
 
-export const yRotation = (angle) => {
+export const yRotation = (angle: number): number[] => {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
 
@@ -30,7 +30,7 @@ export const yRotation = (angle) => {
     ];
 };
 
-export const zRotation = (angle) => {
+export const zRotation = (angle: number): number[] => {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
 
@@ -42,14 +42,14 @@ export const zRotation = (angle) => {
     ];
 };
 
-export const scaling = (sx, sy, sz) => ([
+export const scaling = (sx: number, sy: number, sz: number): number[] => ([
     sx, 0, 0, 0,
     0, sy, 0, 0,
     0, 0, sz, 0,
     0, 0, 0, 1,
 ]);
 
-export const multiply = (a, b) => {
+export const multiply = (a: number[], b: number[]): number[] => {
     const b00 = b[0 * 4 + 0];
     const b01 = b[0 * 4 + 1];
     const b02 = b[0 * 4 + 2];
@@ -104,15 +104,29 @@ export const multiply = (a, b) => {
 };
 
 // Note: This matrix flips the Y axis so 0 is at the top.
-export const projection = (width, height, depth) => ([
+export const projection = (width: number, height: number, depth: number): number[] => ([
     2 / width, 0, 0, 0,
     0, -2 / height, 0, 0,
     0, 0, 2 / depth, 0,
     -1, 1, 0, 1,
 ]);
 
-export const translate = (m, tx, ty, tz) => multiply(m, translation(tx, ty, tz));
-export const xRotate = (m, angle) => multiply(m, xRotation(angle));
-export const yRotate = (m, angle) => multiply(m, yRotation(angle));
-export const zRotate = (m, angle) => multiply(m, zRotation(angle));
-export const scale = (m, sx, sy, sz) => multiply(m, scaling(sx, sy, sz));
+export const translate = (m: number[], tx: number, ty: number, tz: number): number[] => (
+    multiply(m, translation(tx, ty, tz))
+);
+
+export const xRotate = (m: number[], angle: number): number[] => (
+    multiply(m, xRotation(angle))
+);
+
+export const yRotate = (m: number[], angle: number): number[] => (
+    multiply(m, yRotation(angle))
+);
+
+export const zRotate = (m: number[], angle: number): number[] => (
+    multiply(m, zRotation(angle))
+);
+
+export const scale = (m: number[], sx: number, sy: number, sz: number): number[] => (
+    multiply(m, scaling(sx, sy, sz))
+);

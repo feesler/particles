@@ -1,11 +1,11 @@
 import { useStore } from '@jezvejs/react';
-import { useEffect, useRef } from 'react';
+import { ChangeEvent, useEffect, useRef } from 'react';
 import { Canvas2D } from '../../Canvas2D.ts';
 import { CanvasWebGL } from '../../CanvasWebGL.ts';
-import { demos, findDemoById } from '../../demos.ts';
+import { DemoClass, DemoItem, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
-import { Point } from '../../types.ts';
+import { Canvas, Point, View } from '../../types.ts';
 
 const demosList = mapItems(demos, (item) => ({
     ...item,
@@ -13,11 +13,15 @@ const demosList = mapItems(demos, (item) => ({
     type: (['field', 'canvas'].includes(item.type)) ? 'button' : item.type,
 }));
 
-const SelectOption = (item) => (
+const SelectOption = (item: DemoItem) => (
     <option value={item.id}>{item.id}</option>
 );
 
-const DemoSelect = ({ items, ...props }) => (
+type DemoSelectProps = React.HTMLAttributes<HTMLSelectElement> & {
+    items: DemoItem[];
+};
+
+const DemoSelect = ({ items, ...props }: DemoSelectProps) => (
     <select {...props}>
         {items?.map((item) => (
             (item.type === 'group')
@@ -41,7 +45,7 @@ const defaultProps = {
     scaleFactor: 0,
     scaleStep: 0,
     useField: true,
-    useWebGL: false, //true,
+    useWebGL: true,
     demo: null,
     depth: 2000,
 };
@@ -64,6 +68,14 @@ export const getInitialState = (props = {}, defProps = defaultProps) => ({
 });
 
 export interface AppState {
+    autoStart: boolean;
+    useField: boolean;
+    useWebGL: boolean;
+
+    animationDelay: number;
+
+    initialScale: number;
+    timeStep: number;
     scaleStep: number;
     scaleFactor: number;
 
@@ -75,10 +87,13 @@ export interface AppState {
 
     timestamp: number;
     perfValue: number;
+    depth: number;
 
     dragging: boolean;
 
     startPoint: Point | null;
+
+    demo: DemoClass | DemoItemFunc;
 }
 
 export const MainView = () => {
@@ -86,7 +101,7 @@ export const MainView = () => {
 
     const fieldRef = useRef<Field | null>(null);
     const canvasRef = useRef(null);
-    const canvasHandlerRef = useRef(null);
+    const canvasHandlerRef = useRef<Canvas2D | CanvasWebGL | null>(null);
 
     const update = (timestamp: number) => {
         let st = getState();
@@ -94,11 +109,11 @@ export const MainView = () => {
             return;
         }
 
-        setState((prev) => ({ ...prev, updating: true }));
+        setState((prev: AppState) => ({ ...prev, updating: true }));
         const pBefore = performance.now();
 
         const dt = (st.timestamp) ? (timestamp - st.timestamp) : 0;
-        setState((prev) => ({ ...prev, timestamp }));
+        setState((prev: AppState) => ({ ...prev, timestamp }));
 
         const field = fieldRef.current;
         if (!field) {
@@ -114,17 +129,17 @@ export const MainView = () => {
             }));
 
             st = getState();
-            fieldRef.current.setScaleFactor(st.scaleFactor);
+            field.setScaleFactor(st.scaleFactor);
         }
 
         const perfValue = Math.round(performance.now() - pBefore);
-        setState((prev) => ({ ...prev, perfValue }));
+        setState((prev: AppState) => ({ ...prev, perfValue }));
 
         if (!st.paused) {
             requestAnimationFrame((t) => update(t));
         }
 
-        setState((prev) => ({ ...prev, updating: false }));
+        setState((prev: AppState) => ({ ...prev, updating: false }));
     };
 
     const pause = () => {
@@ -132,7 +147,7 @@ export const MainView = () => {
             return;
         }
 
-        setState((prev) => ({ ...prev, paused: true }));
+        setState((prev: AppState) => ({ ...prev, paused: true }));
     };
 
     const run = () => {
@@ -140,14 +155,14 @@ export const MainView = () => {
             return;
         }
 
-        setState((prev) => ({ ...prev, paused: false }));
+        setState((prev: AppState) => ({ ...prev, paused: false }));
 
         requestAnimationFrame((t) => update(t));
     };
 
-    const initDemo = (demo) => {
-        if (!demo?.getProps) {
-            setState((prev) => ({
+    const initDemo = (demo: DemoClass | DemoItemFunc) => {
+        if (typeof demo === 'function') {
+            setState((prev: AppState) => ({
                 ...prev,
                 ...initialState,
                 demo,
@@ -157,7 +172,7 @@ export const MainView = () => {
         }
 
         const props = demo.getProps();
-        setState((prev) => ({
+        setState((prev: AppState) => ({
             ...prev,
             ...props,
             demo,
@@ -169,27 +184,32 @@ export const MainView = () => {
         const st = getState();
         const { demo } = st;
 
+        const canvas = canvasHandlerRef.current as Canvas;
+        if (!canvas) {
+            return;
+        }
+
         if (st.useField) {
-            fieldRef.current = new Field(canvasHandlerRef.current, state.initialScale, state.timeStep);
+            fieldRef.current = new Field(canvas, state.initialScale, state.timeStep);
             fieldRef.current.useWebGL = st.useWebGL;
         }
 
-        const view = {
+        const view: View = {
             field: fieldRef.current,
-            canvas: canvasHandlerRef.current,
-            setScaleStep: (scaleStep) => setState((prev) => ({ ...prev, scaleStep })),
+            canvas,
+            setScaleStep: (scaleStep: number) => setState((prev: AppState) => ({ ...prev, scaleStep })),
         };
 
         if (demo) {
-            if (demo.init) {
+            if (('init' in demo) && demo.init) {
                 demo.init(view);
-            } else {
+            } else if (typeof demo === 'function') {
                 demo(view);
             }
         }
 
         if (st.useField) {
-            fieldRef.current.drawFrame();
+            fieldRef.current?.drawFrame();
         }
 
         if (st.useField && st.autoStart) {
@@ -198,7 +218,7 @@ export const MainView = () => {
     };
 
     const processRotation = (a: number, b: number, g: number, pb: boolean) => {
-        setState((prev) => ({ ...prev, rotating: true }));
+        setState((prev: AppState) => ({ ...prev, rotating: true }));
 
         const st = getState();
 
@@ -206,28 +226,30 @@ export const MainView = () => {
             setTimeout(() => processRotation(a, b, g, pb), 10);
         }
 
-        if (st.useWebGL) {
-            const canvasElem = canvasRef.current;
-            canvasHandlerRef.current?.setMatrix(
-                [canvasElem.clientWidth, canvasElem.clientHeight, st.depth],
-                [canvasElem.clientWidth / 2, canvasElem.clientHeight / 2, 0],
+        if (st.useWebGL && canvasRef.current) {
+            const { clientWidth, clientHeight } = canvasRef.current;
+
+            const webGLCanvas = canvasHandlerRef.current as CanvasWebGL;
+            webGLCanvas?.setMatrix(
+                [clientWidth, clientHeight, st.depth],
+                [clientWidth / 2, clientHeight / 2, 0],
                 [st.rotation.alpha, st.rotation.beta, st.rotation.gamma],
                 [1, 1, 1],
             );
-        } else {
-            fieldRef.current.rotate(a, b, g);
+        } else if (!st.useWebGL) {
+            fieldRef.current?.rotate(a, b, g);
         }
 
-        fieldRef.current.drawFrame();
+        fieldRef.current?.drawFrame();
 
         if (!pb) {
             run();
         }
 
-        setState((prev) => ({ ...prev, rotating: false }));
+        setState((prev: AppState) => ({ ...prev, rotating: false }));
     };
 
-    const onMouseDown = (e) => {
+    const onMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
         if (st.dragging) {
             return;
@@ -235,14 +257,14 @@ export const MainView = () => {
 
         const startPoint = getEventPageCoordinates(e);
 
-        setState((prev) => ({
+        setState((prev: AppState) => ({
             ...prev,
             startPoint,
             dragging: true,
         }));
     };
 
-    const onMouseMove = (e) => {
+    const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
         const { dragging, startPoint } = st;
         if (!dragging || !startPoint) {
@@ -262,7 +284,7 @@ export const MainView = () => {
         const valY = deltaY + st.rotation.alpha;
         const valX = deltaX + st.rotation.beta;
 
-        setState((prev) => ({
+        setState((prev: AppState) => ({
             ...prev,
             rotation: {
                 ...prev.rotation,
@@ -275,26 +297,36 @@ export const MainView = () => {
     };
 
     const onMouseUp = () => {
-        setState((prev) => ({
+        setState((prev: AppState) => ({
             ...prev,
             dragging: false,
             startPoint: null,
         }));
     };
 
-    const onChangeDemo = (e) => {
+    const onChangeDemo = (e: ChangeEvent<HTMLSelectElement>) => {
         const id = e.target.value;
         const demoItem = findDemoById(id);
+        if (!demoItem) {
+            return;
+        }
 
         let demo;
         if (demoItem.type === 'canvas') {
-            const DemoClass = demoItem.init;
+            const DemoClass = demoItem.demo;
+            if (!DemoClass) {
+                return;
+            }
+
             demo = new DemoClass();
         } else if (demoItem.type === 'field') {
             demo = demoItem.init;
         }
+        if (!demo) {
+            return;
+        }
 
-        setState((prev) => ({
+        setState((prev: AppState) => ({
             ...prev,
             paused: true,
             updating: false,
@@ -310,14 +342,14 @@ export const MainView = () => {
         start();
     };
 
-    const onScale = (e) => {
+    const onScale = (e: ChangeEvent<HTMLInputElement>) => {
         const scaleFactor = parseFloat(e.target.value);
 
-        setState((prev) => ({ ...prev, scaleFactor }));
-        fieldRef.current.setScaleFactor(scaleFactor);
+        setState((prev: AppState) => ({ ...prev, scaleFactor }));
+        fieldRef.current?.setScaleFactor(scaleFactor);
     };
 
-    const onXRotate = (e?: Event) => {
+    const onXRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
 
         const pausedBefore = st.paused;
@@ -337,7 +369,7 @@ export const MainView = () => {
         processRotation(delta, 0, 0, pausedBefore);
     };
 
-    const onYRotate = (e?: Event) => {
+    const onYRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
         const pausedBefore = st.paused;
         pause();
@@ -345,7 +377,7 @@ export const MainView = () => {
         const val = parseFloat(e.target.value);
         const delta = val - st.rotation.beta;
 
-        setState((prev) => ({
+        setState((prev: AppState) => ({
             ...prev,
             rotation: {
                 ...prev.rotation,
@@ -356,7 +388,7 @@ export const MainView = () => {
         processRotation(0, delta, 0, pausedBefore);
     };
 
-    const onZRotate = (e?: Event) => {
+    const onZRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
         const pausedBefore = st.paused;
         pause();
@@ -364,7 +396,7 @@ export const MainView = () => {
         const val = parseFloat(e.target.value);
         const delta = val - st.rotation.gamma;
 
-        setState((prev) => ({
+        setState((prev: AppState) => ({
             ...prev,
             rotation: {
                 ...prev.rotation,
@@ -394,6 +426,9 @@ export const MainView = () => {
         onMouseUp,
     };
 
+    const lstate = getState();
+    const { useWebGL } = lstate;
+
     useEffect(() => {
         if (!canvasRef.current || canvasHandlerRef.current) {
             return;
@@ -414,7 +449,7 @@ export const MainView = () => {
         } else {
             canvasHandlerRef.current = new Canvas2D(canvasElem);
         }
-    }, [canvasRef.current]);
+    }, [canvasRef.current, useWebGL]);
 
     useEffect(() => {
         start();

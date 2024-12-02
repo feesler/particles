@@ -1,7 +1,11 @@
 import { Star } from '../particles/Star.js';
+import { View } from '../types.js';
 
-export function initVelocityTest(view) {
+export function initVelocityTest(view: View) {
     const { field } = view;
+    if (!field) {
+        return;
+    }
 
     field.setScaleFactor(0.1);
     field.setTimeStep(0.01);

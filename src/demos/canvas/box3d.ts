@@ -1,7 +1,10 @@
 import { Vector } from '../../engine/Vector.js';
 import { Box } from '../../engine/Box.js';
+import { View } from '../../types.js';
+import { Canvas2D } from '../../Canvas2D.js';
+import { DemoClass } from '../../demos.js';
 
-export class Box3dDemo {
+export class Box3dDemo implements DemoClass {
     getProps() {
         return {
             useWebGL: false,
@@ -9,15 +12,15 @@ export class Box3dDemo {
         };
     }
 
-    init(view) {
-        const { canvas } = view;
+    init(view: View) {
+        const canvas = view.canvas as Canvas2D;
 
         const DIST = 1000; /* Distance from camera to canvas */
         const Z_SHIFT = 0; /* Distance from canvas to z=0 plane */
         const HH = canvas.height / 2;
         const HW = canvas.width / 2;
 
-        const projectToScreen = (vector) => {
+        const projectToScreen = (vector: Vector) => {
             const zDist = DIST + vector.z + Z_SHIFT;
             return {
                 x: HW - (DIST * (HW - vector.x)) / zDist,
@@ -43,6 +46,9 @@ export class Box3dDemo {
 
         const draw3dFrame = () => {
             const frame = canvas.createFrame();
+            if (!frame) {
+                return;
+            }
 
             cube.draw(frame, cubeCenter, projectToScreen);
 

@@ -1,10 +1,14 @@
 import { Proton } from '../particles/Proton.js';
 import { Electron } from '../particles/Electron.js';
 import { rand } from '../utils.js';
+import { View } from '../types.js';
 
-export function initParticles(view) {
+export function initParticles(view: View) {
     const PARTICLES_COUNT = 150;
     const { field } = view;
+    if (!field) {
+        return;
+    }
 
     field.setScaleFactor(0.0001);
     field.setTimeStep(0.1);

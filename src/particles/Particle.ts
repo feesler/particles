@@ -1,5 +1,5 @@
 import { Vector } from '../engine/Vector.ts';
-import { RGBColor } from './Star.ts';
+import { RGBColor } from './types.ts';
 
 export class Particle {
     pos: Vector;

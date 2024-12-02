@@ -1,10 +1,14 @@
 import { Planet } from '../particles/Planet.js';
 import { DarkParticle } from '../particles/DarkParticle.js';
 import { rand } from '../utils.js';
+import { View } from '../types.js';
 
-export function initGas(view) {
+export function initGas(view: View) {
     const PARTICLES_COUNT = 2000;
     const { field } = view;
+    if (!field) {
+        return;
+    }
 
     field.setScaleFactor(0.01);
     field.setTimeStep(0.1);

@@ -1,12 +1,8 @@
 import { Vector } from './Vector.ts';
 import { EPSILON, AXES, intersectPlane } from '../utils.ts';
-import { Axis, PlanePoint, Point } from '../types.ts';
-
-export type Object3D<T> = {
-    x: T;
-    y: T;
-    z: T;
-};
+import { Axis, PlanePoint } from '../types.ts';
+import { Object3D, Point3D, ProjectionFunc } from './types.ts';
+import { CanvasFrame } from '../CanvasFrame.ts';
 
 export class Box {
     halfSize: Vector;
@@ -93,14 +89,14 @@ export class Box {
     }
 
     /** Returns intersection point of screen plane(z=0) by line specified by points A and B */
-    getIntersectPoint(A: Point, B: Point) {
+    getIntersectPoint(A: Point3D, B: Point3D) {
         const t = -A.z / (B.z - A.z);
         const x = t * (B.x - A.x) + A.x;
         const y = t * (B.y - A.y) + A.y;
         return new Vector(x, y, 0);
     }
 
-    draw(frame, shift, projectionFunc) {
+    draw(frame: CanvasFrame, shift: Vector, projectionFunc: ProjectionFunc) {
         let maxZ = 0;
 
         for (const vert of this.vertices) {
@@ -139,7 +135,7 @@ export class Box {
     }
 
     getIntersection(A: Vector, B: Vector) {
-        const dp = {};
+        const dp: Partial<Point3D> = {};
         const outAxes = [];
 
         const direction = B.copy();
@@ -150,7 +146,7 @@ export class Box {
         }
 
         for (const axis of AXES) {
-            dp[axis.toString()] = B.dotProduct(this.normals[axis]);
+            dp[axis] = B.dotProduct(this.normals[axis]);
 
             const out = Math.abs(dp[axis]) - this.halfSize[axis];
             if (out > 0) {
@@ -176,6 +172,9 @@ export class Box {
 
         while (outAxes.length > 0 && !correctIS) {
             const outAxis = outAxes.pop();
+            if (!outAxis) {
+                continue;
+            }
             const planePoint = this.getPlanePoint(outAxis.axis, direction);
             if (!planePoint) {
                 continue;
@@ -188,7 +187,7 @@ export class Box {
             }
 
             correctIS = true;
-            for (const axis in this.normals) {
+            for (const axis of AXES) {
                 if (axis === outAxis.axis) {
                     continue;
                 }

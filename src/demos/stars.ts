@@ -1,10 +1,14 @@
 import { Star } from '../particles/Star.js';
 import { Planet } from '../particles/Planet.js';
 import { rand } from '../utils.js';
+import { View } from '../types.js';
 
-export function initStars(view) {
+export function initStars(view: View) {
     const PARTICLES_COUNT = 2000;
     const { field } = view;
+    if (!field) {
+        return;
+    }
 
     field.setScaleFactor(0.1);
     field.setTimeStep(0.01);
