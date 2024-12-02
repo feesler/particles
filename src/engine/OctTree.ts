@@ -1,4 +1,14 @@
+import { Particle } from '../particles/Particle.js';
 import { Vector } from './Vector.js';
+
+export type OctTreeChild = Particle | OctTree | OctTreeNode;
+
+export type OctTreeNode = {
+    pos: Vector;
+    m: number;
+    charge: number;
+    particles: OctTreeChild[];
+};
 
 export class OctTree {
     offset: Vector;
@@ -9,7 +19,9 @@ export class OctTree {
     mass: number;
     charge: number;
 
-    constructor(offset, size) {
+    nodes: (OctTreeChild | null)[];
+
+    constructor(offset: Vector, size: number) {
         this.offset = new Vector();
         this.offset.set(offset);
         this.size = size;
@@ -35,7 +47,7 @@ export class OctTree {
         ];
     }
 
-    isValidPosition(pos) {
+    isValidPosition(pos: Vector) {
         return (
             pos?.isValid()
             && pos.x >= this.offset.x
@@ -47,7 +59,7 @@ export class OctTree {
         );
     }
 
-    getNodeIndexByPos(pos) {
+    getNodeIndexByPos(pos: Vector) {
         if (!pos.isValid()) {
             throw new Error('Invalid position');
         }
@@ -70,7 +82,7 @@ export class OctTree {
         return front + top + left;
     }
 
-    getOffsetByIndex(index) {
+    getOffsetByIndex(index: number) {
         if (index < 0 || index > 7) {
             throw new Error('Invalid index');
         }
@@ -86,26 +98,29 @@ export class OctTree {
         };
     }
 
-    insert(particle) {
+    insert(node: Particle | OctTree) {
+        const particle = node as Particle;
         const ind = this.getNodeIndexByPos(particle.pos);
         const child = this.nodes[ind];
 
         if (child === null) {
-            this.nodes[ind] = {
-                pos: particle.pos.copy(),
-                m: particle.m,
-                charge: particle.charge,
-                particles: [particle],
-            };
-        } else if (child.nodes) {
+            if ('pos' in particle) {
+                this.nodes[ind] = {
+                    pos: particle.pos.copy(),
+                    m: particle.m,
+                    charge: particle.charge,
+                    particles: [particle],
+                };
+            }
+        } else if (('nodes' in child) && child.nodes) {
             child.insert(particle);
-        } else if (particle.pos.isEqual(child.pos)) {
+        } else if (('particles' in child) && particle.pos.isEqual(child.pos)) {
             child.m += particle.m;
             child.particles.push(particle);
         } else {
             const newOffset = this.getOffsetByIndex(ind);
-            const newNode = new OctTree(newOffset, this.size / 2);
-            newNode.insert(child);
+            const newNode = new OctTree(newOffset as Vector, this.size / 2);
+            newNode.insert(child as Particle);
             newNode.insert(particle);
             this.nodes[ind] = newNode;
         }
@@ -123,9 +138,9 @@ export class OctTree {
                 continue;
             }
 
-            if (node.nodes) {
+            if (('nodes' in node) && node.nodes) {
                 this.centerOfMass.addScaled(node.centerOfMass, node.mass);
-            } else {
+            } else if ('pos' in node) {
                 this.centerOfMass.addScaled(node.pos, node.m);
             }
         }

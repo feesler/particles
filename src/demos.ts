@@ -7,9 +7,37 @@ import { initVelocityTest } from './demos/velocity.ts';
 import { MaxVelocityDemo } from './demos/canvas/maxVelocity.ts';
 import { Box3dDemo } from './demos/canvas/box3d.ts';
 
-import { findMenuItem } from './utils.ts';
+import { findDemoItem } from './utils.ts';
+import { View } from './types.ts';
 
-export const demos = [
+export type DemoItemFunc = (view: View) => void;
+
+export type DemoProps = {
+    useWebGL: boolean;
+    useField: boolean;
+};
+
+export class DemoClass {
+    getProps(): Partial<DemoProps> {
+        return {
+        };
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    init(_: View) {
+    }
+};
+
+export type DemoItem = {
+    id: string;
+    type: 'field' | 'canvas' | 'group' | 'button';
+    title?: string;
+    init?: DemoItemFunc;
+    demo?: typeof DemoClass;
+    items?: DemoItem[];
+};
+
+export const demos: DemoItem[] = [
     {
         id: 'planetarySystem',
         type: 'field',
@@ -48,17 +76,17 @@ export const demos = [
             {
                 id: 'maxVelocity',
                 type: 'canvas',
-                init: MaxVelocityDemo,
+                demo: MaxVelocityDemo,
             },
             {
                 id: 'cube',
                 type: 'canvas',
-                init: Box3dDemo,
+                demo: Box3dDemo,
             },
         ],
     },
 ];
 
-export const findDemoById = (id) => (
-    findMenuItem(demos, (item) => item?.id === id)
+export const findDemoById = (id: string): DemoItem | null => (
+    findDemoItem<DemoItem>(demos, (item: DemoItem) => item?.id === id)
 );

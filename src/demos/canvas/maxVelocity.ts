@@ -1,4 +1,8 @@
-export class MaxVelocityDemo {
+import { Canvas2D } from '../../Canvas2D.ts';
+import { DemoClass } from '../../demos.ts';
+import { View } from '../../types.ts';
+
+export class MaxVelocityDemo implements DemoClass {
     getProps() {
         return {
             useWebGL: false,
@@ -6,16 +10,22 @@ export class MaxVelocityDemo {
         };
     }
 
-    init(view) {
-        const frame = view.canvas.createFrame();
+    init(view: View) {
+        const canvas = view.canvas as Canvas2D;
+
+        const frame = canvas.createFrame();
+        if (!frame) {
+            return;
+        }
+
         const { height } = view.canvas;
 
-        const yF = (y) => height - y;
+        const yF = (y: number) => height - y;
 
         const MAX_SPEED = 300;
         const scaleFactor = 3;
         const c = MAX_SPEED / scaleFactor;
-        const relVelocity = (velocity) => c * Math.tanh(velocity / c);
+        const relVelocity = (velocity: number) => c * Math.tanh(velocity / c);
 
         for (let x = 0; x < 1000; x += 1) {
             const v = x;
@@ -25,6 +35,6 @@ export class MaxVelocityDemo {
             frame.putPixel(x, yF(y), 255, 128, 80, 255);
         }
 
-        view.canvas.drawFrame(frame);
+        canvas.drawFrame(frame);
     }
 }

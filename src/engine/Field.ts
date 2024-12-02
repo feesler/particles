@@ -19,7 +19,12 @@ import {
     PROTON_TYPE,
     STAR_TYPE,
 } from '../particles/types.ts';
-import { OctTree } from './OctTree.ts';
+import { OctTree, OctTreeChild } from './OctTree.ts';
+import { Canvas } from '../types.ts';
+import { Object3D, Rotation } from './types.ts';
+import { CanvasWebGL } from '../CanvasWebGL.ts';
+import { CanvasFrame } from '../CanvasFrame.ts';
+import { Canvas2D } from '../Canvas2D.ts';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.0000001;
@@ -31,11 +36,16 @@ const BORDER_LOSS = 0.1;
 const BOUNDING_GAP = 10;
 
 export class Field {
+    canvas: Canvas;
+
     depth: number;
     xShift: number;
     yShift: number;
     width: number;
     height: number;
+
+    DIST: number;
+    Z_SHIFT: number;
 
     drawAllPaths: boolean;
     useCollide: boolean;
@@ -45,19 +55,40 @@ export class Field {
 
     addInstantly: boolean;
     useBarnesHut: boolean;
-    newParticles: [];
     useSpontaneous: boolean;
     useBoxBorder: boolean;
     useWebGL: boolean;
     drawNodes: boolean;
 
-    sceneNormals: {
-        x: Vector;
-        y: Vector;
-        z: Vector;
+    tree: OctTree | null = null;
+    boundingOffset: number = 0;
+    boundingSize: number = 0;
+    particleMin: number = 0;
+    particleMax: number = 0;
+    theta: number = 0;
+    dist: Vector | null = null;
+
+    rotation: Rotation = {
+        alpha: 0,
+        beta: 0,
+        gamma: 0,
     };
 
-    constructor(canvas, scaleFactor: number, timeStep: number) {
+    sceneNormals: Object3D<Vector> | null = null;
+
+    box: Box;
+    center: Vector;
+
+    particles: Particle[] = [];
+    newParticles: Particle[] = [];
+
+    scaleFactor: number = 1;
+    maxVelocity: number = 0;
+    minDistance: number = 0;
+    minHardDistance: number = 0;
+    timeStep: number = 0;
+
+    constructor(canvas: Canvas, scaleFactor: number, timeStep: number) {
         if (!canvas) {
             throw new Error('Invalid canvas');
         }
@@ -111,7 +142,6 @@ export class Field {
         this.box = new Box(this.width, this.height, this.depth);
         this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
 
-        this.particles = [];
         this.setScaleFactor(scaleFactor);
         this.setTimeStep(timeStep);
     }
@@ -136,20 +166,21 @@ export class Field {
     }
 
     drawFrameWebGl() {
-        this.canvas.clear();
+        const canvas = this.canvas as CanvasWebGL;
+        canvas.clear();
 
         for (const particle of this.particles) {
             if (!particle.draw) {
                 continue;
             }
 
-            this.canvas.drawPoint(particle.pos, particle.color);
+            canvas.drawPoint(particle.pos, particle.color);
         }
 
-        this.canvas.drawScene();
+        canvas.drawScene();
     }
 
-    project(vector) {
+    project(vector: Vector) {
         const zDist = this.DIST + vector.z + this.Z_SHIFT;
 
         return {
@@ -185,13 +216,13 @@ export class Field {
         this.boundingSize = this.particleMax - this.particleMin + BOUNDING_GAP * 2;
     }
 
-    rotateVector(vector, alpha, beta, gamma) {
+    rotateVector(vector: Vector, alpha: number, beta: number, gamma: number) {
         vector.rotateAroundX(alpha);
         vector.rotateAroundY(beta);
         vector.rotateAroundZ(gamma);
     }
 
-    rotate(alpha, beta, gamma) {
+    rotate(alpha: number, beta: number, gamma: number) {
         this.box.rotate(alpha, beta, gamma);
 
         for (const particle of this.particles) {
@@ -209,7 +240,7 @@ export class Field {
         }
     }
 
-    drawParticlePath(frame, particle) {
+    drawParticlePath(frame: CanvasFrame, particle: Particle) {
         const p = new Vector();
 
         p.set(particle.pos);
@@ -219,6 +250,9 @@ export class Field {
 
         while (particle.path.length > 0) {
             const prevPos = particle.path.pop();
+            if (!prevPos) {
+                continue;
+            }
 
             p.set(prevPos);
             p.add(this.center);
@@ -239,7 +273,7 @@ export class Field {
         }
     }
 
-    drawNode(frame, node) {
+    drawNode(frame: CanvasFrame, node: OctTree) {
         if (!node) {
             return;
         }
@@ -249,18 +283,22 @@ export class Field {
         const boxCenter = node.offset.copy();
         boxCenter.addScalar(node.half);
 
-        nodeBox.draw(frame, boxCenter, (v) => this.project(v));
+        nodeBox.draw(frame, boxCenter, (v: Vector) => this.project(v));
         for (const child of node.nodes) {
-            if (child && child.nodes) {
+            if (child && ('nodes' in child) && child.nodes) {
                 this.drawNode(frame, child);
             }
         }
     }
 
     drawFrameByPixels() {
-        const frame = this.canvas.createFrame();
+        const canvas = this.canvas as Canvas2D;
+        const frame = canvas.createFrame();
+        if (!frame) {
+            return;
+        }
 
-        this.box.draw(frame, this.center, (v) => this.project(v));
+        this.box.draw(frame, this.center, (v: Vector) => this.project(v));
 
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
@@ -294,7 +332,7 @@ export class Field {
             this.drawNode(frame, this.tree);
         }
 
-        this.canvas.drawFrame(frame);
+        canvas.drawFrame(frame);
     }
 
     drawFrame() {
@@ -305,28 +343,24 @@ export class Field {
         }
     }
 
-    setScaleFactor(scaleFactor) {
+    setScaleFactor(scaleFactor: number) {
         this.scaleFactor = scaleFactor;
         this.maxVelocity = (scaleFactor < 1) ? MAX_SPEED : (MAX_SPEED / scaleFactor);
         this.minDistance = MIN_DISTANCE / scaleFactor;
         this.minHardDistance = MIN_HARD_DIST / this.scaleFactor;
     }
 
-    setTimeStep(timeStep) {
+    setTimeStep(timeStep: number) {
         this.timeStep = timeStep;
     }
 
     /** Add particle */
-    add(particle) {
-        if (!(particle instanceof Particle)) {
-            return;
-        }
-
+    add(particle: Particle) {
         if (this.addInstantly) {
             if (this.useBarnesHut) {
                 const validPos = this.tree?.isValidPosition(particle.pos);
                 if (validPos) {
-                    this.tree.insert(particle);
+                    this.tree?.insert(particle);
                     this.particles.push(particle);
                 } else {
                     particle.remove();
@@ -339,15 +373,11 @@ export class Field {
         }
     }
 
-    push(particle) {
-        if (!(particle instanceof Particle)) {
-            return;
-        }
-
+    push(particle: Particle) {
         this.particles.push(particle);
     }
 
-    force(particle, index) {
+    force(particle: Particle, index: number) {
         if (particle.removed) {
             return;
         }
@@ -408,7 +438,7 @@ export class Field {
         }
     }
 
-    resolveMassive(A, B) {
+    resolveMassive(A: Particle, B: Particle) {
         if (!A || A.removed || !B || B.removed) {
             return false;
         }
@@ -448,7 +478,7 @@ export class Field {
         return true;
     }
 
-    annihilate(A, B) {
+    annihilate(A: Particle, B: Particle) {
         const dist = A.pos.copy();
         dist.substract(B.pos);
 
@@ -471,7 +501,7 @@ export class Field {
         return false;
     }
 
-    resolveQuants(A, B) {
+    resolveQuants(A: Particle, B: Particle) {
         const isAPhoton = A.type === PHOTON_TYPE;
         const isBPhoton = B.type === PHOTON_TYPE;
 
@@ -547,7 +577,7 @@ export class Field {
         return false;
     }
 
-    collide(A, B) {
+    collide(A: Particle, B: Particle) {
         if (!A || !A.type || !B || !B.type || A === B) {
             return true;
         }
@@ -615,7 +645,7 @@ export class Field {
         return this.maxVelocity * Math.tanh(velocity / this.maxVelocity);
     }
 
-    borderCondition(particle) {
+    borderCondition(particle: Particle) {
         const remVelocity = particle.velocity.copy();
         const currentPos = new Vector();
         const destPos = new Vector();
@@ -630,7 +660,7 @@ export class Field {
             destPos.add(remVelocity);
 
             const intersection = this.box.getIntersection(currentPos, destPos);
-            if (!intersection) {
+            if (!intersection?.point || !intersection.normal) {
                 currentPos.add(remVelocity);
                 particle.setPos(currentPos, this.drawAllPaths);
                 return;
@@ -648,7 +678,8 @@ export class Field {
             particle.velocity.multiplyByScalar(BORDER_LOSS);
 
             if (particle.type === PHOTON_TYPE) {
-                particle.reflect();
+                const photon = particle as Photon;
+                photon.reflect();
             }
 
             if (!remVelocity.getLength()) {
@@ -658,11 +689,11 @@ export class Field {
         } while (true);
     }
 
-    sBorderCondition(particle) {
+    sBorderCondition(particle: Particle) {
         particle.pos.add(particle.velocity);
     }
 
-    applyForce(particle, dt) {
+    applyForce(particle: Particle, dt: number) {
         const { velocity, force } = particle;
 
         if (!dt) {
@@ -702,7 +733,7 @@ export class Field {
         }
     }
 
-    fixVelocity(particle) {
+    fixVelocity(particle: Particle) {
         const totalVelocity = particle.velocity.getLength();
         const relativeVelocity = this.relVelocity(totalVelocity);
         if (relativeVelocity < totalVelocity) {
@@ -711,21 +742,27 @@ export class Field {
         }
     }
 
-    forceBH(particle, node) {
-        if (!particle || particle.removed || !node) {
+    forceBH(particle: Particle, node: OctTreeChild) {
+        if (!this.dist || !particle || particle.removed || !node) {
             return;
         }
 
-        if (!node.nodes && particle.pos.isEqual(node)) {
+        const isTree = ('nodes' in node);
+        const isTreeNode = ('particles' in node);
+        if (
+            !isTree
+            && ('pos' in node)
+            && particle.pos.isEqual(node.pos as Vector)
+        ) {
             return;
         }
 
-        this.dist.set((node.nodes) ? node.centerOfMass : node.pos);
+        this.dist.set((isTree) ? node.centerOfMass : node.pos);
         this.dist.substract(particle.pos);
 
         const d = this.dist.getLength();
 
-        if (node.nodes && (node.size / d > this.theta)) {
+        if (isTree && (node.size / d > this.theta)) {
             for (const child of node.nodes) {
                 if (child) {
                     this.forceBH(particle, child);
@@ -743,8 +780,9 @@ export class Field {
             distLength = Math.max(distLength, this.minDistance);
         }
 
-        if (this.useCollide && !node.nodes) {
-            for (const otherParticle of node.particles) {
+        if (this.useCollide && !isTree && isTreeNode) {
+            const particles = node.particles as Particle[];
+            for (const otherParticle of particles) {
                 if (otherParticle.removed) {
                     continue;
                 }
@@ -767,7 +805,7 @@ export class Field {
         const d2 = distLength * distLength;
 
         if (particle.charge && node.charge) {
-            const forceSign = particle.attract(node) ? 1 : -1;
+            const forceSign = particle.attract(node as Particle) ? 1 : -1;
             const emForce = (K * forceSign * Math.abs(particle.charge * node.charge)) / d2;
             particle.force.addScaled(this.dist, emForce);
         }
@@ -776,7 +814,7 @@ export class Field {
             ? d2 * Math.sqrt(d2 + this.SOFTENING)
             : d2;
 
-        const mass = (node.nodes) ? node.mass : node.m;
+        const mass = (isTree) ? node.mass : node.m;
 
         const gForce = (G * Math.abs(particle.m * mass)) / r2;
         particle.force.addScaled(this.dist, gForce);
@@ -785,7 +823,7 @@ export class Field {
         }
     }
 
-    calculate(dt) {
+    calculate(dt: number) {
         if (!dt) {
             return;
         }
@@ -800,19 +838,19 @@ export class Field {
             }
 
             this.tree = new OctTree(
-                {
-                    x: this.boundingOffset,
-                    y: this.boundingOffset,
-                    z: this.boundingOffset,
-                },
+                new Vector(
+                    this.boundingOffset,
+                    this.boundingOffset,
+                    this.boundingOffset,
+                ),
                 this.boundingSize,
             );
             this.particles.forEach((p) => {
                 p.resetForce();
-                this.tree.insert(p);
+                this.tree!.insert(p);
             });
             this.particles.forEach((p) => {
-                this.forceBH(p, this.tree);
+                this.forceBH(p, this.tree!);
             });
         } else {
             this.particles.forEach((p) => p.resetForce());
