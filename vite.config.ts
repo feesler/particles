@@ -4,7 +4,7 @@ import svgr from 'vite-plugin-svgr';
 
 // https://vite.dev/config/
 export default defineConfig({
-    base: 'particles',
+    base: '/particles',
     plugins: [react(), svgr({ include: '**/*.svg' })],
     css: {
         preprocessorOptions: {
