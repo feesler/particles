@@ -18,8 +18,9 @@ const demosList = mapItems(demos, (item) => ({
 export const MainView = () => {
     const { state, getState, setState } = useStore<AppState>();
 
+    const rotationTimeout = useRef<number>(0);
     const fieldRef = useRef<Field | null>(null);
-    const canvasRef = useRef(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const canvasHandlerRef = useRef<Canvas2D | CanvasWebGL | null>(null);
 
     const update = (timestamp: number) => {
@@ -136,14 +137,22 @@ export const MainView = () => {
         }
     };
 
-    const processRotation = (a: number, b: number, g: number, pb: boolean) => {
-        setState((prev: AppState) => ({ ...prev, rotating: true }));
-
-        const st = getState();
-
-        if (st.updating) {
-            setTimeout(() => processRotation(a, b, g, pb), 10);
+    const scheduleRotation = (func: () => void) => {
+        if (rotationTimeout.current) {
+            clearTimeout(rotationTimeout.current);
         }
+
+        rotationTimeout.current = setTimeout(func, 10);
+    };
+
+    const processRotation = (a: number, b: number, g: number, pb: boolean) => {
+        const st = getState();
+        if (st.updating) {
+            scheduleRotation(() => processRotation(a, b, g, pb));
+            return;
+        }
+
+        setState((prev: AppState) => ({ ...prev, rotating: true }));
 
         if (st.useWebGL && canvasRef.current) {
             const { clientWidth, clientHeight } = canvasRef.current;
@@ -179,6 +188,7 @@ export const MainView = () => {
         setState((prev: AppState) => ({
             ...prev,
             startPoint,
+            prevPoint: null,
             dragging: true,
         }));
     };
@@ -186,33 +196,42 @@ export const MainView = () => {
     const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
         const { dragging, startPoint } = st;
-        if (!dragging || !startPoint) {
+        if (!dragging || !startPoint || !canvasRef.current) {
             return;
         }
 
         const newPoint = getEventPageCoordinates(e);
+        const prevPoint = st.prevPoint ?? st.startPoint;
+        if (!newPoint || !prevPoint) {
+            return;
+        }
 
-        const deltaScale = 0.0001;
+        const rect = canvasRef.current.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+            return;
+        }
 
-        const deltaX = (newPoint.x - startPoint.x) * deltaScale;
-        const deltaY = (newPoint.y - startPoint.y) * deltaScale;
+        const containerSize = Math.min(rect.width, rect.height);
+        const deltaX = (prevPoint.x - newPoint.x) / containerSize;
+        const deltaY = (prevPoint.y - newPoint.y) / containerSize;
+
+        const beta = Math.PI * deltaX;
+        const alpha = Math.PI * deltaY;
 
         const pausedBefore = st.paused;
         pause();
 
-        const valY = deltaY + st.rotation.alpha;
-        const valX = deltaX + st.rotation.beta;
-
         setState((prev: AppState) => ({
             ...prev,
+            prevPoint: { ...newPoint },
             rotation: {
-                ...prev.rotation,
-                alpha: valY,
-                beta: valX,
+                alpha: prev.rotation.alpha + alpha,
+                beta: prev.rotation.beta + beta,
+                gamma: 0,
             },
         }));
 
-        processRotation(valY, valX, 0, pausedBefore);
+        processRotation(alpha, beta, 0, pausedBefore);
     };
 
     const onMouseUp = () => {

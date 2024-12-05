@@ -79,6 +79,7 @@ export interface AppState {
     dragging: boolean;
 
     startPoint: Point | null;
+    prevPoint: Point | null;
 
     demo: DemoClass | DemoItemFunc;
 }
