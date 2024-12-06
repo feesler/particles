@@ -1,7 +1,5 @@
 import { release } from '@jezvejs/release-tools';
 
-/* eslint-disable no-console */
-
 const MAIN_PACKAGE = 'particles';
 
 if (process.argv.length < 3) {
