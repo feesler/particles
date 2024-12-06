@@ -67,6 +67,7 @@ export interface AppState {
     scaleFactor: number;
 
     paused: boolean;
+    pausedBefore: boolean;
     updating: boolean;
     rotating: boolean;
 
@@ -79,6 +80,7 @@ export interface AppState {
     dragging: boolean;
 
     startPoint: Point | null;
+    prevPoint: Point | null;
 
     demo: DemoClass | DemoItemFunc;
 }

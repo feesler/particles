@@ -83,6 +83,7 @@ export class CanvasWebGL {
             return shader;
         }
 
+        /* eslint-disable-next-line no-console */
         console.log(this.context.getShaderInfoLog(shader));
         this.context.deleteShader(shader);
 
@@ -107,6 +108,7 @@ export class CanvasWebGL {
             return program;
         }
 
+        /* eslint-disable-next-line no-console */
         console.log(this.context.getProgramInfoLog(program));
         this.context.deleteProgram(program);
 
