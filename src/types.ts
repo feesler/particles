@@ -67,6 +67,7 @@ export interface AppState {
     scaleFactor: number;
 
     paused: boolean;
+    pausedBefore: boolean;
     updating: boolean;
     rotating: boolean;
 

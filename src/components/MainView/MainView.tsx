@@ -63,7 +63,8 @@ export const MainView = () => {
     };
 
     const pause = () => {
-        if (state.paused) {
+        const st = getState();
+        if (st.paused) {
             return;
         }
 
@@ -71,7 +72,8 @@ export const MainView = () => {
     };
 
     const run = () => {
-        if (!state.paused) {
+        const st = getState();
+        if (!st.paused) {
             return;
         }
 
@@ -145,10 +147,10 @@ export const MainView = () => {
         rotationTimeout.current = setTimeout(func, 10);
     };
 
-    const processRotation = (a: number, b: number, g: number, pb: boolean) => {
+    const processRotation = (a: number, b: number, g: number) => {
         const st = getState();
         if (st.updating) {
-            scheduleRotation(() => processRotation(a, b, g, pb));
+            scheduleRotation(() => processRotation(a, b, g));
             return;
         }
 
@@ -170,10 +172,6 @@ export const MainView = () => {
 
         fieldRef.current?.drawFrame();
 
-        if (!pb) {
-            run();
-        }
-
         setState((prev: AppState) => ({ ...prev, rotating: false }));
     };
 
@@ -190,6 +188,7 @@ export const MainView = () => {
             startPoint,
             prevPoint: null,
             dragging: true,
+            pausedBefore: prev.paused,
         }));
     };
 
@@ -218,7 +217,6 @@ export const MainView = () => {
         const beta = Math.PI * deltaX;
         const alpha = Math.PI * deltaY;
 
-        const pausedBefore = st.paused;
         pause();
 
         setState((prev: AppState) => ({
@@ -231,15 +229,22 @@ export const MainView = () => {
             },
         }));
 
-        processRotation(alpha, beta, 0, pausedBefore);
+        processRotation(alpha, beta, 0);
     };
 
     const onMouseUp = () => {
+        const st = getState();
+        const { pausedBefore } = st;
+
         setState((prev: AppState) => ({
             ...prev,
             dragging: false,
             startPoint: null,
         }));
+
+        if (!pausedBefore) {
+            run();
+        }
     };
 
     const onChangeDemo = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -290,7 +295,6 @@ export const MainView = () => {
     const onXRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
 
-        const pausedBefore = st.paused;
         pause();
 
         const val = parseFloat(e.target.value);
@@ -304,12 +308,12 @@ export const MainView = () => {
             },
         }));
 
-        processRotation(delta, 0, 0, pausedBefore);
+        processRotation(delta, 0, 0);
     };
 
     const onYRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
-        const pausedBefore = st.paused;
+
         pause();
 
         const val = parseFloat(e.target.value);
@@ -323,12 +327,12 @@ export const MainView = () => {
             },
         }));
 
-        processRotation(0, delta, 0, pausedBefore);
+        processRotation(0, delta, 0);
     };
 
     const onZRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
-        const pausedBefore = st.paused;
+
         pause();
 
         const val = parseFloat(e.target.value);
@@ -342,7 +346,7 @@ export const MainView = () => {
             },
         }));
 
-        processRotation(0, 0, delta, pausedBefore);
+        processRotation(0, 0, delta);
     };
 
     const onToggleRun = () => {
