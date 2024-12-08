@@ -12,6 +12,7 @@ const defaultProps = {
 };
 
 export const initialState = {
+    ...defaultProps,
     paused: true,
     updating: false,
     rotating: false,

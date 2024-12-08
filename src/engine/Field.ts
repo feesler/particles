@@ -22,9 +22,9 @@ import {
 import { OctTree, OctTreeChild } from './OctTree.ts';
 import { Canvas } from '../types.ts';
 import { Object3D, Rotation } from './types.ts';
-import { CanvasWebGL } from '../CanvasWebGL.ts';
+import { CanvasWebGLRef } from '../components/CanvasWebGL/CanvasWebGL.ts';
 import { CanvasFrame } from '../CanvasFrame.ts';
-import { Canvas2D } from '../Canvas2D.ts';
+import { Canvas2DRef } from '../components/Canvas2D/Canvas2D.ts';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.0000001;
@@ -89,7 +89,7 @@ export class Field {
     timeStep: number = 0;
 
     constructor(canvas: Canvas, scaleFactor: number, timeStep: number) {
-        if (!canvas) {
+        if (!canvas?.elem) {
             throw new Error('Invalid canvas');
         }
 
@@ -99,8 +99,8 @@ export class Field {
         this.xShift = 0;
         this.yShift = 0;
 
-        this.width = this.canvas.width;
-        this.height = this.canvas.height;
+        this.width = canvas.elem.width;
+        this.height = canvas.elem.height;
         this.DIST = 1000;
         this.Z_SHIFT = 0;
 
@@ -113,7 +113,7 @@ export class Field {
         this.newParticles = [];
         this.useSpontaneous = false;
         this.useBoxBorder = true;
-        this.useWebGL = false;
+        this.useWebGL = true;
 
         this.useBarnesHut = true;
         this.drawNodes = false;
@@ -147,6 +147,10 @@ export class Field {
     }
 
     drawFrameByCircles() {
+        if (!this.canvas) {
+            return;
+        }
+
         this.canvas.clear();
 
         const p = new Vector();
@@ -161,12 +165,16 @@ export class Field {
 
             const p0 = this.project(p);
 
-            this.canvas.drawCircle(p0.x, p0.y, 0.5, particle.color);
+            this.canvas?.drawCircle(p0.x, p0.y, 0.5, particle.color);
         }
     }
 
     drawFrameWebGl() {
-        const canvas = this.canvas as CanvasWebGL;
+        const canvas = this.canvas as CanvasWebGLRef;
+        if (!canvas) {
+            return;
+        }
+
         canvas.clear();
 
         for (const particle of this.particles) {
@@ -292,7 +300,11 @@ export class Field {
     }
 
     drawFrameByPixels() {
-        const canvas = this.canvas as Canvas2D;
+        const canvas = this.canvas as Canvas2DRef;
+        if (!canvas) {
+            return;
+        }
+
         const frame = canvas.createFrame();
         if (!frame) {
             return;

@@ -1,13 +1,17 @@
 import { useStore } from '@jezvejs/react';
 import { ChangeEvent, useEffect, useRef } from 'react';
-import { Canvas2D } from '../../Canvas2D.ts';
-import { CanvasWebGL } from '../../CanvasWebGL.ts';
-import { DemoClass, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
+
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
 import { AppState, Canvas, View } from '../../types.ts';
-import { initialState } from './initialState.ts';
+
+import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
+import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
 import { DemoSelect } from '../DemoSelect/DemoSelect.tsx';
+
+import { DemoClass, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
+
+import { initialState } from './initialState.ts';
 
 const demosList = mapItems(demos, (item) => ({
     ...item,
@@ -20,8 +24,13 @@ export const MainView = () => {
 
     const rotationTimeout = useRef<number>(0);
     const fieldRef = useRef<Field | null>(null);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const canvasHandlerRef = useRef<Canvas2D | CanvasWebGL | null>(null);
+    const canvas2DRef = useRef<Canvas2DRef | null>(null);
+    const canvasWebGlRef = useRef<CanvasWebGLRef | null>(null);
+
+    const getCanvas = () => {
+        const st = getState();
+        return (st.useField && st.useWebGL) ? canvasWebGlRef.current : canvas2DRef.current;
+    };
 
     const update = (timestamp: number) => {
         let st = getState();
@@ -101,12 +110,11 @@ export const MainView = () => {
         }));
     };
 
-
     const start = () => {
         const st = getState();
         const { demo } = st;
 
-        const canvas = canvasHandlerRef.current as Canvas;
+        const canvas = getCanvas() as Canvas;
         if (!canvas) {
             return;
         }
@@ -156,10 +164,11 @@ export const MainView = () => {
 
         setState((prev: AppState) => ({ ...prev, rotating: true }));
 
-        if (st.useWebGL && canvasRef.current) {
-            const { clientWidth, clientHeight } = canvasRef.current;
+        const canvas = getCanvas();
+        if (st.useWebGL && canvas?.elem) {
+            const { clientWidth, clientHeight } = canvas.elem;
 
-            const webGLCanvas = canvasHandlerRef.current as CanvasWebGL;
+            const webGLCanvas = canvas as CanvasWebGLRef;
             webGLCanvas?.setMatrix(
                 [clientWidth, clientHeight, st.depth],
                 [clientWidth / 2, clientHeight / 2, 0],
@@ -195,17 +204,18 @@ export const MainView = () => {
     const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
         const { dragging, startPoint } = st;
-        if (!dragging || !startPoint || !canvasRef.current) {
+        const canvas = getCanvas();
+        if (!dragging || !startPoint || !canvas) {
             return;
         }
 
         const newPoint = getEventPageCoordinates(e);
         const prevPoint = st.prevPoint ?? st.startPoint;
-        if (!newPoint || !prevPoint) {
+        if (!newPoint || !prevPoint || !canvas.elem) {
             return;
         }
 
-        const rect = canvasRef.current.getBoundingClientRect();
+        const rect = canvas.elem.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
             return;
         }
@@ -247,12 +257,21 @@ export const MainView = () => {
         }
     };
 
+    const clearDemo = () => {
+        const st = getState();
+        if (st.demo && ('clear' in st.demo) && st.demo.clear) {
+            st.demo.clear();
+        }
+    };
+
     const onChangeDemo = (e: ChangeEvent<HTMLSelectElement>) => {
         const id = e.target.value;
         const demoItem = findDemoById(id);
         if (!demoItem) {
             return;
         }
+
+        clearDemo();
 
         let demo;
         if (demoItem.type === 'canvas') {
@@ -279,10 +298,14 @@ export const MainView = () => {
             perfValue: 0,
             dragging: false,
             startPoint: null,
+            demo: null,
         }));
 
         initDemo(demo);
-        start();
+
+        requestAnimationFrame(() => {
+            start();
+        });
     };
 
     const onScale = (e: ChangeEvent<HTMLInputElement>) => {
@@ -368,40 +391,15 @@ export const MainView = () => {
         onMouseUp,
     };
 
-    const lstate = getState();
-    const { useWebGL } = lstate;
-
-    useEffect(() => {
-        if (!canvasRef.current || canvasHandlerRef.current) {
-            return;
-        }
-
-        const st = getState();
-        const canvasElem = canvasRef.current;
-        if (st.useWebGL) {
-            canvasHandlerRef.current = new CanvasWebGL(canvasElem);
-            const { clientWidth, clientHeight } = canvasElem;
-
-            canvasHandlerRef.current.setMatrix(
-                [clientWidth, clientHeight, st.depth],
-                [clientWidth / 2, clientHeight / 2, 0],
-                [st.rotation.alpha, st.rotation.beta, st.rotation.gamma],
-                [1, 1, 1],
-            );
-        } else {
-            canvasHandlerRef.current = new Canvas2D(canvasElem);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [canvasRef.current, useWebGL]);
-
     useEffect(() => {
         start();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const canvas = (
-        <canvas {...canvasProps} ref={canvasRef} />
-    );
+    const lstate = getState();
+    const canvas = (lstate.useField /* && lstate.useWebGL */)
+        ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
+        : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
 
     return (
         <div id="maincontainer" className="container">

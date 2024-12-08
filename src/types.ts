@@ -1,5 +1,5 @@
-import { Canvas2D } from './Canvas2D.ts';
-import { CanvasWebGL } from './CanvasWebGL.ts';
+import { Canvas2DElement } from './components/Canvas2D/Canvas2D.ts';
+import { CanvasWebGLElement } from './components/CanvasWebGL/CanvasWebGL.ts';
 import { DemoClass, DemoItem, DemoItemFunc } from './demos.ts';
 import { Field } from './engine/Field.ts';
 
@@ -46,7 +46,7 @@ export interface MenuLoopParam<
     group?: T | null;
 }
 
-export type Canvas = Canvas2D | CanvasWebGL;
+export type Canvas = Canvas2DElement | CanvasWebGLElement;
 
 export interface View {
     canvas: Canvas;
