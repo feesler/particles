@@ -2,7 +2,7 @@
 
 An attempt to simulate the interaction of particles according to some sort of physical laws. Gravity, coulomb force, collisions, annihilation...
 
-Real-time N-body problem solving with support on the Barnes–Hut algorithm.
+Real-time N-body problem solving with support of the Barnes–Hut algorithm.
 
 
 <h2 align="left">Development</h2>
