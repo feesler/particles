@@ -1,12 +1,14 @@
 {
     "name": "particles",
-    "version": "0.11.0",
+    "version": "0.12.0",
     "private": true,
     "description": "Fields and particles simulation",
     "type": "module",
     "scripts": {
         "build": "tsc -b && vite build",
-        "lint": "eslint .",
+        "lint-src": "eslint .",
+        "lint-ts": "npx tsc -b ./ --noEmit",
+        "lint": "npm-run-all lint-src lint-ts",
         "prestart": "npm install",
         "start": "vite",
         "preview": "vite preview",

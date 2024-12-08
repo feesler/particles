@@ -1,4 +1,4 @@
-import { Canvas2D } from '../../Canvas2D.ts';
+import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.ts';
 import { DemoClass } from '../../demos.ts';
 import { View } from '../../types.ts';
 
@@ -11,14 +11,17 @@ export class MaxVelocityDemo implements DemoClass {
     }
 
     init(view: View) {
-        const canvas = view.canvas as Canvas2D;
+        const canvas = view.canvas as Canvas2DRef;
+        if (!canvas?.elem) {
+            return;
+        }
 
         const frame = canvas.createFrame();
         if (!frame) {
             return;
         }
 
-        const { height } = view.canvas;
+        const { height } = canvas.elem;
 
         const yF = (y: number) => height - y;
 

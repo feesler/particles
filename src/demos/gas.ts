@@ -6,7 +6,7 @@ import { View } from '../types.js';
 export function initGas(view: View) {
     const PARTICLES_COUNT = 2000;
     const { field } = view;
-    if (!field) {
+    if (!field?.center) {
         return;
     }
 

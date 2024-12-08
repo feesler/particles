@@ -1,10 +1,12 @@
 import { Vector } from '../../engine/Vector.js';
 import { Box } from '../../engine/Box.js';
 import { View } from '../../types.js';
-import { Canvas2D } from '../../Canvas2D.js';
+import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.js';
 import { DemoClass } from '../../demos.js';
 
 export class Box3dDemo implements DemoClass {
+    boxTimeout: number = 0;
+
     getProps() {
         return {
             useWebGL: false,
@@ -13,12 +15,15 @@ export class Box3dDemo implements DemoClass {
     }
 
     init(view: View) {
-        const canvas = view.canvas as Canvas2D;
+        const canvas = view.canvas as Canvas2DRef;
+        if (!canvas?.elem) {
+            return;
+        }
 
         const DIST = 1000; /* Distance from camera to canvas */
         const Z_SHIFT = 0; /* Distance from canvas to z=0 plane */
-        const HH = canvas.height / 2;
-        const HW = canvas.width / 2;
+        const HH = canvas.elem.height / 2;
+        const HW = canvas.elem.width / 2;
 
         const projectToScreen = (vector: Vector) => {
             const zDist = DIST + vector.z + Z_SHIFT;
@@ -58,10 +63,19 @@ export class Box3dDemo implements DemoClass {
         const update3dFrame = () => {
             cube.rotate(0, 0.1, 0);
             draw3dFrame();
-            setTimeout(() => update3dFrame(), 100);
+            this.clear();
+            this.boxTimeout = setTimeout(() => update3dFrame(), 100);
         };
 
         draw3dFrame();
-        setTimeout(() => update3dFrame(), 100);
+        this.clear();
+        this.boxTimeout = setTimeout(() => update3dFrame(), 100);
+    }
+
+    clear(): void {
+        if (this.boxTimeout) {
+           clearTimeout(this.boxTimeout);
+           this.boxTimeout = 0;
+        }
     }
 }

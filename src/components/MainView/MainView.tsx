@@ -1,13 +1,18 @@
-import { useStore } from '@jezvejs/react';
-import { ChangeEvent, useEffect, useRef } from 'react';
-import { Canvas2D } from '../../Canvas2D.ts';
-import { CanvasWebGL } from '../../CanvasWebGL.ts';
-import { DemoClass, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
+import { Button, Offcanvas, useStore } from '@jezvejs/react';
+import { ChangeEvent, useEffect, useMemo, useRef } from 'react';
+
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
+import { usePortalElement } from '../../utils/usePortalElement.tsx';
 import { AppState, Canvas, View } from '../../types.ts';
-import { initialState } from './initialState.ts';
-import { DemoSelect } from '../DemoSelect/DemoSelect.tsx';
+
+import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
+import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
+
+import { DemoClass, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
+
+import { defaultProps } from './initialState.ts';
+import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
 
 const demosList = mapItems(demos, (item) => ({
     ...item,
@@ -20,8 +25,13 @@ export const MainView = () => {
 
     const rotationTimeout = useRef<number>(0);
     const fieldRef = useRef<Field | null>(null);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const canvasHandlerRef = useRef<Canvas2D | CanvasWebGL | null>(null);
+    const canvas2DRef = useRef<Canvas2DRef | null>(null);
+    const canvasWebGlRef = useRef<CanvasWebGLRef | null>(null);
+
+    const getCanvas = () => {
+        const st = getState();
+        return (st.useField && st.useWebGL) ? canvasWebGlRef.current : canvas2DRef.current;
+    };
 
     const update = (timestamp: number) => {
         let st = getState();
@@ -86,7 +96,7 @@ export const MainView = () => {
         if (typeof demo === 'function') {
             setState((prev: AppState) => ({
                 ...prev,
-                ...initialState,
+                ...defaultProps,
                 demo,
             }));
 
@@ -101,12 +111,11 @@ export const MainView = () => {
         }));
     };
 
-
     const start = () => {
         const st = getState();
         const { demo } = st;
 
-        const canvas = canvasHandlerRef.current as Canvas;
+        const canvas = getCanvas() as Canvas;
         if (!canvas) {
             return;
         }
@@ -156,10 +165,11 @@ export const MainView = () => {
 
         setState((prev: AppState) => ({ ...prev, rotating: true }));
 
-        if (st.useWebGL && canvasRef.current) {
-            const { clientWidth, clientHeight } = canvasRef.current;
+        const canvas = getCanvas();
+        if (st.useWebGL && canvas?.elem) {
+            const { clientWidth, clientHeight } = canvas.elem;
 
-            const webGLCanvas = canvasHandlerRef.current as CanvasWebGL;
+            const webGLCanvas = canvas as CanvasWebGLRef;
             webGLCanvas?.setMatrix(
                 [clientWidth, clientHeight, st.depth],
                 [clientWidth / 2, clientHeight / 2, 0],
@@ -195,17 +205,18 @@ export const MainView = () => {
     const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
         const { dragging, startPoint } = st;
-        if (!dragging || !startPoint || !canvasRef.current) {
+        const canvas = getCanvas();
+        if (!dragging || !startPoint || !canvas) {
             return;
         }
 
         const newPoint = getEventPageCoordinates(e);
         const prevPoint = st.prevPoint ?? st.startPoint;
-        if (!newPoint || !prevPoint) {
+        if (!newPoint || !prevPoint || !canvas.elem) {
             return;
         }
 
-        const rect = canvasRef.current.getBoundingClientRect();
+        const rect = canvas.elem.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
             return;
         }
@@ -247,12 +258,21 @@ export const MainView = () => {
         }
     };
 
+    const clearDemo = () => {
+        const st = getState();
+        if (st.demo && ('clear' in st.demo) && st.demo.clear) {
+            st.demo.clear();
+        }
+    };
+
     const onChangeDemo = (e: ChangeEvent<HTMLSelectElement>) => {
         const id = e.target.value;
         const demoItem = findDemoById(id);
         if (!demoItem) {
             return;
         }
+
+        clearDemo();
 
         let demo;
         if (demoItem.type === 'canvas') {
@@ -279,10 +299,18 @@ export const MainView = () => {
             perfValue: 0,
             dragging: false,
             startPoint: null,
+            demo: null,
         }));
 
         initDemo(demo);
-        start();
+
+        requestAnimationFrame(() => {
+            start();
+        });
+    };
+
+    const showOffcanvas = (settingsVisible: boolean) => {
+        setState((prev) => ({ ...prev, settingsVisible }));
     };
 
     const onScale = (e: ChangeEvent<HTMLInputElement>) => {
@@ -357,134 +385,114 @@ export const MainView = () => {
         }
     };
 
-    const canvasProps = {
-        width: 1500,
-        height: 800,
-        onTouchStart: onMouseDown,
-        onTouchMove: onMouseMove,
-        onTouchEnd: onMouseUp,
-        onMouseDown,
-        onMouseMove,
-        onMouseUp,
-    };
+    const mainRef = useRef<HTMLElement | null>(null);
 
-    const lstate = getState();
-    const { useWebGL } = lstate;
-
-    useEffect(() => {
-        if (!canvasRef.current || canvasHandlerRef.current) {
+    const resizeHandler = () => {
+        const st = getState();
+        const rect = mainRef.current?.getBoundingClientRect() ?? null;
+        if (!rect) {
             return;
         }
 
-        const st = getState();
-        const canvasElem = canvasRef.current;
-        if (st.useWebGL) {
-            canvasHandlerRef.current = new CanvasWebGL(canvasElem);
-            const { clientWidth, clientHeight } = canvasElem;
-
-            canvasHandlerRef.current.setMatrix(
-                [clientWidth, clientHeight, st.depth],
-                [clientWidth / 2, clientHeight / 2, 0],
-                [st.rotation.alpha, st.rotation.beta, st.rotation.gamma],
-                [1, 1, 1],
-            );
-        } else {
-            canvasHandlerRef.current = new Canvas2D(canvasElem);
+        const { width } = rect;
+        let { height } = rect;
+        if (
+            width === 0
+            || height === 0
+            || (st.width === width && st.height === height)
+        ) {
+            return;
         }
+
+        const pausedBefore = st.paused;
+        pause();
+
+        if (height > 0) {
+            height -= 1;
+        }
+
+        setState((prev: AppState) => ({
+            ...prev,
+            width,
+            height,
+        }));
+
+        fieldRef.current?.onResize?.({ width, height });
+
+        if (!pausedBefore) {
+            run();
+        }
+    };
+
+    // ResizeObserver
+    useEffect(() => {
+        if (!mainRef.current) {
+            return undefined;
+        }
+
+        const observer = new ResizeObserver(resizeHandler);
+        observer.observe(mainRef.current);
+
+        return () => {
+            observer.disconnect();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [canvasRef.current, useWebGL]);
+    }, [mainRef.current]);
 
     useEffect(() => {
         start();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const canvas = (
-        <canvas {...canvasProps} ref={canvasRef} />
-    );
+    const lstate = getState();
+
+    const canvasProps = useMemo(() => ({
+        width: lstate.width,
+        height: lstate.height,
+        onTouchStart: onMouseDown,
+        onTouchMove: onMouseMove,
+        onTouchEnd: onMouseUp,
+        onMouseDown,
+        onMouseMove,
+        onMouseUp,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }), [lstate.width, lstate.height]);
+
+    const canvas = (lstate.useField /* && lstate.useWebGL */)
+        ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
+        : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
+
+    const portalElement = usePortalElement('maincontainer') as Element;
 
     return (
         <div id="maincontainer" className="container">
-            <main>
+            <main className="main-container" ref={mainRef}>
                 {canvas}
             </main>
-            <section className="data-section">
-                <div className="date-value">
-                    <label>Demo</label>
-                    <DemoSelect id="demoSelect" items={demosList} onChange={onChangeDemo} />
-                </div>
 
-                <div className="date-value">
-                    <label>Scale factor</label>
-                    <input
-                        id="scaleFactorInp"
-                        type="range"
-                        min="0.001"
-                        max="20"
-                        step="0.01"
-                        value={state.scaleFactor.toFixed(3)}
-                        onChange={onScale}
-                    />
-                    <span id="scalefactor">{state.scaleFactor.toFixed(3)}</span>
-                </div>
+            <Button
+                className="header-btn"
+                onClick={() => showOffcanvas(true)}
+            >Show</Button>
 
-                <div className="date-value">
-                    <label>Particles</label>
-                    <span id="particlescount">{fieldRef.current?.particles.length ?? 0}</span>
-                </div>
-                <div className="date-value">
-                    <label>Performance</label>
-                    <span id="perfvalue">{state.perfValue}</span>
-                </div>
-
-                <div className="date-value">
-                    <label>Rotate X</label>
-                    <input
-                        id="xRotationInp"
-                        type="range"
-                        min="-3"
-                        max="3"
-                        step="0.01"
-                        value={state.rotation.alpha.toFixed(2)}
-                        onChange={onXRotate}
-                    />
-                    <span id="xrotate">{state.rotation.alpha.toFixed(2)}</span>
-                </div>
-
-                <div className="date-value">
-                    <label>Rotate Y</label>
-                    <input
-                        id="yRotationInp"
-                        type="range"
-                        min="-3"
-                        max="3"
-                        step="0.01"
-                        value={state.rotation.beta.toFixed(2)}
-                        onChange={onYRotate}
-                    />
-                    <span id="yrotate">{state.rotation.beta.toFixed(2)}</span>
-                </div>
-
-                <div className="date-value">
-                    <label>Rotate Z</label>
-                    <input
-                        id="zRotationInp"
-                        type="range"
-                        min="-3"
-                        max="3"
-                        step="0.01"
-                        value={state.rotation.gamma.toFixed(2)}
-                        onChange={onZRotate}
-                    />
-                    <span id="zrotate">{state.rotation.gamma.toFixed(2)}</span>
-                </div>
-
-                <div>
-                    <button id="toggleRunBtn" type="button" onClick={onToggleRun}>
-                        {(state.paused) ? 'Run' : 'Pause'}
-                    </button>
-                </div>
-            </section>
+            <Offcanvas
+                placement="right"
+                closed={!lstate.settingsVisible}
+                onClosed={() => showOffcanvas(false)}
+                container={portalElement}
+            >
+                <SettingsPanel
+                    fieldRef={fieldRef.current}
+                    demosList={demosList}
+                    onChangeDemo={onChangeDemo}
+                    onClose={() => showOffcanvas(false)}
+                    onScale={onScale}
+                    onXRotate={onXRotate}
+                    onYRotate={onYRotate}
+                    onZRotate={onZRotate}
+                    onToggleRun={onToggleRun}
+                />
+            </Offcanvas>
         </div>
     );
 };

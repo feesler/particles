@@ -1,5 +1,5 @@
-import { Canvas2D } from './Canvas2D.ts';
-import { CanvasWebGL } from './CanvasWebGL.ts';
+import { Canvas2DElement } from './components/Canvas2D/Canvas2D.ts';
+import { CanvasWebGLElement } from './components/CanvasWebGL/CanvasWebGL.ts';
 import { DemoClass, DemoItem, DemoItemFunc } from './demos.ts';
 import { Field } from './engine/Field.ts';
 
@@ -46,7 +46,7 @@ export interface MenuLoopParam<
     group?: T | null;
 }
 
-export type Canvas = Canvas2D | CanvasWebGL;
+export type Canvas = Canvas2DElement | CanvasWebGLElement;
 
 export interface View {
     canvas: Canvas;
@@ -60,6 +60,9 @@ export interface AppState {
     useWebGL: boolean;
 
     animationDelay: number;
+
+    width: number;
+    height: number;
 
     initialScale: number;
     timeStep: number;
@@ -78,9 +81,10 @@ export interface AppState {
     depth: number;
 
     dragging: boolean;
+    settingsVisible: boolean;
 
     startPoint: Point | null;
     prevPoint: Point | null;
 
-    demo: DemoClass | DemoItemFunc;
+    demo: DemoClass | DemoItemFunc | null;
 }
