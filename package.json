@@ -6,7 +6,9 @@
     "type": "module",
     "scripts": {
         "build": "tsc -b && vite build",
-        "lint": "eslint .",
+        "lint-src": "eslint .",
+        "lint-ts": "npx tsc -b ./ --noEmit",
+        "lint": "npm-run-all lint-src lint-ts",
         "prestart": "npm install",
         "start": "vite",
         "preview": "vite preview",
