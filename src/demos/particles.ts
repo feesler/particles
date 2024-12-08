@@ -6,7 +6,7 @@ import { View } from '../types.js';
 export function initParticles(view: View) {
     const PARTICLES_COUNT = 150;
     const { field } = view;
-    if (!field) {
+    if (!field?.center) {
         return;
     }
 

@@ -1,17 +1,18 @@
-import { useStore } from '@jezvejs/react';
-import { ChangeEvent, useEffect, useRef } from 'react';
+import { Button, Offcanvas, useStore } from '@jezvejs/react';
+import { ChangeEvent, useEffect, useMemo, useRef } from 'react';
 
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
+import { usePortalElement } from '../../utils/usePortalElement.tsx';
 import { AppState, Canvas, View } from '../../types.ts';
 
 import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
 import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
-import { DemoSelect } from '../DemoSelect/DemoSelect.tsx';
 
 import { DemoClass, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
 
-import { initialState } from './initialState.ts';
+import { defaultProps } from './initialState.ts';
+import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
 
 const demosList = mapItems(demos, (item) => ({
     ...item,
@@ -95,7 +96,7 @@ export const MainView = () => {
         if (typeof demo === 'function') {
             setState((prev: AppState) => ({
                 ...prev,
-                ...initialState,
+                ...defaultProps,
                 demo,
             }));
 
@@ -308,6 +309,10 @@ export const MainView = () => {
         });
     };
 
+    const showOffcanvas = (settingsVisible: boolean) => {
+        setState((prev) => ({ ...prev, settingsVisible }));
+    };
+
     const onScale = (e: ChangeEvent<HTMLInputElement>) => {
         const scaleFactor = parseFloat(e.target.value);
 
@@ -380,16 +385,59 @@ export const MainView = () => {
         }
     };
 
-    const canvasProps = {
-        width: 1500,
-        height: 800,
-        onTouchStart: onMouseDown,
-        onTouchMove: onMouseMove,
-        onTouchEnd: onMouseUp,
-        onMouseDown,
-        onMouseMove,
-        onMouseUp,
+    const mainRef = useRef<HTMLElement | null>(null);
+
+    const resizeHandler = () => {
+        const st = getState();
+        const rect = mainRef.current?.getBoundingClientRect() ?? null;
+        if (!rect) {
+            return;
+        }
+
+        const { width } = rect;
+        let { height } = rect;
+        if (
+            width === 0
+            || height === 0
+            || (st.width === width && st.height === height)
+        ) {
+            return;
+        }
+
+        const pausedBefore = st.paused;
+        pause();
+
+        if (height > 0) {
+            height -= 1;
+        }
+
+        setState((prev: AppState) => ({
+            ...prev,
+            width,
+            height,
+        }));
+
+        fieldRef.current?.onResize?.({ width, height });
+
+        if (!pausedBefore) {
+            run();
+        }
     };
+
+    // ResizeObserver
+    useEffect(() => {
+        if (!mainRef.current) {
+            return undefined;
+        }
+
+        const observer = new ResizeObserver(resizeHandler);
+        observer.observe(mainRef.current);
+
+        return () => {
+            observer.disconnect();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mainRef.current]);
 
     useEffect(() => {
         start();
@@ -397,92 +445,54 @@ export const MainView = () => {
     }, []);
 
     const lstate = getState();
+
+    const canvasProps = useMemo(() => ({
+        width: lstate.width,
+        height: lstate.height,
+        onTouchStart: onMouseDown,
+        onTouchMove: onMouseMove,
+        onTouchEnd: onMouseUp,
+        onMouseDown,
+        onMouseMove,
+        onMouseUp,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }), [lstate.width, lstate.height]);
+
     const canvas = (lstate.useField /* && lstate.useWebGL */)
         ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
         : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
 
+    const portalElement = usePortalElement('maincontainer') as Element;
+
     return (
         <div id="maincontainer" className="container">
-            <main>
+            <main className="main-container" ref={mainRef}>
                 {canvas}
             </main>
-            <section className="data-section">
-                <div className="date-value">
-                    <label>Demo</label>
-                    <DemoSelect id="demoSelect" items={demosList} onChange={onChangeDemo} />
-                </div>
 
-                <div className="date-value">
-                    <label>Scale factor</label>
-                    <input
-                        id="scaleFactorInp"
-                        type="range"
-                        min="0.001"
-                        max="20"
-                        step="0.01"
-                        value={state.scaleFactor.toFixed(3)}
-                        onChange={onScale}
-                    />
-                    <span id="scalefactor">{state.scaleFactor.toFixed(3)}</span>
-                </div>
+            <Button
+                className="header-btn"
+                onClick={() => showOffcanvas(true)}
+            >Show</Button>
 
-                <div className="date-value">
-                    <label>Particles</label>
-                    <span id="particlescount">{fieldRef.current?.particles.length ?? 0}</span>
-                </div>
-                <div className="date-value">
-                    <label>Performance</label>
-                    <span id="perfvalue">{state.perfValue}</span>
-                </div>
-
-                <div className="date-value">
-                    <label>Rotate X</label>
-                    <input
-                        id="xRotationInp"
-                        type="range"
-                        min="-3"
-                        max="3"
-                        step="0.01"
-                        value={state.rotation.alpha.toFixed(2)}
-                        onChange={onXRotate}
-                    />
-                    <span id="xrotate">{state.rotation.alpha.toFixed(2)}</span>
-                </div>
-
-                <div className="date-value">
-                    <label>Rotate Y</label>
-                    <input
-                        id="yRotationInp"
-                        type="range"
-                        min="-3"
-                        max="3"
-                        step="0.01"
-                        value={state.rotation.beta.toFixed(2)}
-                        onChange={onYRotate}
-                    />
-                    <span id="yrotate">{state.rotation.beta.toFixed(2)}</span>
-                </div>
-
-                <div className="date-value">
-                    <label>Rotate Z</label>
-                    <input
-                        id="zRotationInp"
-                        type="range"
-                        min="-3"
-                        max="3"
-                        step="0.01"
-                        value={state.rotation.gamma.toFixed(2)}
-                        onChange={onZRotate}
-                    />
-                    <span id="zrotate">{state.rotation.gamma.toFixed(2)}</span>
-                </div>
-
-                <div>
-                    <button id="toggleRunBtn" type="button" onClick={onToggleRun}>
-                        {(state.paused) ? 'Run' : 'Pause'}
-                    </button>
-                </div>
-            </section>
+            <Offcanvas
+                placement="right"
+                closed={!lstate.settingsVisible}
+                onClosed={() => showOffcanvas(false)}
+                container={portalElement}
+            >
+                <SettingsPanel
+                    fieldRef={fieldRef.current}
+                    demosList={demosList}
+                    onChangeDemo={onChangeDemo}
+                    onClose={() => showOffcanvas(false)}
+                    onScale={onScale}
+                    onXRotate={onXRotate}
+                    onYRotate={onYRotate}
+                    onZRotate={onZRotate}
+                    onToggleRun={onToggleRun}
+                />
+            </Offcanvas>
         </div>
     );
 };

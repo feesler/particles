@@ -61,6 +61,9 @@ export interface AppState {
 
     animationDelay: number;
 
+    width: number;
+    height: number;
+
     initialScale: number;
     timeStep: number;
     scaleStep: number;
@@ -78,9 +81,10 @@ export interface AppState {
     depth: number;
 
     dragging: boolean;
+    settingsVisible: boolean;
 
     startPoint: Point | null;
     prevPoint: Point | null;
 
-    demo: DemoClass | DemoItemFunc;
+    demo: DemoClass | DemoItemFunc | null;
 }

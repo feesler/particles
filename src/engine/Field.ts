@@ -76,8 +76,8 @@ export class Field {
 
     sceneNormals: Object3D<Vector> | null = null;
 
-    box: Box;
-    center: Vector;
+    box: Box | null = null;
+    center: Vector | null = null;
 
     particles: Particle[] = [];
     newParticles: Particle[] = [];
@@ -139,15 +139,25 @@ export class Field {
             gamma: 0,
         };
 
-        this.box = new Box(this.width, this.height, this.depth);
-        this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
-
+        this.createGeometry();
         this.setScaleFactor(scaleFactor);
         this.setTimeStep(timeStep);
     }
 
+    createGeometry() {
+        this.box = new Box(this.width, this.height, this.depth);
+        this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
+    }
+
+    onResize({ width, height }: { width: number; height: number; }) {
+        this.width = width;
+        this.height = height;
+
+        this.createGeometry();
+    }
+
     drawFrameByCircles() {
-        if (!this.canvas) {
+        if (!this.canvas || !this.center) {
             return;
         }
 
@@ -164,6 +174,9 @@ export class Field {
             p.add(this.center);
 
             const p0 = this.project(p);
+            if (!p0) {
+                continue;
+            }
 
             this.canvas?.drawCircle(p0.x, p0.y, 0.5, particle.color);
         }
@@ -189,6 +202,10 @@ export class Field {
     }
 
     project(vector: Vector) {
+        if (!this.center) {
+            return null;
+        }
+
         const zDist = this.DIST + vector.z + this.Z_SHIFT;
 
         return {
@@ -231,7 +248,7 @@ export class Field {
     }
 
     rotate(alpha: number, beta: number, gamma: number) {
-        this.box.rotate(alpha, beta, gamma);
+        this.box?.rotate(alpha, beta, gamma);
 
         for (const particle of this.particles) {
             this.rotateVector(particle.pos, alpha, beta, gamma);
@@ -249,12 +266,19 @@ export class Field {
     }
 
     drawParticlePath(frame: CanvasFrame, particle: Particle) {
+        if (!this.center) {
+            return;
+        }
+
         const p = new Vector();
 
         p.set(particle.pos);
         p.add(this.center);
 
         let p1 = this.project(p);
+        if (!p1) {
+            return;
+        }
 
         while (particle.path.length > 0) {
             const prevPos = particle.path.pop();
@@ -266,6 +290,9 @@ export class Field {
             p.add(this.center);
 
             const p0 = this.project(p);
+            if (!p0) {
+                continue;
+            }
             frame.drawLine(
                 p0.x,
                 p0.y,
@@ -291,7 +318,7 @@ export class Field {
         const boxCenter = node.offset.copy();
         boxCenter.addScalar(node.half);
 
-        nodeBox.draw(frame, boxCenter, (v: Vector) => this.project(v));
+        nodeBox.draw(frame, boxCenter, (v: Vector) => this.project(v)!);
         for (const child of node.nodes) {
             if (child && ('nodes' in child) && child.nodes) {
                 this.drawNode(frame, child);
@@ -301,7 +328,7 @@ export class Field {
 
     drawFrameByPixels() {
         const canvas = this.canvas as Canvas2DRef;
-        if (!canvas) {
+        if (!canvas || !this.box || !this.center) {
             return;
         }
 
@@ -310,7 +337,7 @@ export class Field {
             return;
         }
 
-        this.box.draw(frame, this.center, (v: Vector) => this.project(v));
+        this.box.draw(frame, this.center, (v: Vector) => this.project(v)!);
 
         this.particles.sort((a, b) => b.pos.z - a.pos.z);
 
@@ -325,6 +352,9 @@ export class Field {
             p.add(this.center);
 
             const p0 = this.project(p);
+            if (!p0) {
+                continue;
+            }
 
             frame.putPixel(
                 p0.x,
@@ -611,7 +641,7 @@ export class Field {
 
     spontaneous() {
         const chance = rand();
-        if (chance < 0.1) {
+        if (!this.center || chance < 0.1) {
             return;
         }
 
@@ -637,6 +667,10 @@ export class Field {
     }
 
     addNew() {
+        if (!this.center) {
+            return;
+        }
+
         const pos = new Vector(
             rand(-this.center.x, this.center.x),
             rand(-this.center.y, this.center.y),
@@ -671,7 +705,7 @@ export class Field {
             destPos.set(currentPos);
             destPos.add(remVelocity);
 
-            const intersection = this.box.getIntersection(currentPos, destPos);
+            const intersection = this.box?.getIntersection(currentPos, destPos);
             if (!intersection?.point || !intersection.normal) {
                 currentPos.add(remVelocity);
                 particle.setPos(currentPos, this.drawAllPaths);
