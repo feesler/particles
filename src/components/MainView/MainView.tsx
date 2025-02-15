@@ -320,6 +320,15 @@ export const MainView = () => {
         fieldRef.current?.setScaleFactor(scaleFactor);
     };
 
+    const onChangeTimeStep = (e: ChangeEvent<HTMLInputElement>) => {
+        const timeStepScale = parseFloat(e.target.value);
+
+        const timeStep = Math.pow(10, timeStepScale);
+
+        setState((prev: AppState) => ({ ...prev, timeStep: timeStepScale }));
+        fieldRef.current?.setTimeStep(timeStep);
+    };
+
     const onXRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
 
@@ -395,6 +404,39 @@ export const MainView = () => {
             run();
         }
     };
+
+    const onChangeGScale = (e: ChangeEvent<HTMLInputElement>) => {
+        const st = getState();
+        const { paused } = st;
+
+        pause();
+
+        const gScale = parseFloat(e.target.value);
+        setState((prev: AppState) => ({ ...prev, gScale }));
+
+        fieldRef.current?.setGScale(gScale);
+
+        if (!paused) {
+            run();
+        }
+    };
+
+    const onChangeKScale = (e: ChangeEvent<HTMLInputElement>) => {
+        const st = getState();
+        const { paused } = st;
+
+        pause();
+
+        const kScale = parseFloat(e.target.value);
+        setState((prev: AppState) => ({ ...prev, kScale }));
+
+        fieldRef.current?.setKScale(kScale);
+
+        if (!paused) {
+            run();
+        }
+    };
+
     const onToggleRun = () => {
         if (state.paused) {
             run();
@@ -506,10 +548,13 @@ export const MainView = () => {
                     onChangeDemo={onChangeDemo}
                     onClose={() => showOffcanvas(false)}
                     onScale={onScale}
+                    onChangeTimeStep={onChangeTimeStep}
                     onXRotate={onXRotate}
                     onYRotate={onYRotate}
                     onZRotate={onZRotate}
                     onZoom={onZoom}
+                    onChangeGScale={onChangeGScale}
+                    onChangeKScale={onChangeKScale}
                     onToggleRun={onToggleRun}
                 />
             </Offcanvas>

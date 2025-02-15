@@ -26,6 +26,8 @@ export const initialState: AppState = {
     width: 0,
     height: 0,
     zoom: 1,
+    gScale: -7,
+    kScale: 1,
     dragging: false,
     startPoint: null,
     prevPoint: null,

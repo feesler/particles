@@ -76,6 +76,8 @@ export interface AppState {
 
     rotation: { alpha: 0, beta: 0, gamma: 0; },
     zoom: number;
+    gScale: number;
+    kScale: number;
 
     timestamp: number;
     perfValue: number;

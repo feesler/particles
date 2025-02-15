@@ -47,6 +47,9 @@ export class Field {
     DIST: number;
     Z_SHIFT: number;
 
+    G: number = G;
+    K: number = K;
+
     drawAllPaths: boolean;
     useCollide: boolean;
     restoreCollided: boolean;
@@ -417,6 +420,14 @@ export class Field {
         this.createGeometry();
     }
 
+    setGScale(gScale: number) {
+        this.G = 6.67 * Math.pow(10, gScale);
+    }
+
+    setKScale(kScale: number) {
+        this.K = 8.9 * Math.pow(10, kScale);
+    }
+
     /** Add particle */
     add(particle: Particle) {
         if (this.addInstantly) {
@@ -486,7 +497,7 @@ export class Field {
 
             if (particle.charge && nq.charge) {
                 const forceSign = particle.attract(nq) ? 1 : -1;
-                const emForce = (K * forceSign * Math.abs(particle.charge * nq.charge)) / d2;
+                const emForce = (this.K * forceSign * Math.abs(particle.charge * nq.charge)) / d2;
                 res.addScaled(d, emForce);
                 nres.addScaled(nd, emForce);
             }
@@ -495,7 +506,7 @@ export class Field {
                 ? d2 * Math.sqrt(d2 + this.SOFTENING)
                 : d2;
 
-            const gForce = (G * Math.abs(particle.m * nq.m)) / r2;
+            const gForce = (this.G * Math.abs(particle.m * nq.m)) / r2;
             res.addScaled(d, gForce);
             nres.addScaled(nd, gForce);
         }
@@ -877,7 +888,7 @@ export class Field {
 
         if (particle.charge && node.charge) {
             const forceSign = particle.attract(node as Particle) ? 1 : -1;
-            const emForce = (K * forceSign * Math.abs(particle.charge * node.charge)) / d2;
+            const emForce = (this.K * forceSign * Math.abs(particle.charge * node.charge)) / d2;
             particle.force.addScaled(this.dist, emForce);
         }
 
@@ -887,7 +898,7 @@ export class Field {
 
         const mass = (isTree) ? node.mass : node.m;
 
-        const gForce = (G * Math.abs(particle.m * mass)) / r2;
+        const gForce = (this.G * Math.abs(particle.m * mass)) / r2;
         particle.force.addScaled(this.dist, gForce);
         if (!particle.force.isValid()) {
             throw new Error('NaN');
