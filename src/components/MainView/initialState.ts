@@ -25,6 +25,7 @@ export const initialState: AppState = {
     perfValue: 0,
     width: 0,
     height: 0,
+    zoom: 1,
     dragging: false,
     startPoint: null,
     prevPoint: null,

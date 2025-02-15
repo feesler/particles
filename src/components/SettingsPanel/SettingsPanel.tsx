@@ -15,6 +15,7 @@ type Props = {
     onXRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onYRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onZRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onZoom: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onToggleRun: () => void;
     onClose: () => void;
 };
@@ -28,6 +29,7 @@ export const SettingsPanel = (props: Props) => {
         onXRotate,
         onYRotate,
         onZRotate,
+        onZoom,
         onToggleRun,
         onClose,
     } = props;
@@ -109,6 +111,20 @@ export const SettingsPanel = (props: Props) => {
                     onChange={onZRotate}
                 />
                 <span id="zrotate">{state.rotation.gamma.toFixed(2)}</span>
+            </div>
+
+            <div className="date-value">
+                <label>Zoom</label>
+                <input
+                    id="zoomInp"
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="0.0001"
+                    value={state.zoom.toFixed(2)}
+                    onChange={onZoom}
+                />
+                <span id="zoom">{state.zoom.toFixed(2)}</span>
             </div>
 
             <div>

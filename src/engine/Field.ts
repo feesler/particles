@@ -409,6 +409,14 @@ export class Field {
         this.timeStep = timeStep;
     }
 
+    setZoom(zoom: number) {
+        this.DIST = 1000 - zoom;
+        this.Z_SHIFT = zoom;
+
+        this.depth = 2000 + zoom;
+        this.createGeometry();
+    }
+
     /** Add particle */
     add(particle: Particle) {
         if (this.addInstantly) {

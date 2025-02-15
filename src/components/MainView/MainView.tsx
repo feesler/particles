@@ -174,7 +174,7 @@ export const MainView = () => {
                 [clientWidth, clientHeight, st.depth],
                 [clientWidth / 2, clientHeight / 2, 0],
                 [st.rotation.alpha, st.rotation.beta, st.rotation.gamma],
-                [1, 1, 1],
+                [st.zoom, st.zoom, st.zoom],
             );
         } else if (!st.useWebGL) {
             fieldRef.current?.rotate(a, b, g);
@@ -377,6 +377,24 @@ export const MainView = () => {
         processRotation(0, 0, delta);
     };
 
+    const onZoom = (e: ChangeEvent<HTMLInputElement>) => {
+        const st = getState();
+        const { paused } = st;
+
+        pause();
+
+        const zoom = parseFloat(e.target.value);
+        setState((prev: AppState) => ({ ...prev, zoom }));
+
+        fieldRef.current?.setZoom(zoom);
+        fieldRef.current?.drawFrame();
+
+        processRotation(0, 0, 0);
+
+        if (!paused) {
+            run();
+        }
+    };
     const onToggleRun = () => {
         if (state.paused) {
             run();
@@ -491,6 +509,7 @@ export const MainView = () => {
                     onXRotate={onXRotate}
                     onYRotate={onYRotate}
                     onZRotate={onZRotate}
+                    onZoom={onZoom}
                     onToggleRun={onToggleRun}
                 />
             </Offcanvas>
