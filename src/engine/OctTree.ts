@@ -133,7 +133,9 @@ export class OctTree {
     calculateCenterOfMass() {
         this.centerOfMass.multiplyByScalar(0);
 
-        for (const node of this.nodes) {
+        const length = this.nodes?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const node = this.nodes[index];
             if (!node) {
                 continue;
             }

@@ -165,7 +165,9 @@ export class Field {
 
         const p = new Vector();
 
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             if (!particle.draw) {
                 continue;
             }
@@ -190,7 +192,9 @@ export class Field {
 
         canvas.clear();
 
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             if (!particle.draw) {
                 continue;
             }
@@ -222,7 +226,9 @@ export class Field {
     }
 
     calculateBoundingSize() {
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             this.particleMin = Math.min(
                 this.particleMin,
                 particle.pos.x,
@@ -250,7 +256,9 @@ export class Field {
     rotate(alpha: number, beta: number, gamma: number) {
         this.box?.rotate(alpha, beta, gamma);
 
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             this.rotateVector(particle.pos, alpha, beta, gamma);
             this.rotateVector(particle.velocity, alpha, beta, gamma);
             this.rotateVector(particle.force, alpha, beta, gamma);
@@ -319,7 +327,10 @@ export class Field {
         boxCenter.addScalar(node.half);
 
         nodeBox.draw(frame, boxCenter, (v: Vector) => this.project(v)!);
-        for (const child of node.nodes) {
+
+        const length = node.nodes?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const child = node.nodes[index];
             if (child && ('nodes' in child) && child.nodes) {
                 this.drawNode(frame, child);
             }
@@ -343,7 +354,9 @@ export class Field {
 
         const p = new Vector();
 
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             if (!particle.draw) {
                 continue;
             }
@@ -809,7 +822,9 @@ export class Field {
         const d = this.dist.getLength();
 
         if (isTree && (node.size / d > this.theta)) {
-            for (const child of node.nodes) {
+            const length = node.nodes?.length ?? 0;
+            for (let index = 0; index < length; index++) {
+                const child = node.nodes[index];
                 if (child) {
                     this.forceBH(particle, child);
                     if (particle.removed) {
@@ -828,8 +843,10 @@ export class Field {
 
         if (this.useCollide && !isTree && isTreeNode) {
             const particles = node.particles as Particle[];
-            for (const otherParticle of particles) {
-                if (otherParticle.removed) {
+            const length = particles?.length ?? 0;
+            for (let index = 0; index < length; index++) {
+                const otherParticle = particles[index];
+                if (!otherParticle || otherParticle.removed) {
                     continue;
                 }
 
