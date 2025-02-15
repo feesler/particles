@@ -455,6 +455,7 @@ export const MainView = () => {
         onMouseDown,
         onMouseMove,
         onMouseUp,
+        className: 'app-canvas',
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [lstate.width, lstate.height]);
 
