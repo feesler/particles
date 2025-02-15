@@ -47,6 +47,9 @@ export class Field {
     DIST: number;
     Z_SHIFT: number;
 
+    G: number = G;
+    K: number = K;
+
     drawAllPaths: boolean;
     useCollide: boolean;
     restoreCollided: boolean;
@@ -165,7 +168,9 @@ export class Field {
 
         const p = new Vector();
 
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             if (!particle.draw) {
                 continue;
             }
@@ -190,7 +195,9 @@ export class Field {
 
         canvas.clear();
 
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             if (!particle.draw) {
                 continue;
             }
@@ -222,7 +229,9 @@ export class Field {
     }
 
     calculateBoundingSize() {
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             this.particleMin = Math.min(
                 this.particleMin,
                 particle.pos.x,
@@ -250,7 +259,9 @@ export class Field {
     rotate(alpha: number, beta: number, gamma: number) {
         this.box?.rotate(alpha, beta, gamma);
 
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             this.rotateVector(particle.pos, alpha, beta, gamma);
             this.rotateVector(particle.velocity, alpha, beta, gamma);
             this.rotateVector(particle.force, alpha, beta, gamma);
@@ -319,7 +330,10 @@ export class Field {
         boxCenter.addScalar(node.half);
 
         nodeBox.draw(frame, boxCenter, (v: Vector) => this.project(v)!);
-        for (const child of node.nodes) {
+
+        const length = node.nodes?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const child = node.nodes[index];
             if (child && ('nodes' in child) && child.nodes) {
                 this.drawNode(frame, child);
             }
@@ -343,7 +357,9 @@ export class Field {
 
         const p = new Vector();
 
-        for (const particle of this.particles) {
+        const length = this.particles?.length ?? 0;
+        for (let index = 0; index < length; index++) {
+            const particle = this.particles[index];
             if (!particle.draw) {
                 continue;
             }
@@ -394,6 +410,22 @@ export class Field {
 
     setTimeStep(timeStep: number) {
         this.timeStep = timeStep;
+    }
+
+    setZoom(zoom: number) {
+        this.DIST = 1000 - zoom;
+        this.Z_SHIFT = zoom;
+
+        this.depth = 2000 + zoom;
+        this.createGeometry();
+    }
+
+    setGScale(gScale: number) {
+        this.G = 6.67 * Math.pow(10, gScale);
+    }
+
+    setKScale(kScale: number) {
+        this.K = 8.9 * Math.pow(10, kScale);
     }
 
     /** Add particle */
@@ -465,7 +497,7 @@ export class Field {
 
             if (particle.charge && nq.charge) {
                 const forceSign = particle.attract(nq) ? 1 : -1;
-                const emForce = (K * forceSign * Math.abs(particle.charge * nq.charge)) / d2;
+                const emForce = (this.K * forceSign * Math.abs(particle.charge * nq.charge)) / d2;
                 res.addScaled(d, emForce);
                 nres.addScaled(nd, emForce);
             }
@@ -474,7 +506,7 @@ export class Field {
                 ? d2 * Math.sqrt(d2 + this.SOFTENING)
                 : d2;
 
-            const gForce = (G * Math.abs(particle.m * nq.m)) / r2;
+            const gForce = (this.G * Math.abs(particle.m * nq.m)) / r2;
             res.addScaled(d, gForce);
             nres.addScaled(nd, gForce);
         }
@@ -809,7 +841,9 @@ export class Field {
         const d = this.dist.getLength();
 
         if (isTree && (node.size / d > this.theta)) {
-            for (const child of node.nodes) {
+            const length = node.nodes?.length ?? 0;
+            for (let index = 0; index < length; index++) {
+                const child = node.nodes[index];
                 if (child) {
                     this.forceBH(particle, child);
                     if (particle.removed) {
@@ -828,8 +862,10 @@ export class Field {
 
         if (this.useCollide && !isTree && isTreeNode) {
             const particles = node.particles as Particle[];
-            for (const otherParticle of particles) {
-                if (otherParticle.removed) {
+            const length = particles?.length ?? 0;
+            for (let index = 0; index < length; index++) {
+                const otherParticle = particles[index];
+                if (!otherParticle || otherParticle.removed) {
                     continue;
                 }
 
@@ -852,7 +888,7 @@ export class Field {
 
         if (particle.charge && node.charge) {
             const forceSign = particle.attract(node as Particle) ? 1 : -1;
-            const emForce = (K * forceSign * Math.abs(particle.charge * node.charge)) / d2;
+            const emForce = (this.K * forceSign * Math.abs(particle.charge * node.charge)) / d2;
             particle.force.addScaled(this.dist, emForce);
         }
 
@@ -862,7 +898,7 @@ export class Field {
 
         const mass = (isTree) ? node.mass : node.m;
 
-        const gForce = (G * Math.abs(particle.m * mass)) / r2;
+        const gForce = (this.G * Math.abs(particle.m * mass)) / r2;
         particle.force.addScaled(this.dist, gForce);
         if (!particle.force.isValid()) {
             throw new Error('NaN');

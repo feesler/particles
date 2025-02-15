@@ -27,6 +27,10 @@ html {
   height: 100vh;
 }
 
+.app-canvas {
+  display: flex;
+}
+
 .header-btn {
   position: absolute;
   top: 0;

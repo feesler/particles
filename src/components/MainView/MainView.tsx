@@ -174,7 +174,7 @@ export const MainView = () => {
                 [clientWidth, clientHeight, st.depth],
                 [clientWidth / 2, clientHeight / 2, 0],
                 [st.rotation.alpha, st.rotation.beta, st.rotation.gamma],
-                [1, 1, 1],
+                [st.zoom, st.zoom, st.zoom],
             );
         } else if (!st.useWebGL) {
             fieldRef.current?.rotate(a, b, g);
@@ -204,7 +204,7 @@ export const MainView = () => {
 
     const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
-        const { dragging, startPoint } = st;
+        const { dragging, startPoint, pausedBefore } = st;
         const canvas = getCanvas();
         if (!dragging || !startPoint || !canvas) {
             return;
@@ -225,8 +225,9 @@ export const MainView = () => {
         const deltaX = (prevPoint.x - newPoint.x) / containerSize;
         const deltaY = (prevPoint.y - newPoint.y) / containerSize;
 
-        const beta = Math.PI * deltaX;
-        const alpha = Math.PI * deltaY;
+        const rotationSpeed = 0.75;
+        const beta = Math.PI * deltaX * rotationSpeed;
+        const alpha = Math.PI * deltaY * rotationSpeed;
 
         pause();
 
@@ -241,6 +242,10 @@ export const MainView = () => {
         }));
 
         processRotation(alpha, beta, 0);
+
+        if (!pausedBefore) {
+            run();
+        }
     };
 
     const onMouseUp = () => {
@@ -271,6 +276,8 @@ export const MainView = () => {
         if (!demoItem) {
             return;
         }
+
+        pause();
 
         clearDemo();
 
@@ -320,8 +327,18 @@ export const MainView = () => {
         fieldRef.current?.setScaleFactor(scaleFactor);
     };
 
+    const onChangeTimeStep = (e: ChangeEvent<HTMLInputElement>) => {
+        const timeStepScale = parseFloat(e.target.value);
+
+        const timeStep = Math.pow(10, timeStepScale);
+
+        setState((prev: AppState) => ({ ...prev, timeStep: timeStepScale }));
+        fieldRef.current?.setTimeStep(timeStep);
+    };
+
     const onXRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
+        const { paused } = st;
 
         pause();
 
@@ -337,10 +354,15 @@ export const MainView = () => {
         }));
 
         processRotation(delta, 0, 0);
+
+        if (!paused) {
+            run();
+        }
     };
 
     const onYRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
+        const { paused } = st;
 
         pause();
 
@@ -356,10 +378,15 @@ export const MainView = () => {
         }));
 
         processRotation(0, delta, 0);
+
+        if (!paused) {
+            run();
+        }
     };
 
     const onZRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
+        const { paused } = st;
 
         pause();
 
@@ -375,6 +402,61 @@ export const MainView = () => {
         }));
 
         processRotation(0, 0, delta);
+
+        if (!paused) {
+            run();
+        }
+    };
+
+    const onZoom = (e: ChangeEvent<HTMLInputElement>) => {
+        const st = getState();
+        const { paused } = st;
+
+        pause();
+
+        const zoom = parseFloat(e.target.value);
+        setState((prev: AppState) => ({ ...prev, zoom }));
+
+        fieldRef.current?.setZoom(zoom);
+        fieldRef.current?.drawFrame();
+
+        processRotation(0, 0, 0);
+
+        if (!paused) {
+            run();
+        }
+    };
+
+    const onChangeGScale = (e: ChangeEvent<HTMLInputElement>) => {
+        const st = getState();
+        const { paused } = st;
+
+        pause();
+
+        const gScale = parseFloat(e.target.value);
+        setState((prev: AppState) => ({ ...prev, gScale }));
+
+        fieldRef.current?.setGScale(gScale);
+
+        if (!paused) {
+            run();
+        }
+    };
+
+    const onChangeKScale = (e: ChangeEvent<HTMLInputElement>) => {
+        const st = getState();
+        const { paused } = st;
+
+        pause();
+
+        const kScale = parseFloat(e.target.value);
+        setState((prev: AppState) => ({ ...prev, kScale }));
+
+        fieldRef.current?.setKScale(kScale);
+
+        if (!paused) {
+            run();
+        }
     };
 
     const onToggleRun = () => {
@@ -455,6 +537,7 @@ export const MainView = () => {
         onMouseDown,
         onMouseMove,
         onMouseUp,
+        className: 'app-canvas',
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [lstate.width, lstate.height]);
 
@@ -487,9 +570,13 @@ export const MainView = () => {
                     onChangeDemo={onChangeDemo}
                     onClose={() => showOffcanvas(false)}
                     onScale={onScale}
+                    onChangeTimeStep={onChangeTimeStep}
                     onXRotate={onXRotate}
                     onYRotate={onYRotate}
                     onZRotate={onZRotate}
+                    onZoom={onZoom}
+                    onChangeGScale={onChangeGScale}
+                    onChangeKScale={onChangeKScale}
                     onToggleRun={onToggleRun}
                 />
             </Offcanvas>

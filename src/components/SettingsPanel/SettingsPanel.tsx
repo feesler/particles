@@ -12,9 +12,13 @@ type Props = {
 
     onChangeDemo: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     onScale: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChangeTimeStep: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onXRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onYRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onZRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onZoom: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChangeGScale: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChangeKScale: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onToggleRun: () => void;
     onClose: () => void;
 };
@@ -25,9 +29,13 @@ export const SettingsPanel = (props: Props) => {
         demosList,
         onChangeDemo,
         onScale,
+        onChangeTimeStep,
         onXRotate,
         onYRotate,
         onZRotate,
+        onZoom,
+        onChangeGScale,
+        onChangeKScale,
         onToggleRun,
         onClose,
     } = props;
@@ -58,6 +66,20 @@ export const SettingsPanel = (props: Props) => {
                     onChange={onScale}
                 />
                 <span id="scalefactor">{state.scaleFactor.toFixed(3)}</span>
+            </div>
+
+            <div className="date-value">
+                <label>Time step</label>
+                <input
+                    id="timeStepInp"
+                    type="range"
+                    min="-5"
+                    max="5"
+                    step="0.001"
+                    value={state.timeStep.toFixed(5)}
+                    onChange={onChangeTimeStep}
+                />
+                <span id="timeStep">{(Math.pow(10, state.timeStep)).toFixed(5)}</span>
             </div>
 
             <div className="date-value">
@@ -109,6 +131,48 @@ export const SettingsPanel = (props: Props) => {
                     onChange={onZRotate}
                 />
                 <span id="zrotate">{state.rotation.gamma.toFixed(2)}</span>
+            </div>
+
+            <div className="date-value">
+                <label>Zoom</label>
+                <input
+                    id="zoomInp"
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="0.0001"
+                    value={state.zoom.toFixed(2)}
+                    onChange={onZoom}
+                />
+                <span id="zoom">{state.zoom.toFixed(2)}</span>
+            </div>
+
+            <div className="date-value">
+                <label>G</label>
+                <input
+                    id="gInp"
+                    type="range"
+                    min="-10"
+                    max="10"
+                    step="1"
+                    value={state.gScale.toFixed(2)}
+                    onChange={onChangeGScale}
+                />
+                <span id="zoom">{(Math.pow(10, state.gScale)).toExponential(0)}</span>
+            </div>
+
+            <div className="date-value">
+                <label>K</label>
+                <input
+                    id="kInp"
+                    type="range"
+                    min="-10"
+                    max="10"
+                    step="1"
+                    value={state.kScale.toFixed(2)}
+                    onChange={onChangeKScale}
+                />
+                <span id="zoom">{(Math.pow(10, state.kScale)).toExponential(0)}</span>
             </div>
 
             <div>
