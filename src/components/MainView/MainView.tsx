@@ -204,7 +204,7 @@ export const MainView = () => {
 
     const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
-        const { dragging, startPoint } = st;
+        const { dragging, startPoint, pausedBefore } = st;
         const canvas = getCanvas();
         if (!dragging || !startPoint || !canvas) {
             return;
@@ -225,8 +225,9 @@ export const MainView = () => {
         const deltaX = (prevPoint.x - newPoint.x) / containerSize;
         const deltaY = (prevPoint.y - newPoint.y) / containerSize;
 
-        const beta = Math.PI * deltaX;
-        const alpha = Math.PI * deltaY;
+        const rotationSpeed = 0.75;
+        const beta = Math.PI * deltaX * rotationSpeed;
+        const alpha = Math.PI * deltaY * rotationSpeed;
 
         pause();
 
@@ -241,6 +242,10 @@ export const MainView = () => {
         }));
 
         processRotation(alpha, beta, 0);
+
+        if (!pausedBefore) {
+            run();
+        }
     };
 
     const onMouseUp = () => {
@@ -271,6 +276,8 @@ export const MainView = () => {
         if (!demoItem) {
             return;
         }
+
+        pause();
 
         clearDemo();
 
@@ -331,6 +338,7 @@ export const MainView = () => {
 
     const onXRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
+        const { paused } = st;
 
         pause();
 
@@ -346,10 +354,15 @@ export const MainView = () => {
         }));
 
         processRotation(delta, 0, 0);
+
+        if (!paused) {
+            run();
+        }
     };
 
     const onYRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
+        const { paused } = st;
 
         pause();
 
@@ -365,10 +378,15 @@ export const MainView = () => {
         }));
 
         processRotation(0, delta, 0);
+
+        if (!paused) {
+            run();
+        }
     };
 
     const onZRotate = (e: ChangeEvent<HTMLInputElement>) => {
         const st = getState();
+        const { paused } = st;
 
         pause();
 
@@ -384,6 +402,10 @@ export const MainView = () => {
         }));
 
         processRotation(0, 0, delta);
+
+        if (!paused) {
+            run();
+        }
     };
 
     const onZoom = (e: ChangeEvent<HTMLInputElement>) => {
