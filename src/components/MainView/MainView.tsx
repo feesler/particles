@@ -1,9 +1,8 @@
-import { Button, Offcanvas, useStore } from '@jezvejs/react';
+import { Offcanvas, useStore } from '@jezvejs/react';
 import { ChangeEvent, useEffect, useMemo, useRef } from 'react';
 
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
-import { usePortalElement } from '../../utils/usePortalElement.tsx';
 import { AppState, Canvas, View } from '../../types.ts';
 
 import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
@@ -13,6 +12,7 @@ import { DemoClass, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
 
 import { defaultProps } from './initialState.ts';
 import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
+import { MenuButton } from '../MenuButton/MenuButton.tsx';
 
 const demosList = mapItems(demos, (item) => ({
     ...item,
@@ -545,24 +545,23 @@ export const MainView = () => {
         ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
         : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
 
-    const portalElement = usePortalElement('maincontainer') as Element;
-
     return (
         <div id="maincontainer" className="container">
             <main className="main-container" ref={mainRef}>
                 {canvas}
             </main>
 
-            <Button
+            <MenuButton
                 className="header-btn"
                 onClick={() => showOffcanvas(true)}
-            >Show</Button>
+            />
 
             <Offcanvas
+                className="settings"
                 placement="right"
                 closed={!lstate.settingsVisible}
                 onClosed={() => showOffcanvas(false)}
-                container={portalElement}
+                usePortal={false}
             >
                 <SettingsPanel
                     fieldRef={fieldRef.current}

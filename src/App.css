@@ -23,25 +23,62 @@ html {
 }
 
 .main-container {
-  width: 100%;
+  flex-grow: 1;
   height: 100vh;
+  overflow: hidden;
 }
 
 .app-canvas {
   display: flex;
 }
 
-.header-btn {
+.btn.header-btn {
+  --btn-size: 2rem;
+  --btn-icon-color: #ffffff;
+
   position: absolute;
   top: 0;
   right: 0;
-  padding: 1rem;
-  background: #3b63e7;
+  width: var(--btn-size);
+  margin: 1rem;
   color: #ffffff;
 }
 
 .offcanvas {
   background: #262626;
+}
+
+.offcanvas_right.offcanvas_closed {
+  display: none;
+}
+
+/* Right side settings panel */
+.settings {
+  --offcanvas-bg: #ffffff;
+
+  z-index: 2110;
+}
+
+.settings .offcanvas__content {
+  display: flex;
+  overflow-y: auto;
+}
+
+.settings + .offcanvas__bg {
+  z-index: 2100;
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+  .settings {
+    z-index: 1000;
+    position: static;
+    height: 100vh;
+  }
+
+  .offcanvas__bg {
+    display: none;
+  }
 }
 
 .data-section {
