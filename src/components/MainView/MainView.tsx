@@ -1,28 +1,30 @@
-import { Button, Offcanvas, useStore } from '@jezvejs/react';
-import { ChangeEvent, useEffect, useMemo, useRef } from 'react';
+import { DropDownSelectionParam, MenuItemProps, MenuItemType, Offcanvas, useStore } from '@jezvejs/react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
-import { usePortalElement } from '../../utils/usePortalElement.tsx';
 import { AppState, Canvas, View } from '../../types.ts';
 
 import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
 import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
 
-import { DemoClass, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
+import { DemoClass, DemoItem, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
 
 import { defaultProps } from './initialState.ts';
 import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
+import { MenuButton } from '../MenuButton/MenuButton.tsx';
 
-const demosList = mapItems(demos, (item) => ({
-    ...item,
+const demosList = mapItems<DemoItem, MenuItemProps>(demos, ({ type, ...item }) => ({
+    id: item.id,
     title: item.id,
-    type: (['field', 'canvas'].includes(item.type)) ? 'button' : item.type,
+    type: ((type === 'group') ? 'group' : 'button') as MenuItemType,
+    items: item.items as MenuItemProps[],
 }));
 
 export const MainView = () => {
     const { state, getState, setState } = useStore<AppState>();
 
+    const updateTimeout = useRef<number>(0);
     const rotationTimeout = useRef<number>(0);
     const fieldRef = useRef<Field | null>(null);
     const canvas2DRef = useRef<Canvas2DRef | null>(null);
@@ -33,7 +35,23 @@ export const MainView = () => {
         return (st.useField && st.useWebGL) ? canvasWebGlRef.current : canvas2DRef.current;
     };
 
+    const scheduleUpdate = () => {
+        if (updateTimeout.current) {
+            clearTimeout(updateTimeout.current);
+        }
+
+        updateTimeout.current = setTimeout(() => {
+            updateTimeout.current = 0;
+            requestAnimationFrame((t) => update(t));
+        }, 10);
+    };
+
     const update = (timestamp: number) => {
+        const field = fieldRef.current;
+        if (!field) {
+            return;
+        }
+
         let st = getState();
         if (st.rotating || st.paused) {
             return;
@@ -44,11 +62,6 @@ export const MainView = () => {
 
         const dt = (st.timestamp) ? (timestamp - st.timestamp) : 0;
         setState((prev: AppState) => ({ ...prev, timestamp }));
-
-        const field = fieldRef.current;
-        if (!field) {
-            return;
-        }
 
         field.calculate(dt);
         field.drawFrame();
@@ -66,7 +79,7 @@ export const MainView = () => {
         setState((prev: AppState) => ({ ...prev, perfValue }));
 
         if (!st.paused) {
-            requestAnimationFrame((t) => update(t));
+            scheduleUpdate();
         }
 
         setState((prev: AppState) => ({ ...prev, updating: false }));
@@ -88,8 +101,7 @@ export const MainView = () => {
         }
 
         setState((prev: AppState) => ({ ...prev, paused: false }));
-
-        requestAnimationFrame((t) => update(t));
+        scheduleUpdate();
     };
 
     const initDemo = (demo: DemoClass | DemoItemFunc) => {
@@ -235,9 +247,9 @@ export const MainView = () => {
             ...prev,
             prevPoint: { ...newPoint },
             rotation: {
+                ...prev.rotation,
                 alpha: prev.rotation.alpha + alpha,
                 beta: prev.rotation.beta + beta,
-                gamma: 0,
             },
         }));
 
@@ -270,8 +282,12 @@ export const MainView = () => {
         }
     };
 
-    const onChangeDemo = (e: ChangeEvent<HTMLSelectElement>) => {
-        const id = e.target.value;
+    const onChangeDemo = (selected: DropDownSelectionParam) => {
+        if (Array.isArray(selected) || selected === null) {
+            return;
+        }
+
+        const id = selected?.id;
         const demoItem = findDemoById(id);
         if (!demoItem) {
             return;
@@ -320,15 +336,15 @@ export const MainView = () => {
         setState((prev) => ({ ...prev, settingsVisible }));
     };
 
-    const onScale = (e: ChangeEvent<HTMLInputElement>) => {
-        const scaleFactor = parseFloat(e.target.value);
+    const onScale = (value: number) => {
+        const scaleFactor = value;
 
         setState((prev: AppState) => ({ ...prev, scaleFactor }));
         fieldRef.current?.setScaleFactor(scaleFactor);
     };
 
-    const onChangeTimeStep = (e: ChangeEvent<HTMLInputElement>) => {
-        const timeStepScale = parseFloat(e.target.value);
+    const onChangeTimeStep = (value: number) => {
+        const timeStepScale = value;
 
         const timeStep = Math.pow(10, timeStepScale);
 
@@ -336,13 +352,13 @@ export const MainView = () => {
         fieldRef.current?.setTimeStep(timeStep);
     };
 
-    const onXRotate = (e: ChangeEvent<HTMLInputElement>) => {
+    const onXRotate = (value: number) => {
         const st = getState();
         const { paused } = st;
 
         pause();
 
-        const val = parseFloat(e.target.value);
+        const val = value;
         const delta = val - st.rotation.alpha;
 
         setState((prev: AppState) => ({
@@ -360,13 +376,13 @@ export const MainView = () => {
         }
     };
 
-    const onYRotate = (e: ChangeEvent<HTMLInputElement>) => {
+    const onYRotate = (value: number) => {
         const st = getState();
         const { paused } = st;
 
         pause();
 
-        const val = parseFloat(e.target.value);
+        const val = value;
         const delta = val - st.rotation.beta;
 
         setState((prev: AppState) => ({
@@ -384,13 +400,13 @@ export const MainView = () => {
         }
     };
 
-    const onZRotate = (e: ChangeEvent<HTMLInputElement>) => {
+    const onZRotate = (value: number) => {
         const st = getState();
         const { paused } = st;
 
         pause();
 
-        const val = parseFloat(e.target.value);
+        const val = value;
         const delta = val - st.rotation.gamma;
 
         setState((prev: AppState) => ({
@@ -408,13 +424,13 @@ export const MainView = () => {
         }
     };
 
-    const onZoom = (e: ChangeEvent<HTMLInputElement>) => {
+    const onZoom = (value: number) => {
         const st = getState();
         const { paused } = st;
 
         pause();
 
-        const zoom = parseFloat(e.target.value);
+        const zoom = value;
         setState((prev: AppState) => ({ ...prev, zoom }));
 
         fieldRef.current?.setZoom(zoom);
@@ -427,13 +443,13 @@ export const MainView = () => {
         }
     };
 
-    const onChangeGScale = (e: ChangeEvent<HTMLInputElement>) => {
+    const onChangeGScale = (value: number) => {
         const st = getState();
         const { paused } = st;
 
         pause();
 
-        const gScale = parseFloat(e.target.value);
+        const gScale = value;
         setState((prev: AppState) => ({ ...prev, gScale }));
 
         fieldRef.current?.setGScale(gScale);
@@ -443,13 +459,13 @@ export const MainView = () => {
         }
     };
 
-    const onChangeKScale = (e: ChangeEvent<HTMLInputElement>) => {
+    const onChangeKScale = (value: number) => {
         const st = getState();
         const { paused } = st;
 
         pause();
 
-        const kScale = parseFloat(e.target.value);
+        const kScale = value;
         setState((prev: AppState) => ({ ...prev, kScale }));
 
         fieldRef.current?.setKScale(kScale);
@@ -500,6 +516,11 @@ export const MainView = () => {
         }));
 
         fieldRef.current?.onResize?.({ width, height });
+        setTimeout(() => {
+            fieldRef.current?.drawFrame();
+        }, 10);
+
+        processRotation(0, 0, 0);
 
         if (!pausedBefore) {
             run();
@@ -545,24 +566,23 @@ export const MainView = () => {
         ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
         : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
 
-    const portalElement = usePortalElement('maincontainer') as Element;
-
     return (
         <div id="maincontainer" className="container">
             <main className="main-container" ref={mainRef}>
                 {canvas}
             </main>
 
-            <Button
+            <MenuButton
                 className="header-btn"
                 onClick={() => showOffcanvas(true)}
-            >Show</Button>
+            />
 
             <Offcanvas
+                className="settings"
                 placement="right"
                 closed={!lstate.settingsVisible}
                 onClosed={() => showOffcanvas(false)}
-                container={portalElement}
+                usePortal={false}
             >
                 <SettingsPanel
                     fieldRef={fieldRef.current}

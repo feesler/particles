@@ -1,3 +1,33 @@
+:root {
+  --neutral-color: #888888;
+  --accent-color: #0072c6;
+  --accent-color-alt: #20a0ff;
+  --accent-hover-color: #1e82cc;
+  --accent-active-color: #104b79;
+  --accent-disabled-color: #5082aa;
+  --warning-color: #c60000;
+  --warning-color-alt: #e63030;
+  --action-btn-border-radius: 6px;
+  --default-border-radius: 3px;
+  --focus-shadow: 0 0 0 0.25rem #0d6efd40;
+
+  /* Text */
+  --main-text-color: #dddddd;
+
+  /* Background */
+  --alt-bg-color: #2a2a2a;
+  --bg-color-2: #202020;
+
+  /* Input */
+  --input-height: 37px;
+  --input-padding: 0 0.5rem;
+  --input-bg-color: #363636;
+  --input-border-color: var(--input-bg-color);
+  --active-input-border-color: var(--input-bg-color);
+  --input-disabled-color: #505050;
+  --input-disabled-bg: #202020;
+}
+
 * {
   border: 0 none;
   padding: 0;
@@ -23,25 +53,74 @@ html {
 }
 
 .main-container {
-  width: 100%;
+  flex-grow: 1;
   height: 100vh;
+  overflow: hidden;
 }
 
 .app-canvas {
   display: flex;
 }
 
-.header-btn {
+.btn.header-btn {
+  --btn-size: 2rem;
+  --btn-icon-color: #ffffff;
+
   position: absolute;
   top: 0;
   right: 0;
-  padding: 1rem;
-  background: #3b63e7;
+  width: var(--btn-size);
+  margin: 1rem;
   color: #ffffff;
+}
+
+.btn.submit-btn {
+  --btn-border-radius: var(--action-btn-border-radius);
+  --btn-title-color: #ffffff;
+  --btn-background: var(--accent-color);
+  --btn-hover-title-color: #ffffff;
+  --btn-hover-background: var(--accent-hover-color);
+  --btn-active-background: var(--accent-active-color);
+  --btn-disabled-background: var(--accent-disabled-color);
+  --btn-size: var(--input-height);
+  --btn-padding: 0 24px;
 }
 
 .offcanvas {
   background: #262626;
+}
+
+.offcanvas_right.offcanvas_closed {
+  display: none;
+}
+
+/* Right side settings panel */
+.settings {
+  --offcanvas-bg: #ffffff;
+
+  z-index: 2110;
+}
+
+.settings .offcanvas__content {
+  display: flex;
+  overflow-y: auto;
+}
+
+.settings + .offcanvas__bg {
+  z-index: 2100;
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+  .settings {
+    z-index: 1000;
+    position: static;
+    height: 100vh;
+  }
+
+  .offcanvas__bg {
+    display: none;
+  }
 }
 
 .data-section {
@@ -65,4 +144,66 @@ html {
   flex-flow: column nowrap;
   color: #dddddd;
   margin-bottom: 1rem;
+}
+
+/* DropDown */
+.dd__container,
+.dd__container_attached {
+  --dd-bg-color: var(--input-bg-color);
+  --dd-border-color: var(--input-border-color);
+
+  /* Combo box */
+  --dd-border-width: 1px;
+  --dd-combo-border-radius: var(--default-border-radius);
+  --dd-combo-height: var(--input-height);
+
+  /* Input element */
+  --dd-input-text: var(--main-text-color);
+  --dd-input-font-size: 0.9rem;
+  --dd-input-padding: var(--input-padding);
+
+  /* Clear and toggle buttons */
+  --dd-btn-fill: var(--neutral-color);
+  --dd-btn-hover-fill: var(--main-text-color);
+
+  /* List menu */
+  --dd-list-border-radius: var(--default-border-radius);
+
+  /* List item */
+  --dd-list-item-text: var(--main-text-color);
+  --dd-list-item-bg: var(--bg-color-2);
+  --dd-list-item-check: var(--main-text-color);
+  --dd-disabled-list-item-text: var(--input-disabled-color);
+
+  /* Active list item */
+  --dd-active-list-item-text: var(--main-text-color);
+  --dd-active-list-item-bg: var(--alt-bg-color);
+
+  /* Disabled list item */
+  --dd-disabled-list-item-bg: none;
+
+  /* List group */
+  --dd-list-group-text: var(--accent-color);
+  --dd-list-group-bg: var(--bg-color-2);
+
+  /* Selection */
+  --dd-selection-text: var(--main-text-color);
+  --dd-selection-font-size: 15px;
+  --dd-selection-item-border-radius: 3px;
+
+  /* Active state */
+  --dd-active-bg: var(--input-bg-color);
+  --dd-active-border: var(--active-input-border-color);
+  --dd-active-input-text: var(--main-text-color);
+  --dd-active-selection-text: var(--main-text-color);
+  --dd-active-selection-bg: var(--dd-active-bg);
+
+  /* Disabled state */
+  --dd-disabled-bg: var(--input-disabled-bg);
+  --dd-disabled-border: var(--input-disabled-border);
+  --dd-disabled-selection-color: var(--input-disabled-color);
+  --dd-disabled-input-text: var(--input-disabled-color);
+  --dd-disabled-btn-fill: var(--input-disabled-color);
+  --dd-disabled-selection-item-text: var(--input-disabled-color);
+  --dd-disabled-selection-item-bg: #dfdfdf;
 }

@@ -1,7 +1,11 @@
 import { Canvas2DElement } from './components/Canvas2D/Canvas2D.ts';
 import { CanvasWebGLElement } from './components/CanvasWebGL/CanvasWebGL.ts';
-import { DemoClass, DemoItem, DemoItemFunc } from './demos.ts';
+import { DemoClass, DemoItemFunc } from './demos.ts';
 import { Field } from './engine/Field.ts';
+
+export type IdObject = {
+    id: string;
+}
 
 /**
  * Coordinates point
@@ -18,7 +22,7 @@ export type PlanePoint = {
 
 export type Axis = "x" | "y" | "z";
 
-export interface MenuItemCallback<T extends DemoItem = DemoItem, R = boolean> {
+export interface MenuItemCallback<T extends object = object, R = boolean> {
     (item: T, index?: number, arr?: T[]): R;
 }
 
@@ -41,7 +45,7 @@ export interface ToFlatListParam extends IncludeGroupItemsParam {
  * forItems() function params
  */
 export interface MenuLoopParam<
-    T extends DemoItem = DemoItem,
+    T extends object = object,
 > extends IncludeGroupItemsParam {
     group?: T | null;
 }
