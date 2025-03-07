@@ -1,24 +1,32 @@
-import { CloseButton, useStore } from '@jezvejs/react';
+import {
+    Button,
+    CloseButton,
+    DropDown,
+    DropDownSelectionParam,
+    MenuItemProps,
+    useStore,
+} from '@jezvejs/react';
 
-import { DemoItem } from 'src/demos.ts';
 import { Field } from 'src/engine/Field.ts';
 import { AppState } from 'src/types.ts';
-import { DemoSelect } from '../DemoSelect/DemoSelect.tsx';
+import { RangeInput } from '../RangeInput/RangeInput.tsx';
+
+import './SettingsPanel.css';
 
 type Props = {
     fieldRef: Field | null;
 
-    demosList: DemoItem[];
+    demosList: MenuItemProps[];
 
-    onChangeDemo: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-    onScale: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onChangeTimeStep: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onXRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onYRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onZRotate: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onZoom: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onChangeGScale: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    onChangeKScale: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChangeDemo: (selected: DropDownSelectionParam) => void;
+    onScale: (value: number) => void;
+    onChangeTimeStep: (value: number) => void;
+    onXRotate: (value: number) => void;
+    onYRotate: (value: number) => void;
+    onZRotate: (value: number) => void;
+    onZoom: (value: number) => void;
+    onChangeGScale: (value: number) => void;
+    onChangeKScale: (value: number) => void;
     onToggleRun: () => void;
     onClose: () => void;
 };
@@ -51,32 +59,29 @@ export const SettingsPanel = (props: Props) => {
 
             <div className="date-value">
                 <label>Demo</label>
-                <DemoSelect id="demoSelect" items={demosList} onChange={onChangeDemo} />
+                <DropDown id="demoSelect" className="fullwidth" items={demosList} onChange={onChangeDemo} />
             </div>
 
             <div className="date-value">
                 <label>Scale factor</label>
-                <input
+                <RangeInput
                     id="scaleFactorInp"
-                    type="range"
-                    min="0.001"
-                    max="20"
-                    step="0.01"
-                    value={state.scaleFactor.toFixed(3)}
+                    min={0.001}
+                    max={20}
+                    step={0.01}
+                    value={state.scaleFactor}
                     onChange={onScale}
                 />
-                <span id="scalefactor">{state.scaleFactor.toFixed(3)}</span>
             </div>
 
             <div className="date-value">
                 <label>Time step</label>
-                <input
+                <RangeInput
                     id="timeStepInp"
-                    type="range"
-                    min="-5"
-                    max="5"
-                    step="0.001"
-                    value={state.timeStep.toFixed(5)}
+                    min={-5}
+                    max={5}
+                    step={0.001}
+                    value={state.timeStep}
                     onChange={onChangeTimeStep}
                 />
                 <span id="timeStep">{(Math.pow(10, state.timeStep)).toFixed(5)}</span>
@@ -93,92 +98,82 @@ export const SettingsPanel = (props: Props) => {
 
             <div className="date-value">
                 <label>Rotate X</label>
-                <input
+                <RangeInput
                     id="xRotationInp"
-                    type="range"
-                    min="-3"
-                    max="3"
-                    step="0.01"
-                    value={state.rotation.alpha.toFixed(2)}
+                    min={-3}
+                    max={3}
+                    step={0.01}
+                    value={state.rotation.alpha}
                     onChange={onXRotate}
                 />
-                <span id="xrotate">{state.rotation.alpha.toFixed(2)}</span>
             </div>
 
             <div className="date-value">
                 <label>Rotate Y</label>
-                <input
+                <RangeInput
                     id="yRotationInp"
-                    type="range"
-                    min="-3"
-                    max="3"
-                    step="0.01"
-                    value={state.rotation.beta.toFixed(2)}
+                    min={-3}
+                    max={3}
+                    step={0.01}
+                    value={state.rotation.beta}
                     onChange={onYRotate}
                 />
-                <span id="yrotate">{state.rotation.beta.toFixed(2)}</span>
             </div>
 
             <div className="date-value">
                 <label>Rotate Z</label>
-                <input
+                <RangeInput
                     id="zRotationInp"
-                    type="range"
-                    min="-3"
-                    max="3"
-                    step="0.01"
-                    value={state.rotation.gamma.toFixed(2)}
+                    min={-3}
+                    max={3}
+                    step={0.01}
+                    value={state.rotation.gamma}
                     onChange={onZRotate}
                 />
-                <span id="zrotate">{state.rotation.gamma.toFixed(2)}</span>
             </div>
 
             <div className="date-value">
                 <label>Zoom</label>
-                <input
+                <RangeInput
                     id="zoomInp"
-                    type="range"
-                    min="0"
-                    max="10"
-                    step="0.0001"
-                    value={state.zoom.toFixed(2)}
+                    min={0}
+                    max={10}
+                    step={0.0001}
+                    value={state.zoom}
                     onChange={onZoom}
                 />
-                <span id="zoom">{state.zoom.toFixed(2)}</span>
             </div>
 
             <div className="date-value">
                 <label>G</label>
-                <input
+                <RangeInput
                     id="gInp"
-                    type="range"
-                    min="-10"
-                    max="10"
-                    step="1"
-                    value={state.gScale.toFixed(2)}
+                    min={-10}
+                    max={10}
+                    step={1}
+                    value={state.gScale}
                     onChange={onChangeGScale}
                 />
-                <span id="zoom">{(Math.pow(10, state.gScale)).toExponential(0)}</span>
+                <span id="gScale">{(Math.pow(10, state.gScale)).toExponential(0)}</span>
             </div>
 
             <div className="date-value">
                 <label>K</label>
-                <input
+                <RangeInput
                     id="kInp"
-                    type="range"
-                    min="-10"
-                    max="10"
-                    step="1"
-                    value={state.kScale.toFixed(2)}
+                    min={-10}
+                    max={10}
+                    step={1}
+                    value={state.kScale}
                     onChange={onChangeKScale}
                 />
-                <span id="zoom">{(Math.pow(10, state.kScale)).toExponential(0)}</span>
+                <span id="kScale">{(Math.pow(10, state.kScale)).toExponential(0)}</span>
             </div>
 
-            <div>
-                <button id="toggleRunBtn" type="button" onClick={onToggleRun}>
+            <div className="data-footer">
+                <Button id="toggleRunBtn" className="submit-btn" onClick={onToggleRun}>
                     {(state.paused) ? 'Run' : 'Pause'}
-                </button>
+                </Button>
             </div>
         </section>
     );

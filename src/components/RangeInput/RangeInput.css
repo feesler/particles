@@ -1,0 +1,39 @@
+.range-input {
+  display: grid;
+  margin-bottom: 1rem;
+}
+
+.range-input .range-slider {
+  /* Area */
+  --rs-area-size: 0.5rem;
+  --rs-area-border-width: 0;
+  --rs-area-border-radius: 100vh;
+  --rs-background: var(--input-bg-color);
+
+  /* Slider  */
+  --rs-slider-size: 1rem;
+  --rs-slider-background: #b3b3b3;
+  --rs-slider-border-width: 0;
+  --rs-slider-border-radius: 100vh;
+  --rs-slider-offset: calc((var(--rs-area-size) - var(--rs-slider-size)) / 2);
+
+  /* Hover state */
+  --rs-hover-background: var(--input-bg-color);
+  --rs-hover-slider-color: var(--input-bg-color);
+
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+
+  &.range-slider_x-axis .range-slider__area {
+    margin-left: 1px;
+    margin-right: 1px;
+  }
+}
+
+.range-input .range-input__value {
+  --input-color: var(--main-text-color);
+  --input-bg: var(--input-bg-color);
+  --input-border-color: var(--input-bg-color);
+  --input-focus-color: var(--main-text-color);
+  --input-focus-bg: var(--input-bg-color);
+}

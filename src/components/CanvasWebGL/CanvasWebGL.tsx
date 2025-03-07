@@ -279,3 +279,5 @@ export const CanvasWebGL = forwardRef<
         <canvas {...props} ref={innerRef} />
     );
 });
+
+CanvasWebGL.displayName = 'CanvasWebGL';

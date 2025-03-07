@@ -89,3 +89,5 @@ export const Canvas2D = forwardRef<
         <canvas {...props} ref={innerRef} />
     );
 });
+
+Canvas2D.displayName = 'Canvas2D';

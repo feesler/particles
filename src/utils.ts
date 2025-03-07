@@ -1,8 +1,8 @@
 import React from 'react';
-import { DemoItem } from './demos.ts';
 import { Axis3D } from './engine/types.ts';
 import { Vector } from './engine/Vector.ts';
 import {
+    IdObject,
     IncludeGroupItemsParam,
     MenuItemCallback,
     MenuLoopParam,
@@ -79,8 +79,8 @@ export function getEventClientCoordinates(e: React.TouchEvent | React.MouseEvent
  * @param {DemoItem} item
  * @returns {boolean}
  */
-export function isChildItemsAvailable<T extends DemoItem = DemoItem>(item: T): boolean {
-    return (item.type === 'group');
+export function isChildItemsAvailable<T extends object = object>(item: T): boolean {
+    return ('type' in item && item.type === 'group');
 }
 
 /**
@@ -90,12 +90,12 @@ export function isChildItemsAvailable<T extends DemoItem = DemoItem>(item: T): b
  * @param {ToFlatListParam} options
  * @returns {boolean}
  */
-export function shouldIncludeParentItem<T extends DemoItem = DemoItem>(
+export function shouldIncludeParentItem<T extends object = object>(
     item: T,
     options: ToFlatListParam,
 ): boolean {
     return !!(
-        (item.type === 'group' && options?.includeGroupItems)
+        ('type' in item && item.type === 'group' && options?.includeGroupItems)
     );
 }
 
@@ -106,7 +106,7 @@ export function shouldIncludeParentItem<T extends DemoItem = DemoItem>(
  * @param {MenuItemCallback<T>} callback
  * @param {ToFlatListParam} options
  */
-export function findDemoItem<T extends DemoItem = DemoItem>(
+export function findDemoItem<T extends object = object>(
     items: T[],
     callback: MenuItemCallback<T>,
     options?: ToFlatListParam,
@@ -124,7 +124,7 @@ export function findDemoItem<T extends DemoItem = DemoItem>(
             return item;
         }
 
-        if (isChildItemsAvailable(item) && Array.isArray(item.items)) {
+        if (isChildItemsAvailable(item) && ('items' in item) && Array.isArray(item.items)) {
             item = findDemoItem<T>((item.items ?? []) as T[], callback, options);
             if (item) {
                 return item;
@@ -142,21 +142,25 @@ export function findDemoItem<T extends DemoItem = DemoItem>(
  * @param {MenuLoopParam<T>} options
  * @returns {T[]}
  */
-export function mapItems<T extends DemoItem = DemoItem>(
+export function mapItems<
+    T extends object = object,
+    R extends object = object
+>(
     items: T[],
-    callback: MenuItemCallback<T, T>,
+    callback: MenuItemCallback<T, R>,
     options: MenuLoopParam<T> | null = null,
-): T[] {
+): R[] {
     if (typeof callback !== 'function') {
         throw new Error('Invalid callback parameter');
     }
 
-    const res: T[] = [];
+    const res: R[] = [];
 
     for (let index = 0; index < items.length; index += 1) {
+        const group = (options?.group ?? {}) as IdObject;
         const item: T = {
             ...items[index],
-            group: options?.group?.id,
+            group: !!('id' in group) && group.id,
         };
 
         if (isChildItemsAvailable(item)) {
@@ -166,15 +170,15 @@ export function mapItems<T extends DemoItem = DemoItem>(
 
             res.push({
                 ...group,
-                items: mapItems<T>(
-                    (item.items ?? []) as T[],
+                items: mapItems<T, R>(
+                    ('items' in item && item.items || []) as T[],
                     callback,
                     {
                         ...(options ?? {}),
-                        group,
+                        group: group as T,
                     },
                 ),
-            });
+            } as R);
         } else {
             res.push(callback(item, index, items));
         }
