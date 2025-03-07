@@ -1,6 +1,7 @@
-import { DropDownSelectionParam, MenuItemProps, MenuItemType, Offcanvas, useStore } from '@jezvejs/react';
+import { DropDownSelectionParam, MenuItemProps, MenuItemType, minmax, Offcanvas, useStore } from '@jezvejs/react';
 import { useEffect, useMemo, useRef } from 'react';
 
+import { MAX_ZOOM, MIN_ZOOM, WHEEL_ZOOM_STEP } from '../../constants.ts';
 import { Field } from '../../engine/Field.ts';
 import { getEventPageCoordinates, mapItems } from '../../utils.ts';
 import { AppState, Canvas, View } from '../../types.ts';
@@ -275,6 +276,14 @@ export const MainView = () => {
         }
     };
 
+    const onWheel = (e: React.WheelEvent) => {
+        const st = getState();
+        const step = WHEEL_ZOOM_STEP / ((e.altKey) ? 10 : 1);
+        const zoomDelta = (e.deltaY / 100) * step;
+
+        onZoom(st.zoom + zoomDelta);
+    };
+
     const clearDemo = () => {
         const st = getState();
         if (st.demo && ('clear' in st.demo) && st.demo.clear) {
@@ -428,9 +437,13 @@ export const MainView = () => {
         const st = getState();
         const { paused } = st;
 
+        const zoom = minmax(MIN_ZOOM, MAX_ZOOM, value);
+        if (zoom === st.zoom) {
+            return;
+        }
+
         pause();
 
-        const zoom = value;
         setState((prev: AppState) => ({ ...prev, zoom }));
 
         fieldRef.current?.setZoom(zoom);
@@ -558,6 +571,7 @@ export const MainView = () => {
         onMouseDown,
         onMouseMove,
         onMouseUp,
+        onWheel,
         className: 'app-canvas',
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [lstate.width, lstate.height]);

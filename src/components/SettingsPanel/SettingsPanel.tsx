@@ -7,6 +7,8 @@ import {
     useStore,
 } from '@jezvejs/react';
 
+import { MAX_ZOOM, MIN_ZOOM } from '../../constants.ts';
+
 import { Field } from 'src/engine/Field.ts';
 import { AppState } from 'src/types.ts';
 import { RangeInput } from '../RangeInput/RangeInput.tsx';
@@ -136,8 +138,8 @@ export const SettingsPanel = (props: Props) => {
                 <label>Zoom</label>
                 <RangeInput
                     id="zoomInp"
-                    min={0}
-                    max={10}
+                    min={MIN_ZOOM}
+                    max={MAX_ZOOM}
                     step={0.0001}
                     value={state.zoom}
                     onChange={onZoom}
