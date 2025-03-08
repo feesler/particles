@@ -3,8 +3,8 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { MAX_ZOOM, MIN_ZOOM, WHEEL_ZOOM_STEP } from '../../constants.ts';
 import { Field } from '../../engine/Field.ts';
-import { getEventPageCoordinates, mapItems } from '../../utils.ts';
-import { AppState, Canvas, View } from '../../types.ts';
+import { getEventPageCoordinates, getPointsDistance, getTouchPageCoordinates, mapItems } from '../../utils.ts';
+import { AppState, Canvas, Point, View } from '../../types.ts';
 
 import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
 import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
@@ -215,6 +215,55 @@ export const MainView = () => {
         }));
     };
 
+    const onTouchStart = (e: React.TouchEvent) => {
+        if (e.touches.length === 1) {
+            onMouseDown(e);
+            return;
+        }
+
+        const touches = getTouchPageCoordinates(e);
+        setState((prev: AppState) => ({
+            ...prev,
+            prevTouches: touches,
+            dragging: true,
+            pausedBefore: prev.paused,
+        }));
+    };
+
+    const setPrevTouches = (prevTouches: Point[] | null) => {
+        setState((prev: AppState) => ({
+            ...prev,
+            prevTouches,
+            dragging: true,
+            pausedBefore: prev.paused,
+        }));
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        if (e.touches.length === 1) {
+            onMouseMove(e);
+            return;
+        }
+
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+
+        const st = getState();
+        const newTouches = getTouchPageCoordinates(e);
+        setPrevTouches(newTouches);
+
+        const prevDistance = getPointsDistance(st.prevTouches ?? []);
+        if (prevDistance === 0) {
+            return;
+        }
+
+        const newDistance = getPointsDistance(newTouches);
+        const distanceRatio = newDistance / prevDistance;
+
+        onZoom(st.zoom * distanceRatio);
+    };
+
     const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
         const { dragging, startPoint, pausedBefore } = st;
@@ -269,6 +318,7 @@ export const MainView = () => {
             ...prev,
             dragging: false,
             startPoint: null,
+            prevTouches: null,
         }));
 
         if (!pausedBefore) {
@@ -565,8 +615,8 @@ export const MainView = () => {
     const canvasProps = useMemo(() => ({
         width: lstate.width,
         height: lstate.height,
-        onTouchStart: onMouseDown,
-        onTouchMove: onMouseMove,
+        onTouchStart,
+        onTouchMove,
         onTouchEnd: onMouseUp,
         onMouseDown,
         onMouseMove,

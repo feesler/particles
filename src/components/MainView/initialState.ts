@@ -31,6 +31,7 @@ export const initialState: AppState = {
     dragging: false,
     startPoint: null,
     prevPoint: null,
+    prevTouches: null,
 };
 
 export const getInitialState = (props = {}, defProps = defaultProps) => ({

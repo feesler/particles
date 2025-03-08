@@ -43,34 +43,66 @@ export function rand(from: number = 0, to: number = 1): number {
     return Math.random() * d + mfrom;
 }
 
+export function getEventTouches(e: React.TouchEvent) {
+    const touches = (e.type === 'touchend' || e.type === 'touchcancel')
+        ? e.changedTouches
+        : e.touches;
+
+    return Array.from(touches);
+}
+
 export function getEventCoordinatesObject(e: React.TouchEvent | React.MouseEvent) {
     if ('touches' in e) {
-        if (e.type === 'touchend' || e.type === 'touchcancel') {
-            return e.changedTouches[0];
-        }
-
-        return e.touches[0];
+        const [touch] = getEventTouches(e);
+        return touch;
     }
 
     return e;
 }
 
+export function getPageCoordinates(source: React.Touch | React.MouseEvent) {
+    return {
+        x: source.pageX,
+        y: source.pageY,
+    };
+}
+
+export function getClientCoordinates(source: React.Touch | React.MouseEvent) {
+    return {
+        x: source.clientX,
+        y: source.clientY,
+    };
+}
+
+export function getTouchPageCoordinates(e: React.TouchEvent) {
+    const touches = getEventTouches(e);
+    return touches.map(getPageCoordinates);
+}
+
+export function getTouchClientCoordinates(e: React.TouchEvent) {
+    const touches = getEventTouches(e);
+    return touches.map(getClientCoordinates);
+}
+
 export function getEventPageCoordinates(e: React.TouchEvent | React.MouseEvent): Point {
     const coords = getEventCoordinatesObject(e);
-
-    return {
-        x: coords.pageX,
-        y: coords.pageY,
-    };
+    return getPageCoordinates(coords);
 }
 
 export function getEventClientCoordinates(e: React.TouchEvent | React.MouseEvent): Point {
     const coords = getEventCoordinatesObject(e);
+    return getClientCoordinates(coords);
+}
 
-    return {
-        x: coords.clientX,
-        y: coords.clientY,
-    };
+export function getPointsDistance(points: Point[]) {
+    const [a, b] = points;
+    if (!a || !b) {
+        return 0;
+    }
+
+    const width = a.x - b.x;
+    const height = a.y - b.y;
+    return Math.sqrt(width * width + height * height);
 }
 
 /**
