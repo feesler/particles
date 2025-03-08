@@ -9,6 +9,7 @@ import {
 import { MAX_ZOOM, MIN_ZOOM } from '../../constants.ts';
 
 import { RangeInputField } from '../RangeInputField/RangeInputField.tsx';
+import { ReadOnlyField } from '../ReadOnlyField/ReadOnlyField.tsx';
 import { SelectField } from '../SelectField/SelectField.tsx';
 
 import { Field } from 'src/engine/Field.ts';
@@ -107,14 +108,16 @@ export const SettingsPanel = (props: Props) => {
                 onChange={onChangeTimeStep}
             />
 
-            <div className="date-value">
-                <label>Particles</label>
-                <span id="particlescount">{fieldRef?.particles.length ?? 0}</span>
-            </div>
-            <div className="date-value">
-                <label>Performance</label>
-                <span id="perfvalue">{state.perfValue}</span>
-            </div>
+            <ReadOnlyField
+                id="particlescount"
+                title="Particles"
+                value={fieldRef?.particles.length ?? 0}
+            />
+            <ReadOnlyField
+                id="perfvalue"
+                title="Performance"
+                value={state.perfValue}
+            />
 
             <RangeInputField
                 id="xRotationInp"

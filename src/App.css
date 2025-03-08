@@ -141,13 +141,6 @@ html {
   justify-content: flex-end;
 }
 
-.date-value {
-  display: flex;
-  flex-flow: column nowrap;
-  color: #dddddd;
-  margin-bottom: 1rem;
-}
-
 /* DropDown */
 .dd__container,
 .dd__container_attached {
