@@ -1,9 +1,23 @@
-.range-input {
+.range-input-field {
   display: grid;
   margin-bottom: 1rem;
 }
 
-.range-input .range-slider {
+.range-input-field__main {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+}
+
+.range-input-field__main label {
+  align-self: center;
+  flex-grow: 1;
+  color: var(--main-text-color);
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.range-input-field .range-slider {
   /* Area */
   --rs-area-size: 0.5rem;
   --rs-area-border-width: 0;
@@ -30,10 +44,21 @@
   }
 }
 
-.range-input .range-input__value {
+.range-input-field .range-input__value {
   --input-color: var(--main-text-color);
-  --input-bg: var(--input-bg-color);
-  --input-border-color: var(--input-bg-color);
+  --input-bg: #262626;
+  --input-border-radius: 0;
+  --input-border-color: #262626 #262626 var(--input-bg-color) #262626;
   --input-focus-color: var(--main-text-color);
   --input-focus-bg: var(--input-bg-color);
+  --input-focus-shadow: none;
+  --input-focus-border: var(--input-bg-color);
+
+  max-width: 150px;
+  text-align: right;
+}
+
+.range-input-field .range-input-field__additional {
+  color: var(--main-text-color);
+  font-size: 0.7rem;
 }

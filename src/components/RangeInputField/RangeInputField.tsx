@@ -1,12 +1,14 @@
+import { fixFloat } from '@jezvejs/number';
 import { RangeSlider, RangeSliderProps, RangeSliderValue, DecimalInput } from '@jezvejs/react';
 import { useCallback, useEffect, useState } from 'react';
 
-import './RangeInput.css';
-import { fixFloat } from '@jezvejs/number';
+import './RangeInputField.css';
 
-export type RangeInputProps = Omit<Partial<RangeSliderProps>, 'value' | 'onChange'> & {
+export type RangeInputFieldProps = Omit<Partial<RangeSliderProps>, 'value' | 'onChange'> & {
+    title?: string;
     value?: number;
     precision?: number;
+    additional?: string;
     onChange: (value: number) => void,
 };
 
@@ -16,7 +18,7 @@ const formatValue = (value: number) => (
     parseFloat(value.toFixed(PRECISION)).toLocaleString()
 );
 
-export const RangeInput = (props: RangeInputProps) => {
+export const RangeInputField = (props: RangeInputFieldProps) => {
     const [state, setState] = useState({
         ...props,
         value: props.value ?? 0,
@@ -73,19 +75,26 @@ export const RangeInput = (props: RangeInputProps) => {
 
 
     return (
-        <div className="range-input">
+        <div id={props.id} className="range-input-field">
+            <div className="range-input-field__main">
+                <label>{state.title}</label>
+                <div className="range-input">
+                    <DecimalInput
+                        className="range-input__value"
+                        value={state.strValue}
+                        onChange={handleInputValue}
+                    />
+                </div>
+            </div>
             <RangeSlider
                 {...props}
                 id={props.id ?? ''}
                 value={state.value}
                 onChange={onChange}
             />
-
-            <DecimalInput
-                className="range-input__value"
-                value={state.strValue}
-                onChange={handleInputValue}
-            />
+            {!!props.additional && (
+                <div className="range-input-field__additional">{props.additional}</div>
+            )}
         </div>
     );
 };
