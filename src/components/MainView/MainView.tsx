@@ -75,6 +75,7 @@ export const MainView = () => {
             st = getState();
             field.setScaleFactor(st.scaleFactor);
         }
+        processRotationStep();
 
         const perfValue = Math.round(performance.now() - pBefore);
         setState((prev: AppState) => ({ ...prev, perfValue }));
@@ -124,6 +125,10 @@ export const MainView = () => {
         }));
     };
 
+    const setScaleStep = (scaleStep: number) => {
+        setState((prev: AppState) => ({ ...prev, scaleStep }));
+    };
+
     const start = () => {
         const st = getState();
         const { demo } = st;
@@ -141,7 +146,7 @@ export const MainView = () => {
         const view: View = {
             field: fieldRef.current,
             canvas,
-            setScaleStep: (scaleStep: number) => setState((prev: AppState) => ({ ...prev, scaleStep })),
+            setScaleStep,
         };
 
         if (demo) {
@@ -402,6 +407,10 @@ export const MainView = () => {
         fieldRef.current?.setScaleFactor(scaleFactor);
     };
 
+    const onChangeScaleStep = (value: number) => {
+        setScaleStep(value);
+    };
+
     const onChangeTimeStep = (value: number) => {
         const timeStepScale = value;
 
@@ -477,6 +486,62 @@ export const MainView = () => {
         }));
 
         processRotation(0, 0, delta);
+
+        if (!paused) {
+            run();
+        }
+    };
+
+    const onChangeXRotationStep = (alpha: number) => {
+        setState((prev: AppState) => ({
+            ...prev,
+            rotationStep: {
+                ...prev.rotationStep,
+                alpha,
+            },
+        }));
+    };
+
+    const onChangeYRotationStep = (beta: number) => {
+        setState((prev: AppState) => ({
+            ...prev,
+            rotationStep: {
+                ...prev.rotationStep,
+                beta,
+            },
+        }));
+    };
+
+    const onChangeZRotationStep = (gamma: number) => {
+        setState((prev: AppState) => ({
+            ...prev,
+            rotationStep: {
+                ...prev.rotationStep,
+                gamma,
+            },
+        }));
+    };
+
+    const processRotationStep = () => {
+        const st = getState();
+        const { paused } = st;
+        const { alpha, beta, gamma } = st.rotationStep;
+        if (alpha === 0 && beta === 0 && gamma === 0) {
+            return;
+        }
+
+        pause();
+
+        setState((prev: AppState) => ({
+            ...prev,
+            rotation: {
+                alpha: prev.rotation.alpha + alpha,
+                beta: prev.rotation.beta + beta,
+                gamma: prev.rotation.gamma + gamma,
+            },
+        }));
+
+        processRotation(alpha, beta, gamma);
 
         if (!paused) {
             run();
@@ -654,10 +719,14 @@ export const MainView = () => {
                     onChangeDemo={onChangeDemo}
                     onClose={() => showOffcanvas(false)}
                     onScale={onScale}
+                    onChangeScaleStep={onChangeScaleStep}
                     onChangeTimeStep={onChangeTimeStep}
                     onXRotate={onXRotate}
                     onYRotate={onYRotate}
                     onZRotate={onZRotate}
+                    onChangeXRotationStep={onChangeXRotationStep}
+                    onChangeYRotationStep={onChangeYRotationStep}
+                    onChangeZRotationStep={onChangeZRotationStep}
                     onZoom={onZoom}
                     onChangeGScale={onChangeGScale}
                     onChangeKScale={onChangeKScale}

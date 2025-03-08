@@ -5,7 +5,7 @@ import { Field } from './engine/Field.ts';
 
 export type IdObject = {
     id: string;
-}
+};
 
 /**
  * Coordinates point
@@ -21,6 +21,12 @@ export type PlanePoint = {
 };
 
 export type Axis = "x" | "y" | "z";
+
+export interface Rotation {
+    alpha: number;
+    beta: number;
+    gamma: number;
+};
 
 export interface MenuItemCallback<T extends object = object, R = boolean> {
     (item: T, index?: number, arr?: T[]): R;
@@ -78,7 +84,8 @@ export interface AppState {
     updating: boolean;
     rotating: boolean;
 
-    rotation: { alpha: 0, beta: 0, gamma: 0; },
+    rotation: Rotation;
+    rotationStep: Rotation;
     zoom: number;
     gScale: number;
     kScale: number;

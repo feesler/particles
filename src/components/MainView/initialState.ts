@@ -21,6 +21,7 @@ export const initialState: AppState = {
     updating: false,
     rotating: false,
     rotation: { alpha: 0, beta: 0, gamma: 0 },
+    rotationStep: { alpha: 0, beta: 0, gamma: 0 },
     timestamp: 0,
     perfValue: 0,
     width: 0,

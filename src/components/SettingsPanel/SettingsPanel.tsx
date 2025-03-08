@@ -22,10 +22,14 @@ type Props = {
 
     onChangeDemo: (selected: DropDownSelectionParam) => void;
     onScale: (value: number) => void;
+    onChangeScaleStep: (value: number) => void;
     onChangeTimeStep: (value: number) => void;
     onXRotate: (value: number) => void;
     onYRotate: (value: number) => void;
     onZRotate: (value: number) => void;
+    onChangeXRotationStep: (value: number) => void;
+    onChangeYRotationStep: (value: number) => void;
+    onChangeZRotationStep: (value: number) => void;
     onZoom: (value: number) => void;
     onChangeGScale: (value: number) => void;
     onChangeKScale: (value: number) => void;
@@ -39,10 +43,14 @@ export const SettingsPanel = (props: Props) => {
         demosList,
         onChangeDemo,
         onScale,
+        onChangeScaleStep,
         onChangeTimeStep,
         onXRotate,
         onYRotate,
         onZRotate,
+        onChangeXRotationStep,
+        onChangeYRotationStep,
+        onChangeZRotationStep,
         onZoom,
         onChangeGScale,
         onChangeKScale,
@@ -74,6 +82,19 @@ export const SettingsPanel = (props: Props) => {
                     value={state.scaleFactor}
                     onChange={onScale}
                 />
+            </div>
+
+            <div className="date-value">
+                <label>Scale step</label>
+                <RangeInput
+                    id="scaleStepInp"
+                    min={-1}
+                    max={1}
+                    step={0.00001}
+                    value={state.scaleStep}
+                    onChange={onChangeScaleStep}
+                />
+                <span id="scaleStep">{state.scaleStep.toFixed(5)}</span>
             </div>
 
             <div className="date-value">
@@ -131,6 +152,42 @@ export const SettingsPanel = (props: Props) => {
                     step={0.01}
                     value={state.rotation.gamma}
                     onChange={onZRotate}
+                />
+            </div>
+
+            <div className="date-value">
+                <label>Rotate X step</label>
+                <RangeInput
+                    id="xRotationStepInp"
+                    min={-1}
+                    max={1}
+                    step={0.00001}
+                    value={state.rotationStep.alpha}
+                    onChange={onChangeXRotationStep}
+                />
+            </div>
+
+            <div className="date-value">
+                <label>Rotate Y step</label>
+                <RangeInput
+                    id="yRotationStepInp"
+                    min={-1}
+                    max={1}
+                    step={0.00001}
+                    value={state.rotationStep.beta}
+                    onChange={onChangeYRotationStep}
+                />
+            </div>
+
+            <div className="date-value">
+                <label>Rotate Z step</label>
+                <RangeInput
+                    id="zRotationStepInp"
+                    min={-1}
+                    max={1}
+                    step={0.00001}
+                    value={state.rotationStep.gamma}
+                    onChange={onChangeZRotationStep}
                 />
             </div>
 
