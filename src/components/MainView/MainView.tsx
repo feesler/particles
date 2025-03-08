@@ -1,9 +1,10 @@
-import { DropDownSelectionParam, MenuItemProps, MenuItemType, Offcanvas, useStore } from '@jezvejs/react';
+import { DropDownSelectionParam, MenuItemProps, MenuItemType, minmax, Offcanvas, useStore } from '@jezvejs/react';
 import { useEffect, useMemo, useRef } from 'react';
 
+import { MAX_ZOOM, MIN_ZOOM, WHEEL_ZOOM_STEP } from '../../constants.ts';
 import { Field } from '../../engine/Field.ts';
-import { getEventPageCoordinates, mapItems } from '../../utils.ts';
-import { AppState, Canvas, View } from '../../types.ts';
+import { getEventPageCoordinates, getPointsDistance, getTouchPageCoordinates, mapItems } from '../../utils.ts';
+import { AppState, Canvas, Point, View } from '../../types.ts';
 
 import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
 import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
@@ -74,6 +75,7 @@ export const MainView = () => {
             st = getState();
             field.setScaleFactor(st.scaleFactor);
         }
+        processRotationStep();
 
         const perfValue = Math.round(performance.now() - pBefore);
         setState((prev: AppState) => ({ ...prev, perfValue }));
@@ -123,6 +125,10 @@ export const MainView = () => {
         }));
     };
 
+    const setScaleStep = (scaleStep: number) => {
+        setState((prev: AppState) => ({ ...prev, scaleStep }));
+    };
+
     const start = () => {
         const st = getState();
         const { demo } = st;
@@ -140,7 +146,7 @@ export const MainView = () => {
         const view: View = {
             field: fieldRef.current,
             canvas,
-            setScaleStep: (scaleStep: number) => setState((prev: AppState) => ({ ...prev, scaleStep })),
+            setScaleStep,
         };
 
         if (demo) {
@@ -214,6 +220,55 @@ export const MainView = () => {
         }));
     };
 
+    const onTouchStart = (e: React.TouchEvent) => {
+        if (e.touches.length === 1) {
+            onMouseDown(e);
+            return;
+        }
+
+        const touches = getTouchPageCoordinates(e);
+        setState((prev: AppState) => ({
+            ...prev,
+            prevTouches: touches,
+            dragging: true,
+            pausedBefore: prev.paused,
+        }));
+    };
+
+    const setPrevTouches = (prevTouches: Point[] | null) => {
+        setState((prev: AppState) => ({
+            ...prev,
+            prevTouches,
+            dragging: true,
+            pausedBefore: prev.paused,
+        }));
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        if (e.touches.length === 1) {
+            onMouseMove(e);
+            return;
+        }
+
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+
+        const st = getState();
+        const newTouches = getTouchPageCoordinates(e);
+        setPrevTouches(newTouches);
+
+        const prevDistance = getPointsDistance(st.prevTouches ?? []);
+        if (prevDistance === 0) {
+            return;
+        }
+
+        const newDistance = getPointsDistance(newTouches);
+        const distanceRatio = newDistance / prevDistance;
+
+        onZoom(st.zoom * distanceRatio);
+    };
+
     const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
         const { dragging, startPoint, pausedBefore } = st;
@@ -268,11 +323,20 @@ export const MainView = () => {
             ...prev,
             dragging: false,
             startPoint: null,
+            prevTouches: null,
         }));
 
         if (!pausedBefore) {
             run();
         }
+    };
+
+    const onWheel = (e: React.WheelEvent) => {
+        const st = getState();
+        const step = WHEEL_ZOOM_STEP / ((e.altKey) ? 10 : 1);
+        const zoomDelta = (e.deltaY / 100) * step;
+
+        onZoom(st.zoom + zoomDelta);
     };
 
     const clearDemo = () => {
@@ -341,6 +405,10 @@ export const MainView = () => {
 
         setState((prev: AppState) => ({ ...prev, scaleFactor }));
         fieldRef.current?.setScaleFactor(scaleFactor);
+    };
+
+    const onChangeScaleStep = (value: number) => {
+        setScaleStep(value);
     };
 
     const onChangeTimeStep = (value: number) => {
@@ -424,13 +492,73 @@ export const MainView = () => {
         }
     };
 
+    const onChangeXRotationStep = (alpha: number) => {
+        setState((prev: AppState) => ({
+            ...prev,
+            rotationStep: {
+                ...prev.rotationStep,
+                alpha,
+            },
+        }));
+    };
+
+    const onChangeYRotationStep = (beta: number) => {
+        setState((prev: AppState) => ({
+            ...prev,
+            rotationStep: {
+                ...prev.rotationStep,
+                beta,
+            },
+        }));
+    };
+
+    const onChangeZRotationStep = (gamma: number) => {
+        setState((prev: AppState) => ({
+            ...prev,
+            rotationStep: {
+                ...prev.rotationStep,
+                gamma,
+            },
+        }));
+    };
+
+    const processRotationStep = () => {
+        const st = getState();
+        const { paused } = st;
+        const { alpha, beta, gamma } = st.rotationStep;
+        if (alpha === 0 && beta === 0 && gamma === 0) {
+            return;
+        }
+
+        pause();
+
+        setState((prev: AppState) => ({
+            ...prev,
+            rotation: {
+                alpha: prev.rotation.alpha + alpha,
+                beta: prev.rotation.beta + beta,
+                gamma: prev.rotation.gamma + gamma,
+            },
+        }));
+
+        processRotation(alpha, beta, gamma);
+
+        if (!paused) {
+            run();
+        }
+    };
+
     const onZoom = (value: number) => {
         const st = getState();
         const { paused } = st;
 
+        const zoom = minmax(MIN_ZOOM, MAX_ZOOM, value);
+        if (zoom === st.zoom) {
+            return;
+        }
+
         pause();
 
-        const zoom = value;
         setState((prev: AppState) => ({ ...prev, zoom }));
 
         fieldRef.current?.setZoom(zoom);
@@ -552,12 +680,13 @@ export const MainView = () => {
     const canvasProps = useMemo(() => ({
         width: lstate.width,
         height: lstate.height,
-        onTouchStart: onMouseDown,
-        onTouchMove: onMouseMove,
+        onTouchStart,
+        onTouchMove,
         onTouchEnd: onMouseUp,
         onMouseDown,
         onMouseMove,
         onMouseUp,
+        onWheel,
         className: 'app-canvas',
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [lstate.width, lstate.height]);
@@ -590,10 +719,14 @@ export const MainView = () => {
                     onChangeDemo={onChangeDemo}
                     onClose={() => showOffcanvas(false)}
                     onScale={onScale}
+                    onChangeScaleStep={onChangeScaleStep}
                     onChangeTimeStep={onChangeTimeStep}
                     onXRotate={onXRotate}
                     onYRotate={onYRotate}
                     onZRotate={onZRotate}
+                    onChangeXRotationStep={onChangeXRotationStep}
+                    onChangeYRotationStep={onChangeYRotationStep}
+                    onChangeZRotationStep={onChangeZRotationStep}
                     onZoom={onZoom}
                     onChangeGScale={onChangeGScale}
                     onChangeKScale={onChangeKScale}

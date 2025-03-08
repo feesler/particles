@@ -21,6 +21,7 @@ export const initialState: AppState = {
     updating: false,
     rotating: false,
     rotation: { alpha: 0, beta: 0, gamma: 0 },
+    rotationStep: { alpha: 0, beta: 0, gamma: 0 },
     timestamp: 0,
     perfValue: 0,
     width: 0,
@@ -31,6 +32,7 @@ export const initialState: AppState = {
     dragging: false,
     startPoint: null,
     prevPoint: null,
+    prevTouches: null,
 };
 
 export const getInitialState = (props = {}, defProps = defaultProps) => ({
