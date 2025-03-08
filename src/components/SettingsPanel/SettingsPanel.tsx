@@ -1,7 +1,6 @@
 import {
     Button,
     CloseButton,
-    DropDown,
     DropDownSelectionParam,
     MenuItemProps,
     useStore,
@@ -10,6 +9,7 @@ import {
 import { MAX_ZOOM, MIN_ZOOM } from '../../constants.ts';
 
 import { RangeInputField } from '../RangeInputField/RangeInputField.tsx';
+import { SelectField } from '../SelectField/SelectField.tsx';
 
 import { Field } from 'src/engine/Field.ts';
 import { AppState } from 'src/types.ts';
@@ -68,10 +68,12 @@ export const SettingsPanel = (props: Props) => {
                 <CloseButton onClick={onClose} />
             </div>
 
-            <div className="date-value">
-                <label>Demo</label>
-                <DropDown id="demoSelect" className="fullwidth" items={demosList} onChange={onChangeDemo} />
-            </div>
+            <SelectField
+                id="demoSelect"
+                title="Demo"
+                items={demosList}
+                onChange={onChangeDemo}
+            />
 
             <RangeInputField
                 id="scaleFactorInp"
