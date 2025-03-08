@@ -1,3 +1,8 @@
+.btn.close-btn {
+  --btn-icon-color: var(--neutral-color);
+  --btn-hover-icon-color: var(--main-text-color);
+}
+
 .fullwidth {
   width: 100%;
 }
