@@ -1,6 +1,6 @@
 {
     "name": "particles",
-    "version": "0.14.0",
+    "version": "0.15.0",
     "private": true,
     "description": "Fields and particles simulation",
     "type": "module",
@@ -52,7 +52,7 @@
         "@types/react": "^18.3.18",
         "@types/react-dom": "^18.3.5",
         "dotenv": "^16.4.7",
-        "eslint": "^9.21.0",
+        "eslint": "^9.22.0",
         "eslint-plugin-react-hooks": "^5.2.0",
         "eslint-plugin-react-refresh": "^0.4.19",
         "globals": "^15.15.0",
