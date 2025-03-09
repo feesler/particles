@@ -1,0 +1,22 @@
+.read-only-field {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  color: #dddddd;
+  margin-bottom: 1rem;
+}
+
+.read-only-field label {
+  align-self: center;
+  color: var(--main-text-color);
+  font-weight: 500;
+  font-size: 0.8rem;
+  line-height: 1.25rem;
+}
+
+.read-only-field span {
+  font-size: 1rem;
+  color: var(--main-text-color);
+  padding: var(--input-padding);
+  border: var(--input-border-width) solid transparent;
+}

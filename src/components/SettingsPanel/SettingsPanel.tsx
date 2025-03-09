@@ -1,7 +1,4 @@
 import {
-    Button,
-    CloseButton,
-    DropDown,
     DropDownSelectionParam,
     MenuItemProps,
     useStore,
@@ -9,9 +6,12 @@ import {
 
 import { MAX_ZOOM, MIN_ZOOM } from '../../constants.ts';
 
+import { RangeInputField } from '../RangeInputField/RangeInputField.tsx';
+import { ReadOnlyField } from '../ReadOnlyField/ReadOnlyField.tsx';
+import { SelectField } from '../SelectField/SelectField.tsx';
+
 import { Field } from 'src/engine/Field.ts';
 import { AppState } from 'src/types.ts';
-import { RangeInput } from '../RangeInput/RangeInput.tsx';
 
 import './SettingsPanel.css';
 
@@ -54,8 +54,6 @@ export const SettingsPanel = (props: Props) => {
         onZoom,
         onChangeGScale,
         onChangeKScale,
-        onToggleRun,
-        onClose,
     } = props;
 
     const { getState } = useStore<AppState>();
@@ -63,176 +61,149 @@ export const SettingsPanel = (props: Props) => {
 
     return (
         <section className="data-section">
-            <div className="data-section__header">
-                <CloseButton onClick={onClose} />
-            </div>
+            <SelectField
+                id="demoSelect"
+                title="Demo"
+                items={demosList}
+                onChange={onChangeDemo}
+            />
 
-            <div className="date-value">
-                <label>Demo</label>
-                <DropDown id="demoSelect" className="fullwidth" items={demosList} onChange={onChangeDemo} />
-            </div>
+            <RangeInputField
+                id="scaleFactorInp"
+                title="Scale factor"
+                min={0.001}
+                max={20}
+                step={0.01}
+                value={state.scaleFactor}
+                onChange={onScale}
+            />
 
-            <div className="date-value">
-                <label>Scale factor</label>
-                <RangeInput
-                    id="scaleFactorInp"
-                    min={0.001}
-                    max={20}
-                    step={0.01}
-                    value={state.scaleFactor}
-                    onChange={onScale}
-                />
-            </div>
+            <RangeInputField
+                id="scaleStepInp"
+                title="Scale step"
+                min={-1}
+                max={1}
+                step={0.00001}
+                value={state.scaleStep}
+                additional={state.scaleStep.toFixed(5)}
+                onChange={onChangeScaleStep}
+            />
 
-            <div className="date-value">
-                <label>Scale step</label>
-                <RangeInput
-                    id="scaleStepInp"
-                    min={-1}
-                    max={1}
-                    step={0.00001}
-                    value={state.scaleStep}
-                    onChange={onChangeScaleStep}
-                />
-                <span id="scaleStep">{state.scaleStep.toFixed(5)}</span>
-            </div>
+            <RangeInputField
+                id="timeStepInp"
+                title="Time step"
+                min={-5}
+                max={5}
+                step={0.00001}
+                value={state.timeStep}
+                additional={Math.pow(10, state.timeStep).toFixed(5)}
+                onChange={onChangeTimeStep}
+            />
 
-            <div className="date-value">
-                <label>Time step</label>
-                <RangeInput
-                    id="timeStepInp"
-                    min={-5}
-                    max={5}
-                    step={0.001}
-                    value={state.timeStep}
-                    onChange={onChangeTimeStep}
-                />
-                <span id="timeStep">{(Math.pow(10, state.timeStep)).toFixed(5)}</span>
-            </div>
+            <ReadOnlyField
+                id="particlescount"
+                title="Particles"
+                value={fieldRef?.particles.length ?? 0}
+            />
+            <ReadOnlyField
+                id="perfvalue"
+                title="Performance"
+                value={state.perfValue}
+            />
 
-            <div className="date-value">
-                <label>Particles</label>
-                <span id="particlescount">{fieldRef?.particles.length ?? 0}</span>
-            </div>
-            <div className="date-value">
-                <label>Performance</label>
-                <span id="perfvalue">{state.perfValue}</span>
-            </div>
+            <RangeInputField
+                id="xRotationInp"
+                title="Rotate X"
+                min={-3}
+                max={3}
+                step={0.01}
+                value={state.rotation.alpha}
+                onChange={onXRotate}
+            />
 
-            <div className="date-value">
-                <label>Rotate X</label>
-                <RangeInput
-                    id="xRotationInp"
-                    min={-3}
-                    max={3}
-                    step={0.01}
-                    value={state.rotation.alpha}
-                    onChange={onXRotate}
-                />
-            </div>
+            <RangeInputField
+                id="yRotationInp"
+                title="Rotate Y"
+                min={-3}
+                max={3}
+                step={0.01}
+                value={state.rotation.beta}
+                onChange={onYRotate}
+            />
 
-            <div className="date-value">
-                <label>Rotate Y</label>
-                <RangeInput
-                    id="yRotationInp"
-                    min={-3}
-                    max={3}
-                    step={0.01}
-                    value={state.rotation.beta}
-                    onChange={onYRotate}
-                />
-            </div>
+            <RangeInputField
+                id="zRotationInp"
+                title="Rotate Z"
+                min={-3}
+                max={3}
+                step={0.01}
+                value={state.rotation.gamma}
+                onChange={onZRotate}
+            />
 
-            <div className="date-value">
-                <label>Rotate Z</label>
-                <RangeInput
-                    id="zRotationInp"
-                    min={-3}
-                    max={3}
-                    step={0.01}
-                    value={state.rotation.gamma}
-                    onChange={onZRotate}
-                />
-            </div>
+            <RangeInputField
+                id="xRotationStepInp"
+                title="Rotate X step"
+                min={-1}
+                max={1}
+                step={0.00001}
+                value={state.rotationStep.alpha}
+                onChange={onChangeXRotationStep}
+            />
 
-            <div className="date-value">
-                <label>Rotate X step</label>
-                <RangeInput
-                    id="xRotationStepInp"
-                    min={-1}
-                    max={1}
-                    step={0.00001}
-                    value={state.rotationStep.alpha}
-                    onChange={onChangeXRotationStep}
-                />
-            </div>
+            <RangeInputField
+                id="yRotationStepInp"
+                title="Rotate Y step"
+                min={-1}
+                max={1}
+                step={0.00001}
+                value={state.rotationStep.beta}
+                onChange={onChangeYRotationStep}
+            />
 
-            <div className="date-value">
-                <label>Rotate Y step</label>
-                <RangeInput
-                    id="yRotationStepInp"
-                    min={-1}
-                    max={1}
-                    step={0.00001}
-                    value={state.rotationStep.beta}
-                    onChange={onChangeYRotationStep}
-                />
-            </div>
+            <RangeInputField
+                id="zRotationStepInp"
+                title="Rotate Z step"
+                min={-1}
+                max={1}
+                step={0.00001}
+                value={state.rotationStep.gamma}
+                onChange={onChangeZRotationStep}
+            />
 
-            <div className="date-value">
-                <label>Rotate Z step</label>
-                <RangeInput
-                    id="zRotationStepInp"
-                    min={-1}
-                    max={1}
-                    step={0.00001}
-                    value={state.rotationStep.gamma}
-                    onChange={onChangeZRotationStep}
-                />
-            </div>
+            <RangeInputField
+                id="zoomInp"
+                title="Zoom"
+                min={MIN_ZOOM}
+                max={MAX_ZOOM}
+                step={0.0001}
+                value={state.zoom}
+                onChange={onZoom}
+            />
 
-            <div className="date-value">
-                <label>Zoom</label>
-                <RangeInput
-                    id="zoomInp"
-                    min={MIN_ZOOM}
-                    max={MAX_ZOOM}
-                    step={0.0001}
-                    value={state.zoom}
-                    onChange={onZoom}
-                />
-            </div>
+            <RangeInputField
+                id="gInp"
+                title="G"
+                min={-10}
+                max={10}
+                step={1}
+                value={state.gScale}
+                additional={Math.pow(10, state.gScale).toExponential(0)}
+                onChange={onChangeGScale}
+            />
 
-            <div className="date-value">
-                <label>G</label>
-                <RangeInput
-                    id="gInp"
-                    min={-10}
-                    max={10}
-                    step={1}
-                    value={state.gScale}
-                    onChange={onChangeGScale}
-                />
-                <span id="gScale">{(Math.pow(10, state.gScale)).toExponential(0)}</span>
-            </div>
-
-            <div className="date-value">
-                <label>K</label>
-                <RangeInput
-                    id="kInp"
-                    min={-10}
-                    max={10}
-                    step={1}
-                    value={state.kScale}
-                    onChange={onChangeKScale}
-                />
-                <span id="kScale">{(Math.pow(10, state.kScale)).toExponential(0)}</span>
-            </div>
+            <RangeInputField
+                id="kInp"
+                title="K"
+                min={-10}
+                max={10}
+                step={1}
+                value={state.kScale}
+                additional={Math.pow(10, state.kScale).toExponential(0)}
+                onChange={onChangeKScale}
+            />
 
             <div className="data-footer">
-                <Button id="toggleRunBtn" className="submit-btn" onClick={onToggleRun}>
-                    {(state.paused) ? 'Run' : 'Pause'}
-                </Button>
             </div>
         </section>
     );

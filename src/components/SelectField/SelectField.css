@@ -1,0 +1,16 @@
+.select-field {
+  display: grid;
+  margin-bottom: 1rem;
+}
+
+.select-field label {
+  align-self: center;
+  color: var(--main-text-color);
+  font-weight: 500;
+  font-size: 0.8rem;
+  line-height: 1.25rem;
+}
+
+.select-field .dd__container {
+  width: 100%;
+}

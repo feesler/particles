@@ -1,6 +1,6 @@
 {
     "name": "particles",
-    "version": "0.15.0",
+    "version": "0.16.0",
     "private": true,
     "description": "Fields and particles simulation",
     "type": "module",
@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@jezvejs/number": "^1.1.0",
-        "@jezvejs/react": "^1.10.4",
+        "@jezvejs/react": "^1.10.5",
         "@jezvejs/types": "^1.1.0",
         "@vitejs/plugin-react": "^4.3.4",
         "classnames": "^2.5.1",

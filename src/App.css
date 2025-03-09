@@ -66,14 +66,10 @@ html {
 
 .btn.header-btn {
   --btn-size: 2rem;
-  --btn-icon-color: #ffffff;
+  --btn-icon-color: var(--neutral-color);
+  --btn-hover-icon-color: var(--main-text-color);
 
-  position: absolute;
-  top: 0;
-  right: 0;
   width: var(--btn-size);
-  margin: 1rem;
-  color: #ffffff;
 }
 
 .btn.submit-btn {
@@ -90,6 +86,7 @@ html {
 
 .offcanvas {
   background: #262626;
+  padding-top: 4rem;
 }
 
 .offcanvas_right.offcanvas_closed {
@@ -138,14 +135,8 @@ html {
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
-  justify-content: flex-end;
-}
-
-.date-value {
-  display: flex;
-  flex-flow: column nowrap;
-  color: #dddddd;
-  margin-bottom: 1rem;
+  justify-content: end;
+  gap: 0.5rem;
 }
 
 /* DropDown */
