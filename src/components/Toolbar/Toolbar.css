@@ -1,0 +1,11 @@
+.toolbar {
+  display: flex;
+  flex-flow: row nowrap;
+  position: fixed;
+  right: 0;
+  top: 0;
+  gap: 1rem;
+  padding: 1rem;
+  z-index: 5000;
+  background: #262626;
+}

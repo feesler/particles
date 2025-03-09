@@ -1,6 +1,4 @@
 import {
-    Button,
-    CloseButton,
     DropDownSelectionParam,
     MenuItemProps,
     useStore,
@@ -56,8 +54,6 @@ export const SettingsPanel = (props: Props) => {
         onZoom,
         onChangeGScale,
         onChangeKScale,
-        onToggleRun,
-        onClose,
     } = props;
 
     const { getState } = useStore<AppState>();
@@ -65,10 +61,6 @@ export const SettingsPanel = (props: Props) => {
 
     return (
         <section className="data-section">
-            <div className="data-section__header">
-                <CloseButton onClick={onClose} />
-            </div>
-
             <SelectField
                 id="demoSelect"
                 title="Demo"
@@ -212,9 +204,6 @@ export const SettingsPanel = (props: Props) => {
             />
 
             <div className="data-footer">
-                <Button id="toggleRunBtn" className="submit-btn" onClick={onToggleRun}>
-                    {(state.paused) ? 'Run' : 'Pause'}
-                </Button>
             </div>
         </section>
     );

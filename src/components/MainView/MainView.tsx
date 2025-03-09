@@ -1,5 +1,5 @@
 import { DropDownSelectionParam, MenuItemProps, MenuItemType, minmax, Offcanvas, useStore } from '@jezvejs/react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { MAX_ZOOM, MIN_ZOOM, WHEEL_ZOOM_STEP } from '../../constants.ts';
 import { Field } from '../../engine/Field.ts';
@@ -8,12 +8,12 @@ import { AppState, Canvas, Point, View } from '../../types.ts';
 
 import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
 import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
+import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
+import { Toolbar } from '../Toolbar/Toolbar.tsx';
 
 import { DemoClass, DemoItem, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
 
 import { defaultProps } from './initialState.ts';
-import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
-import { MenuButton } from '../MenuButton/MenuButton.tsx';
 
 const demosList = mapItems<DemoItem, MenuItemProps>(demos, ({ type, ...item }) => ({
     id: item.id,
@@ -695,29 +695,30 @@ export const MainView = () => {
         ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
         : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
 
+    const onClose = useCallback(() => {
+        showOffcanvas(false);
+    }, []);
+
     return (
         <div id="maincontainer" className="container">
             <main className="main-container" ref={mainRef}>
                 {canvas}
             </main>
 
-            <MenuButton
-                className="header-btn"
-                onClick={() => showOffcanvas(true)}
-            />
+            <Toolbar onToggleRun={onToggleRun} onClose={onClose} />
 
             <Offcanvas
                 className="settings"
                 placement="right"
                 closed={!lstate.settingsVisible}
-                onClosed={() => showOffcanvas(false)}
+                onClosed={onClose}
                 usePortal={false}
             >
                 <SettingsPanel
                     fieldRef={fieldRef.current}
                     demosList={demosList}
                     onChangeDemo={onChangeDemo}
-                    onClose={() => showOffcanvas(false)}
+                    onClose={onClose}
                     onScale={onScale}
                     onChangeScaleStep={onChangeScaleStep}
                     onChangeTimeStep={onChangeTimeStep}
