@@ -1,7 +1,7 @@
 import { Canvas2DElement } from './components/Canvas2D/Canvas2D.ts';
 import { CanvasWebGLElement } from './components/CanvasWebGL/CanvasWebGL.ts';
-import { DemoClass, DemoItemFunc } from './demos.ts';
-import { Field } from './engine/Field.ts';
+import { DemoClass, DemoItemFunc } from './demos/index.ts';
+import { Field } from './engine/Field/Field.ts';
 
 export type IdObject = {
     id: string;

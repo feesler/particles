@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
-import { CanvasFrame } from '../../CanvasFrame.js';
+import { CanvasFrame } from '../../utils/CanvasFrame/CanvasFrame.js';
 import { RGBColor } from '../../particles/types.js';
 
 export type Canvas2DElement = {

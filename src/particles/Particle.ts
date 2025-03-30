@@ -1,4 +1,4 @@
-import { Vector } from '../engine/Vector.ts';
+import { Vector } from '../engine/Vector/Vector.ts';
 import { RGBColor } from './types.ts';
 
 export class Particle {

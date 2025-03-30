@@ -10,7 +10,7 @@ import { RangeInputField } from '../RangeInputField/RangeInputField.tsx';
 import { ReadOnlyField } from '../ReadOnlyField/ReadOnlyField.tsx';
 import { SelectField } from '../SelectField/SelectField.tsx';
 
-import { Field } from 'src/engine/Field.ts';
+import { Field } from 'src/engine/Field/Field.ts';
 import { AppState } from 'src/types.ts';
 
 import './SettingsPanel.css';

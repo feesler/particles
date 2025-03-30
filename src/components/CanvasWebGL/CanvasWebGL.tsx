@@ -2,7 +2,7 @@ import { useStore } from '@jezvejs/react';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 import * as m4 from '../../engine/Matrix4.ts';
-import { Vector } from 'src/engine/Vector.ts';
+import { Vector } from 'src/engine/Vector/Vector.ts';
 import { RGBColor } from 'src/particles/types.ts';
 import { AppState } from 'src/types.ts';
 

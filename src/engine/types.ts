@@ -1,4 +1,4 @@
-import { Vector } from './Vector.ts';
+import { Vector } from './Vector/Vector.ts';
 
 export interface Object3D<T = number> {
     x: T;

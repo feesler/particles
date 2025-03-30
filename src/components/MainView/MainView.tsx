@@ -2,7 +2,7 @@ import { DropDownSelectionParam, MenuItemProps, MenuItemType, minmax, Offcanvas,
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { MAX_ZOOM, MIN_ZOOM, WHEEL_ZOOM_STEP } from '../../constants.ts';
-import { Field } from '../../engine/Field.ts';
+import { Field } from '../../engine/Field/Field.ts';
 import { getEventPageCoordinates, getPointsDistance, getTouchPageCoordinates, mapItems } from '../../utils.ts';
 import { AppState, Canvas, Point, View } from '../../types.ts';
 
@@ -11,7 +11,7 @@ import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
 import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
 import { Toolbar } from '../Toolbar/Toolbar.tsx';
 
-import { DemoClass, DemoItem, DemoItemFunc, demos, findDemoById } from '../../demos.ts';
+import { DemoClass, DemoItem, DemoItemFunc, demos, findDemoById } from '../../demos/index.ts';
 
 import { defaultProps } from './initialState.ts';
 
