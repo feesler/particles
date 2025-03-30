@@ -346,7 +346,7 @@ export const MainView = () => {
         const step = WHEEL_ZOOM_STEP / ((e.altKey) ? 10 : 1);
         const zoomDelta = (e.deltaY / 100) * step;
 
-        onZoom(st.zoom + zoomDelta);
+        onZoom(st.zoom - zoomDelta);
     };
 
     const clearDemo = () => {
