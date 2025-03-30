@@ -71,8 +71,12 @@ export interface AppState {
 
     animationDelay: number;
 
+    canvasWidth: number;
+    canvasHeight: number;
+
     width: number;
     height: number;
+    depth: number;
 
     initialScale: number;
     timeStep: number;
@@ -92,7 +96,6 @@ export interface AppState {
 
     timestamp: number;
     perfValue: number;
-    depth: number;
 
     dragging: boolean;
     settingsVisible: boolean;

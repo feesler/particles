@@ -1,7 +1,7 @@
 import { DropDownSelectionParam, MenuItemProps, MenuItemType, minmax, Offcanvas, useStore } from '@jezvejs/react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { MAX_ZOOM, MIN_ZOOM, WHEEL_ZOOM_STEP } from '../../constants.ts';
+import { INITIAL_SCENE_MARGIN_RATIO, MAX_ZOOM, MIN_ZOOM, WHEEL_ZOOM_STEP } from '../../constants.ts';
 import { Field } from '../../engine/Field/Field.ts';
 import { getEventPageCoordinates, getPointsDistance, getTouchPageCoordinates, mapItems } from '../../utils.ts';
 import { AppState, Canvas, Point, View } from '../../types.ts';
@@ -139,7 +139,15 @@ export const MainView = () => {
         }
 
         if (st.useField) {
-            fieldRef.current = new Field(canvas, state.initialScale, state.timeStep);
+            const fieldProps = {
+                canvas,
+                width: state.width,
+                height: state.height,
+                depth: state.depth,
+                scaleFactor: state.initialScale,
+                timeStep: state.timeStep,
+            };
+            fieldRef.current = new Field(fieldProps);
             fieldRef.current.useWebGL = st.useWebGL;
         }
 
@@ -389,6 +397,8 @@ export const MainView = () => {
             demo: null,
         }));
 
+        fitToScreen();
+
         initDemo(demo);
 
         requestAnimationFrame(() => {
@@ -613,6 +623,18 @@ export const MainView = () => {
 
     const mainRef = useRef<HTMLElement | null>(null);
 
+    /**
+     * Changes zoom to fit the entire scene on the screen
+     */
+    const fitToScreen = () => {
+        const st = getState();
+        const canvasSize = Math.min(st.canvasWidth, st.canvasHeight);
+        const sceneSize = Math.max(st.width, st.height, st.depth);
+        const sceneMargin = sceneSize * INITIAL_SCENE_MARGIN_RATIO;
+        const newZoom = canvasSize / (sceneSize + sceneMargin);
+        onZoom(newZoom);
+    };
+
     const resizeHandler = () => {
         const st = getState();
         const rect = mainRef.current?.getBoundingClientRect() ?? null;
@@ -620,12 +642,12 @@ export const MainView = () => {
             return;
         }
 
-        const { width } = rect;
-        let { height } = rect;
+        const canvasWidth = rect.width;
+        let canvasHeight = rect.height;
         if (
-            width === 0
-            || height === 0
-            || (st.width === width && st.height === height)
+            canvasWidth === 0
+            || canvasHeight === 0
+            || (st.canvasWidth === canvasWidth && st.canvasHeight === canvasHeight)
         ) {
             return;
         }
@@ -633,17 +655,16 @@ export const MainView = () => {
         const pausedBefore = st.paused;
         pause();
 
-        if (height > 0) {
-            height -= 1;
+        if (canvasHeight > 0) {
+            canvasHeight -= 1;
         }
 
         setState((prev: AppState) => ({
             ...prev,
-            width,
-            height,
+            canvasWidth,
+            canvasHeight,
         }));
 
-        fieldRef.current?.onResize?.({ width, height });
         setTimeout(() => {
             fieldRef.current?.drawFrame();
         }, 10);
@@ -678,8 +699,8 @@ export const MainView = () => {
     const lstate = getState();
 
     const canvasProps = useMemo(() => ({
-        width: lstate.width,
-        height: lstate.height,
+        width: lstate.canvasWidth,
+        height: lstate.canvasHeight,
         onTouchStart,
         onTouchMove,
         onTouchEnd: onMouseUp,
@@ -689,7 +710,7 @@ export const MainView = () => {
         onWheel,
         className: 'app-canvas',
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }), [lstate.width, lstate.height]);
+    }), [lstate.canvasWidth, lstate.canvasHeight]);
 
     const canvas = (lstate.useField /* && lstate.useWebGL */)
         ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
