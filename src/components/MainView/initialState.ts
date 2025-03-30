@@ -14,6 +14,7 @@ export const defaultProps = {
     useField: true,
     useWebGL: true,
     demo: null,
+    demoId: null,
 };
 
 export const initialState: AppState = {

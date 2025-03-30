@@ -106,12 +106,13 @@ export const MainView = () => {
         scheduleUpdate();
     };
 
-    const initDemo = (demo: DemoClass | DemoItemFunc) => {
+    const initDemo = (demo: DemoClass | DemoItemFunc, demoId: string) => {
         if (typeof demo === 'function') {
             setState((prev: AppState) => ({
                 ...prev,
                 ...defaultProps,
                 demo,
+                demoId,
             }));
 
             return;
@@ -122,6 +123,7 @@ export const MainView = () => {
             ...prev,
             ...props,
             demo,
+            demoId,
         }));
     };
 
@@ -395,11 +397,12 @@ export const MainView = () => {
             dragging: false,
             startPoint: null,
             demo: null,
+            demoId: null,
         }));
 
         fitToScreen();
 
-        initDemo(demo);
+        initDemo(demo, id);
 
         requestAnimationFrame(() => {
             start();
@@ -621,6 +624,20 @@ export const MainView = () => {
         }
     };
 
+    const onReset = () => {
+        const st = getState();
+        if (!st.demoId) {
+            return;
+        }
+
+        const currentItem =  {
+            id: st.demoId,
+            value: st.demoId,
+        };
+
+        onChangeDemo(currentItem);
+    };
+
     const mainRef = useRef<HTMLElement | null>(null);
 
     /**
@@ -726,7 +743,7 @@ export const MainView = () => {
                 {canvas}
             </main>
 
-            <Toolbar onToggleRun={onToggleRun} onClose={onClose} />
+            <Toolbar onToggleRun={onToggleRun} onReset={onReset} onClose={onClose} />
 
             <Offcanvas
                 className="settings"

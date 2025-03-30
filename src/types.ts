@@ -105,4 +105,5 @@ export interface AppState {
     prevTouches: Point[] | null;
 
     demo: DemoClass | DemoItemFunc | null;
+    demoId: string | null;
 }
