@@ -22,6 +22,8 @@ export const initialState: AppState = {
     paused: true,
     pausedBefore: true,
     settingsVisible: false,
+    rotationSettingsExpanded: false,
+    rotationStepSettingsExpanded: false,
     updating: false,
     rotating: false,
     rotation: { alpha: 0, beta: 0, gamma: 0 },

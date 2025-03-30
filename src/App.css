@@ -26,6 +26,9 @@
   --active-input-border-color: var(--input-bg-color);
   --input-disabled-color: #505050;
   --input-disabled-bg: #202020;
+
+  /* Settings collapsible header */
+  --settings-header-size: 24px;
 }
 
 * {

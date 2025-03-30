@@ -100,6 +100,9 @@ export interface AppState {
     dragging: boolean;
     settingsVisible: boolean;
 
+    rotationSettingsExpanded: boolean;
+    rotationStepSettingsExpanded: boolean;
+
     startPoint: Point | null;
     prevPoint: Point | null;
     prevTouches: Point[] | null;
