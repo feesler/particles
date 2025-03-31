@@ -4,7 +4,6 @@ import { AppState } from 'src/types.ts';
 
 import PlayIcon from './assets/play.svg';
 import PauseIcon from './assets/pause.svg';
-import './ToggleRunButton.css';
 
 export type ToggleRunButtonProps = Partial<ButtonProps>;
 
@@ -16,7 +15,6 @@ export const ToggleRunButton = (props: ToggleRunButtonProps) => {
         <Button
             {...props}
             id="toggleRunBtn"
-            className="toggle-run-btn"
             icon={(state.paused) ? PlayIcon : PauseIcon}
         />
     );

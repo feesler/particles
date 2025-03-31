@@ -1,6 +1,6 @@
 .range-input-field {
   display: grid;
-  margin-bottom: 1rem;
+  padding: 1rem;
 }
 
 .range-input-field__main {
@@ -15,6 +15,7 @@
   color: var(--main-text-color);
   font-weight: 500;
   font-size: 0.8rem;
+  line-height: var(--input-height);
 }
 
 .range-input-field .range-slider {

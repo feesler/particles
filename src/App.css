@@ -22,13 +22,14 @@
   --input-height: 37px;
   --input-padding: 0 0.5rem;
   --input-bg-color: #363636;
-  --input-border-color: var(--input-bg-color);
-  --active-input-border-color: var(--input-bg-color);
+  --input-border-color: #363636;
+  --active-input-border-color: #363636;
   --input-disabled-color: #505050;
   --input-disabled-bg: #202020;
 
-  /* Settings collapsible header */
+  /* Settings */
   --settings-header-size: 24px;
+  --settings-separator-color: #363636;
 }
 
 * {
@@ -65,14 +66,6 @@ html {
   display: flex;
   touch-action: none;
   user-select: none;
-}
-
-.btn.header-btn {
-  --btn-size: 2rem;
-  --btn-icon-color: var(--neutral-color);
-  --btn-hover-icon-color: var(--main-text-color);
-
-  width: var(--btn-size);
 }
 
 .btn.submit-btn {
@@ -123,23 +116,6 @@ html {
   .offcanvas__bg {
     display: none;
   }
-}
-
-.data-section {
-  display: flex;
-  flex-flow: column nowrap;
-  width: 100%;
-  min-width: 300px;
-  max-width: 400px;
-  padding: 1rem;
-}
-
-.data-section__header {
-  display: flex;
-  flex-flow: row nowrap;
-  align-items: center;
-  justify-content: end;
-  gap: 0.5rem;
 }
 
 /* DropDown */

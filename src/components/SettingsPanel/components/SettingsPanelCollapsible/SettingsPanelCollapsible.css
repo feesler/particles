@@ -6,7 +6,7 @@
   color: var(--main-text-color);
   font-weight: 500;
   font-size: 0.8rem;
-  line-height: 3rem;
+  line-height: 2rem;
   text-transform: uppercase;
 }
 
@@ -15,6 +15,7 @@
   flex-flow: row nowrap;
   align-items: center;
   justify-content: space-between;
+  padding: 1rem;
 }
 
 .settings-panel-collapsible__header .header__icon {
@@ -26,4 +27,8 @@
 .settings-panel-collapsible .collapse__content-wrapper {
   border-top: 1px solid var(--input-border-color);
   width: 100%;
+}
+
+.settings-panel-collapsible .collapsible-content .range-input-field {
+  border-bottom: 1px solid var(--input-border-color);
 }

@@ -38,13 +38,10 @@ export const Toolbar = (props: ToolbarProps) => {
 
     return (
         <div {...rest} className="toolbar">
-            <ToggleRunButton onClick={onToggleRun} />
-            <ResetButton onClick={onReset} />
-            {showCloseBtn && <CloseButton className="header-btn" onClick={onClose} />}
-            {showMenuBtn && <MenuButton
-                className="header-btn"
-                onClick={onMenuBtnClick}
-            />}
+            <ToggleRunButton className="toolbar-btn" onClick={onToggleRun} />
+            <ResetButton className="toolbar-btn" onClick={onReset} />
+            {showCloseBtn && <CloseButton className="toolbar-btn" onClick={onClose} />}
+            {showMenuBtn && <MenuButton className="toolbar-btn" onClick={onMenuBtnClick} />}
         </div>
     );
 };
