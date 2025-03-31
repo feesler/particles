@@ -1,13 +1,13 @@
-import { Box } from './Box.ts';
-import { Particle } from '../particles/Particle.ts';
-import { Star } from '../particles/Star.ts';
-import { Vector } from './Vector.ts';
-import { Planet } from '../particles/Planet.ts';
-import { rand } from '../utils.ts';
-import { Photon } from '../particles/Photon.ts';
-import { Electron } from '../particles/Electron.ts';
-import { Positron } from '../particles/Positron.ts';
-import { Gluon } from '../particles/Gluon.ts';
+import { Box } from '../Box/Box.ts';
+import { Particle } from '../../particles/Particle.ts';
+import { Star } from '../../particles/Star.ts';
+import { Vector } from '../Vector/Vector.ts';
+import { Planet } from '../../particles/Planet.ts';
+import { rand } from '../../utils.ts';
+import { Photon } from '../../particles/Photon.ts';
+import { Electron } from '../../particles/Electron.ts';
+import { Positron } from '../../particles/Positron.ts';
+import { Gluon } from '../../particles/Gluon.ts';
 import {
     DARK_TYPE,
     ELECTRON_TYPE,
@@ -18,31 +18,42 @@ import {
     POSITRON_TYPE,
     PROTON_TYPE,
     STAR_TYPE,
-} from '../particles/types.ts';
-import { OctTree, OctTreeChild } from './OctTree.ts';
-import { Canvas } from '../types.ts';
-import { Object3D, Rotation } from './types.ts';
-import { CanvasWebGLRef } from '../components/CanvasWebGL/CanvasWebGL.ts';
-import { CanvasFrame } from '../CanvasFrame.ts';
-import { Canvas2DRef } from '../components/Canvas2D/Canvas2D.ts';
+} from '../../particles/types.ts';
+import { OctTree, OctTreeChild } from '../OctTree/OctTree.ts';
+import { Canvas } from '../../types.ts';
+import { Object3D, Rotation } from '../types.ts';
+import { CanvasWebGLRef } from '../../components/CanvasWebGL/CanvasWebGL.tsx';
+import { CanvasFrame } from '../../utils/CanvasFrame/CanvasFrame.ts';
+import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.tsx';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.0000001;
 const MAX_SPEED = 150;
-const DEPTH = 2000;
 const MIN_DISTANCE = 0.05;
 const MIN_HARD_DIST = 0.005;
 const BORDER_LOSS = 0.1;
 const BOUNDING_GAP = 10;
 
+export interface FieldProps {
+    canvas: Canvas;
+
+    width: number;
+    height: number;
+    depth: number;
+
+    scaleFactor: number;
+    timeStep: number;
+}
+
 export class Field {
     canvas: Canvas;
 
-    depth: number;
     xShift: number;
     yShift: number;
+
     width: number;
     height: number;
+    depth: number;
 
     DIST: number;
     Z_SHIFT: number;
@@ -91,19 +102,20 @@ export class Field {
     minHardDistance: number = 0;
     timeStep: number = 0;
 
-    constructor(canvas: Canvas, scaleFactor: number, timeStep: number) {
-        if (!canvas?.elem) {
+    constructor(props: FieldProps) {
+        if (!props.canvas?.elem) {
             throw new Error('Invalid canvas');
         }
 
-        this.canvas = canvas;
+        this.canvas = props.canvas;
 
-        this.depth = DEPTH;
         this.xShift = 0;
         this.yShift = 0;
 
-        this.width = canvas.elem.width;
-        this.height = canvas.elem.height;
+        this.width = props.width;
+        this.height = props.height;
+        this.depth = props.depth;
+
         this.DIST = 1000;
         this.Z_SHIFT = 0;
 
@@ -143,20 +155,13 @@ export class Field {
         };
 
         this.createGeometry();
-        this.setScaleFactor(scaleFactor);
-        this.setTimeStep(timeStep);
+        this.setScaleFactor(props.scaleFactor);
+        this.setTimeStep(props.timeStep);
     }
 
     createGeometry() {
         this.box = new Box(this.width, this.height, this.depth);
         this.center = new Vector(this.width / 2, this.height / 2, this.depth / 2);
-    }
-
-    onResize({ width, height }: { width: number; height: number; }) {
-        this.width = width;
-        this.height = height;
-
-        this.createGeometry();
     }
 
     drawFrameByCircles() {
@@ -415,9 +420,6 @@ export class Field {
     setZoom(zoom: number) {
         this.DIST = 1000 - zoom;
         this.Z_SHIFT = zoom;
-
-        this.depth = 2000 + zoom;
-        this.createGeometry();
     }
 
     setGScale(gScale: number) {

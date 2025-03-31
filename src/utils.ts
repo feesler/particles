@@ -1,6 +1,6 @@
 import React from 'react';
 import { Axis3D } from './engine/types.ts';
-import { Vector } from './engine/Vector.ts';
+import { Vector } from './engine/Vector/Vector.ts';
 import {
     IdObject,
     IncludeGroupItemsParam,

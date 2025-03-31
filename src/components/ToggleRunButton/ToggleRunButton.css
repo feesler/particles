@@ -1,7 +1,0 @@
-.btn.toggle-run-btn {
-  --btn-size: 2rem;
-  --btn-icon-color: var(--neutral-color);
-  --btn-hover-icon-color: var(--main-text-color);
-
-  width: var(--btn-size);
-}

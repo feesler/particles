@@ -1,4 +1,4 @@
-import { Vector } from '../engine/Vector.js';
+import { Vector } from '../engine/Vector/Vector.js';
 import { Star } from '../particles/Star.js';
 import { DarkParticle } from '../particles/DarkParticle.js';
 import { rand } from '../utils.js';

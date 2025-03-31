@@ -1,14 +1,14 @@
-import { initStars } from './demos/stars.ts';
-import { initGalaxies } from './demos/galaxies.ts';
-import { initPlanetarySystem } from './demos/planetary.ts';
-import { initGas } from './demos/gas.ts';
-import { initParticles } from './demos/particles.ts';
-import { initVelocityTest } from './demos/velocity.ts';
-import { MaxVelocityDemo } from './demos/canvas/maxVelocity.ts';
-import { Box3dDemo } from './demos/canvas/box3d.ts';
+import { initStars } from './stars.ts';
+import { initGalaxies } from './galaxies.ts';
+import { initPlanetarySystem } from './planetary.ts';
+import { initGas } from './gas.ts';
+import { initParticles } from './particles.ts';
+import { initVelocityTest } from './velocity.ts';
+import { MaxVelocityDemo } from './canvas/maxVelocity.ts';
+import { Box3dDemo } from './canvas/box3d.ts';
 
-import { findDemoItem } from './utils.ts';
-import { View } from './types.ts';
+import { findDemoItem } from '../utils.ts';
+import { View } from '../types.ts';
 
 export type DemoItemFunc = (view: View) => void;
 

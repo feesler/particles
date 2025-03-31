@@ -1,4 +1,25 @@
-.btn.close-btn {
+.data-section {
+  display: flex;
+  flex-flow: column nowrap;
+  width: 100%;
+  min-width: 300px;
+  max-width: 400px;
+  padding: 1rem 0;
+}
+
+.data-section > div {
+  border-bottom: 1px solid var(--settings-separator-color);
+}
+
+.data-section__header {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: end;
+  gap: 0.5rem;
+}
+
+.data-section__header .btn.close-btn {
   --btn-icon-color: var(--neutral-color);
   --btn-hover-icon-color: var(--main-text-color);
 

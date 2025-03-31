@@ -5,6 +5,7 @@ import { AppState } from 'src/types.ts';
 
 import { ToggleRunButton } from '../ToggleRunButton/ToggleRunButton.tsx';
 import { MenuButton } from '../MenuButton/MenuButton.tsx';
+import { ResetButton } from '../ResetButton/ResetButton.tsx';
 
 import './Toolbar.css';
 
@@ -12,12 +13,13 @@ export type ToolbarProps = {
     id?: string;
 
     onToggleRun: () => void;
+    onReset: () => void;
     onClose: () => void;
     onMenu?: () => void;
 };
 
 export const Toolbar = (props: ToolbarProps) => {
-    const { onToggleRun, onClose, onMenu, ...rest } = props;
+    const { onToggleRun, onReset, onClose, onMenu, ...rest } = props;
 
     const { getState, setState } = useStore<AppState>();
     const state = getState();
@@ -34,15 +36,12 @@ export const Toolbar = (props: ToolbarProps) => {
         onMenu?.();
     }, [showOffcanvas]);
 
-
     return (
         <div {...rest} className="toolbar">
-            <ToggleRunButton onClick={onToggleRun} />
-            {showCloseBtn && <CloseButton className="header-btn" onClick={onClose} />}
-            {showMenuBtn && <MenuButton
-                className="header-btn"
-                onClick={onMenuBtnClick}
-            />}
+            <ToggleRunButton className="toolbar-btn" onClick={onToggleRun} />
+            <ResetButton className="toolbar-btn" onClick={onReset} />
+            {showCloseBtn && <CloseButton className="toolbar-btn" onClick={onClose} />}
+            {showMenuBtn && <MenuButton className="toolbar-btn" onClick={onMenuBtnClick} />}
         </div>
     );
 };

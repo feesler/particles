@@ -2,7 +2,7 @@ import { useStore } from '@jezvejs/react';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 
 import * as m4 from '../../engine/Matrix4.ts';
-import { Vector } from 'src/engine/Vector.ts';
+import { Vector } from 'src/engine/Vector/Vector.ts';
 import { RGBColor } from 'src/particles/types.ts';
 import { AppState } from 'src/types.ts';
 
@@ -262,13 +262,11 @@ export const CanvasWebGL = forwardRef<
         widthRef.current = innerRef.current.width;
         heightRef.current = innerRef.current.height;
 
-        const { clientWidth, clientHeight } = innerRef.current;
-
         init();
 
         setMatrix(
-            [clientWidth, clientHeight, state.depth],
-            [clientWidth / 2, clientHeight / 2, 0],
+            [state.width, state.height, state.depth],
+            [state.width / 2, state.height / 2, 0],
             [state.rotation.alpha, state.rotation.beta, state.rotation.gamma],
             [1, 1, 1],
         );

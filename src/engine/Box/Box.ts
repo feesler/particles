@@ -1,8 +1,8 @@
-import { Vector } from './Vector.ts';
-import { EPSILON, AXES, intersectPlane } from '../utils.ts';
-import { Axis, PlanePoint } from '../types.ts';
-import { Object3D, Point3D, ProjectionFunc } from './types.ts';
-import { CanvasFrame } from '../CanvasFrame.ts';
+import { Vector } from '../Vector/Vector.ts';
+import { EPSILON, AXES, intersectPlane } from '../../utils.ts';
+import { Axis, PlanePoint } from '../../types.ts';
+import { Object3D, Point3D, ProjectionFunc } from '../types.ts';
+import { CanvasFrame } from '../../utils/CanvasFrame/CanvasFrame.ts';
 
 export class Box {
     halfSize: Vector;

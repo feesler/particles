@@ -1,8 +1,8 @@
-import { Vector } from '../../engine/Vector.js';
-import { Box } from '../../engine/Box.js';
+import { Vector } from '../../engine/Vector/Vector.js';
+import { Box } from '../../engine/Box/Box.js';
 import { View } from '../../types.js';
 import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.js';
-import { DemoClass } from '../../demos.js';
+import { DemoClass } from '../index.js';
 
 export class Box3dDemo implements DemoClass {
     boxTimeout: number = 0;

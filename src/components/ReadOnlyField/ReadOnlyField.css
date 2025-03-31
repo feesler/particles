@@ -1,9 +1,10 @@
 .read-only-field {
   display: flex;
   flex-flow: row nowrap;
+  align-items: center;
   justify-content: space-between;
   color: #dddddd;
-  margin-bottom: 1rem;
+  padding: 1rem;
 }
 
 .read-only-field label {

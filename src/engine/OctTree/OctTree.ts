@@ -1,5 +1,5 @@
-import { Particle } from '../particles/Particle.js';
-import { Vector } from './Vector.js';
+import { Particle } from '../../particles/Particle.js';
+import { Vector } from '../Vector/Vector.js';
 
 export type OctTreeChild = Particle | OctTree | OctTreeNode;
 

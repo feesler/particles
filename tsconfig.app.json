@@ -23,13 +23,20 @@
         "noEmit": true,
         "jsx": "react-jsx",
         "baseUrl": ".",
+        "paths": {
+            "src/*": [
+                "./src/*"
+            ]
+        },
         /* Linting */
         "strict": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
         "noUncheckedSideEffectImports": true,
-        "types": [ "vite-plugin-svgr/client" ]
+        "types": [
+            "vite-plugin-svgr/client"
+        ]
     },
     "include": [
         "./src/**/*"

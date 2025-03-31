@@ -1,8 +1,12 @@
+import { SCENE_SIZE } from 'src/constants.ts';
 import { AppState } from 'src/types.ts';
 
 export const defaultProps = {
     autoStart: false,
     animationDelay: 10,
+    width: SCENE_SIZE,
+    height: SCENE_SIZE,
+    depth: SCENE_SIZE,
     initialScale: 0.1,
     timeStep: 0.1,
     scaleFactor: 0,
@@ -10,7 +14,7 @@ export const defaultProps = {
     useField: true,
     useWebGL: true,
     demo: null,
-    depth: 2000,
+    demoId: null,
 };
 
 export const initialState: AppState = {
@@ -18,14 +22,16 @@ export const initialState: AppState = {
     paused: true,
     pausedBefore: true,
     settingsVisible: false,
+    rotationSettingsExpanded: false,
+    rotationStepSettingsExpanded: false,
     updating: false,
     rotating: false,
     rotation: { alpha: 0, beta: 0, gamma: 0 },
     rotationStep: { alpha: 0, beta: 0, gamma: 0 },
     timestamp: 0,
     perfValue: 0,
-    width: 0,
-    height: 0,
+    canvasWidth: 0,
+    canvasHeight: 0,
     zoom: 1,
     gScale: -7,
     kScale: 1,

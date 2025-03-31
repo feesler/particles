@@ -1,4 +1,4 @@
-import { Object3D } from './types.ts';
+import { Object3D } from '../types.ts';
 
 export class Vector implements Object3D<number> {
     x: number;
