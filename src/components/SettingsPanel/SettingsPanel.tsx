@@ -108,8 +108,6 @@ export const SettingsPanel = (props: Props) => {
         onChange: onZRotate,
     }]), [state.rotation.alpha, state.rotation.beta, state.rotation.gamma]);
 
-    const rotationFields = <RangeInputFieldsList fields={rotationRangeInputFields} />;
-
     const rotationStepFieldsCommon = {
         min: -1,
         max: 1,
@@ -135,8 +133,6 @@ export const SettingsPanel = (props: Props) => {
         value: state.rotationStep.gamma,
         onChange: onChangeZRotationStep,
     }]), [state.rotationStep.alpha, state.rotationStep.beta, state.rotationStep.gamma]);
-
-    const rotationStepFields = <RangeInputFieldsList fields={rotationStepRangeInputFields} />;
 
     return (
         <section className="data-section">
@@ -196,7 +192,7 @@ export const SettingsPanel = (props: Props) => {
                 expanded={state.rotationSettingsExpanded}
                 animated
             >
-                {rotationFields}
+                <RangeInputFieldsList fields={rotationRangeInputFields} />
             </SettingsPanelCollapsible>
 
             <SettingsPanelCollapsible
@@ -205,7 +201,7 @@ export const SettingsPanel = (props: Props) => {
                 expanded={state.rotationStepSettingsExpanded}
                 animated
             >
-                {rotationStepFields}
+                <RangeInputFieldsList fields={rotationStepRangeInputFields} />
             </SettingsPanelCollapsible>
 
             <RangeInputField
