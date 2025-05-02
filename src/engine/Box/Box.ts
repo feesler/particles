@@ -6,7 +6,9 @@ import { CanvasFrame } from '../../utils/CanvasFrame/CanvasFrame.ts';
 
 export class Box {
     halfSize: Vector;
+
     vertices: Vector[];
+
     edges: [number, number][];
 
     normals: Object3D<Vector>;

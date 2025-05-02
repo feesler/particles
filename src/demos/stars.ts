@@ -1,7 +1,7 @@
-import { Star } from '../particles/Star.js';
-import { Planet } from '../particles/Planet.js';
-import { rand } from '../utils.js';
-import { View } from '../types.js';
+import { Star } from '../particles/Star.ts';
+import { Planet } from '../particles/Planet.ts';
+import { rand } from '../utils.ts';
+import { View } from '../types.ts';
 
 export function initStars(view: View) {
     const PARTICLES_COUNT = 2000;

@@ -11,16 +11,20 @@ export interface SettingsPanelCollapsibleProps extends CollapsibleProps {
     title: string;
 }
 
-export const SettingsPanelCollapsible = memo(({ title, ...props }: SettingsPanelCollapsibleProps) => {
-    const header = useMemo(() => (
-        <SettingsPanelCollapsibleHeader title={title} expanded={props.expanded} />
-    ), [title, props.expanded]);
+export const SettingsPanelCollapsible = memo(
+    ({ title, ...props }: SettingsPanelCollapsibleProps) => {
+        const header = useMemo(() => (
+            <SettingsPanelCollapsibleHeader title={title} expanded={props.expanded} />
+        ), [title, props.expanded]);
 
-    return (
-        <Collapsible
-            {...props}
-            className={classNames('settings-panel-collapsible', props.className)}
-            header={header}
-        />
-    );
-});
+        return (
+            <Collapsible
+                {...props}
+                className={classNames('settings-panel-collapsible', props.className)}
+                header={header}
+            />
+        );
+    },
+);
+
+SettingsPanelCollapsible.displayName = 'SettingsPanelCollapsible';

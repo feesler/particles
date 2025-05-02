@@ -1,5 +1,5 @@
-import { Particle } from '../../particles/Particle.js';
-import { Vector } from '../Vector/Vector.js';
+import { Particle } from '../../particles/Particle.ts';
+import { Vector } from '../Vector/Vector.ts';
 
 export type OctTreeChild = Particle | OctTree | OctTreeNode;
 
@@ -12,11 +12,17 @@ export type OctTreeNode = {
 
 export class OctTree {
     offset: Vector;
+
     centerOfMass: Vector;
+
     corner: Vector;
+
     size: number;
+
     half: number;
+
     mass: number;
+
     charge: number;
 
     nodes: (OctTreeChild | null)[];

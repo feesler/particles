@@ -1,5 +1,5 @@
-import { Canvas2DElement } from './components/Canvas2D/Canvas2D.ts';
-import { CanvasWebGLElement } from './components/CanvasWebGL/CanvasWebGL.ts';
+import { Canvas2DElement } from './components/Canvas2D/Canvas2D.tsx';
+import { CanvasWebGLElement } from './components/CanvasWebGL/CanvasWebGL.tsx';
 import { DemoClass, DemoItemFunc } from './demos/index.ts';
 import { Field } from './engine/Field/Field.ts';
 
@@ -20,13 +20,13 @@ export type PlanePoint = {
     right: number;
 };
 
-export type Axis = "x" | "y" | "z";
+export type Axis = 'x' | 'y' | 'z';
 
 export interface Rotation {
     alpha: number;
     beta: number;
     gamma: number;
-};
+}
 
 export interface MenuItemCallback<T extends object = object, R = boolean> {
     (item: T, index?: number, arr?: T[]): R;

@@ -1,5 +1,10 @@
 import { fixFloat } from '@jezvejs/number';
-import { RangeSlider, RangeSliderProps, RangeSliderValue, DecimalInput } from '@jezvejs/react';
+import {
+    RangeSlider,
+    RangeSliderProps,
+    RangeSliderValue,
+    DecimalInput,
+} from '@jezvejs/react';
 import { useCallback, useEffect, useState } from 'react';
 
 import './RangeInputField.css';
@@ -48,7 +53,6 @@ export const RangeInputField = (props: RangeInputFieldProps) => {
 
         setValue(value);
         props?.onChange?.(value);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -72,7 +76,6 @@ export const RangeInputField = (props: RangeInputFieldProps) => {
         setValue(newValue);
         onChange?.(newValue);
     }, [state.value, onChange]);
-
 
     return (
         <div id={props.id} className="range-input-field">

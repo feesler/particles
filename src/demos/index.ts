@@ -21,7 +21,7 @@ export class DemoClass {
     getProps(): Partial<DemoProps> {
         return {
         };
-    };
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     init(_: View) {
@@ -29,7 +29,7 @@ export class DemoClass {
 
     clear?() {
     }
-};
+}
 
 export type DemoItem = {
     id: string;

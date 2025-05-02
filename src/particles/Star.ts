@@ -1,33 +1,45 @@
 import { Particle } from './Particle.ts';
 import { RGBColor, STAR_TYPE } from './types.ts';
 
-const clamp = (num: number, min: number, max: number) => (
-    (num < min) ? min : ((num > max) ? max : num)
+const clamp = (num: number, min: number, max: number) => {
+    if (num < min) {
+        return min;
+    }
+
+    return (num > max) ? max : num;
+};
+
+const getRed = (tK: number) => (
+    (tK <= 66)
+        ? 255
+        : clamp(329.698727446 * (tK - 60 ** -0.1332047592), 0, 255)
 );
+
+const getGreen = (tK: number) => (
+    (tK <= 66)
+        ? clamp(99.4708025861 * Math.log(tK) - 161.1195681661, 0, 255)
+        : clamp(288.1221695283 * (tK - 60 ** -0.0755148492), 0, 255)
+);
+
+const getBlue = (tK: number) => {
+    if (tK >= 66) {
+        return 255;
+    }
+
+    return (
+        (tK <= 19)
+            ? 0
+            : clamp(138.5177312231 * Math.log(tK - 10) - 305.0447927307, 0, 255)
+    );
+};
 
 const temperatureToColor = (temperature: number): RGBColor => {
     const tK = clamp(temperature, 1000, 40000) / 100;
 
     return {
-        r: (
-            (tK <= 66)
-                ? 255
-                : clamp(329.698727446 * (Math.pow(tK - 60, -0.1332047592)), 0, 255)
-        ),
-        g: (
-            (tK <= 66)
-                ? clamp(99.4708025861 * Math.log(tK) - 161.1195681661, 0, 255)
-                : clamp(288.1221695283 * (Math.pow(tK - 60, -0.0755148492)), 0, 255)
-        ),
-        b: (
-            (tK >= 66)
-                ? 255
-                : (
-                    (tK <= 19)
-                        ? 0
-                        : clamp(138.5177312231 * Math.log(tK - 10) - 305.0447927307, 0, 255)
-                )
-        ),
+        r: getRed(tK),
+        g: getGreen(tK),
+        b: getBlue(tK),
     };
 };
 
@@ -42,7 +54,7 @@ export class Star extends Particle {
     }
 
     getColor(mass: number) {
-        const temp = Math.pow(mass, 0.5);
+        const temp = mass ** 0.5;
 
         return temperatureToColor(temp);
     }

@@ -5,6 +5,8 @@ import {
 } from '@jezvejs/react';
 import { useCallback, useMemo } from 'react';
 
+import { Field } from 'src/engine/Field/Field.ts';
+import { AppState } from 'src/types.ts';
 import {
     MAX_ZOOM,
     MIN_ZOOM,
@@ -12,8 +14,6 @@ import {
     ROTATION_FIELD_MIN_VALUE,
     ROTATION_FIELD_VALUE_STEP,
 } from '../../constants.ts';
-import { Field } from 'src/engine/Field/Field.ts';
-import { AppState } from 'src/types.ts';
 
 import { RangeInputField } from '../RangeInputField/RangeInputField.tsx';
 import { ReadOnlyField } from '../ReadOnlyField/ReadOnlyField.tsx';
@@ -175,7 +175,7 @@ export const SettingsPanel = (props: Props) => {
                 max={5}
                 step={0.00001}
                 value={state.timeStep}
-                additional={Math.pow(10, state.timeStep).toFixed(5)}
+                additional={(10 ** state.timeStep).toFixed(5)}
                 onChange={onChangeTimeStep}
             />
 
@@ -225,7 +225,7 @@ export const SettingsPanel = (props: Props) => {
                 max={10}
                 step={1}
                 value={state.gScale}
-                additional={Math.pow(10, state.gScale).toExponential(0)}
+                additional={(10 ** state.gScale).toExponential(0)}
                 onChange={onChangeGScale}
             />
 
@@ -236,7 +236,7 @@ export const SettingsPanel = (props: Props) => {
                 max={10}
                 step={1}
                 value={state.kScale}
-                additional={Math.pow(10, state.kScale).toExponential(0)}
+                additional={(10 ** state.kScale).toExponential(0)}
                 onChange={onChangeKScale}
             />
 

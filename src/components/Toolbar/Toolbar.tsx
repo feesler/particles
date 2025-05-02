@@ -19,7 +19,13 @@ export type ToolbarProps = {
 };
 
 export const Toolbar = (props: ToolbarProps) => {
-    const { onToggleRun, onReset, onClose, onMenu, ...rest } = props;
+    const {
+        onToggleRun,
+        onReset,
+        onClose,
+        onMenu,
+        ...rest
+    } = props;
 
     const { getState, setState } = useStore<AppState>();
     const state = getState();

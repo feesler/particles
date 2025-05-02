@@ -1,8 +1,8 @@
-import { Vector } from '../../engine/Vector/Vector.js';
-import { Box } from '../../engine/Box/Box.js';
-import { View } from '../../types.js';
-import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.js';
-import { DemoClass } from '../index.js';
+import { Vector } from '../../engine/Vector/Vector.ts';
+import { Box } from '../../engine/Box/Box.ts';
+import { View } from '../../types.ts';
+import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.tsx';
+import { DemoClass } from '../index.ts';
 
 export class Box3dDemo implements DemoClass {
     boxTimeout: number = 0;
@@ -64,18 +64,18 @@ export class Box3dDemo implements DemoClass {
             cube.rotate(0, 0.1, 0);
             draw3dFrame();
             this.clear();
-            this.boxTimeout = setTimeout(() => update3dFrame(), 100);
+            this.boxTimeout = window.setTimeout(() => update3dFrame(), 100);
         };
 
         draw3dFrame();
         this.clear();
-        this.boxTimeout = setTimeout(() => update3dFrame(), 100);
+        this.boxTimeout = window.setTimeout(() => update3dFrame(), 100);
     }
 
     clear(): void {
         if (this.boxTimeout) {
-           clearTimeout(this.boxTimeout);
-           this.boxTimeout = 0;
+            window.clearTimeout(this.boxTimeout);
+            this.boxTimeout = 0;
         }
     }
 }

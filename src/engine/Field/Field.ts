@@ -36,6 +36,7 @@ const BOUNDING_GAP = 10;
 
 export interface FieldProps {
     canvas: Canvas;
+    useWebGL: boolean;
 
     width: number;
     height: number;
@@ -49,37 +50,57 @@ export class Field {
     canvas: Canvas;
 
     xShift: number;
+
     yShift: number;
 
     width: number;
+
     height: number;
+
     depth: number;
 
     DIST: number;
+
     Z_SHIFT: number;
 
     G: number = G;
+
     K: number = K;
 
     drawAllPaths: boolean;
+
     useCollide: boolean;
+
     restoreCollided: boolean;
+
     useSoftening: boolean;
+
     SOFTENING: number;
 
     addInstantly: boolean;
+
     useBarnesHut: boolean;
+
     useSpontaneous: boolean;
+
     useBoxBorder: boolean;
+
     useWebGL: boolean;
+
     drawNodes: boolean;
 
     tree: OctTree | null = null;
+
     boundingOffset: number = 0;
+
     boundingSize: number = 0;
+
     particleMin: number = 0;
+
     particleMax: number = 0;
+
     theta: number = 0;
+
     dist: Vector | null = null;
 
     rotation: Rotation = {
@@ -91,15 +112,21 @@ export class Field {
     sceneNormals: Object3D<Vector> | null = null;
 
     box: Box | null = null;
+
     center: Vector | null = null;
 
     particles: Particle[] = [];
+
     newParticles: Particle[] = [];
 
     scaleFactor: number = 1;
+
     maxVelocity: number = 0;
+
     minDistance: number = 0;
+
     minHardDistance: number = 0;
+
     timeStep: number = 0;
 
     constructor(props: FieldProps) {
@@ -128,7 +155,7 @@ export class Field {
         this.newParticles = [];
         this.useSpontaneous = false;
         this.useBoxBorder = true;
-        this.useWebGL = true;
+        this.useWebGL = props.useWebGL;
 
         this.useBarnesHut = true;
         this.drawNodes = false;
@@ -423,11 +450,11 @@ export class Field {
     }
 
     setGScale(gScale: number) {
-        this.G = 6.67 * Math.pow(10, gScale);
+        this.G = 6.67 * (10 ** gScale);
     }
 
     setKScale(kScale: number) {
-        this.K = 8.9 * Math.pow(10, kScale);
+        this.K = 8.9 * (10 ** kScale);
     }
 
     /** Add particle */

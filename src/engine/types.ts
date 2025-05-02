@@ -4,7 +4,7 @@ export interface Object3D<T = number> {
     x: T;
     y: T;
     z: T;
-};
+}
 
 export type Axis3D = keyof Object3D;
 
