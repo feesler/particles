@@ -144,6 +144,8 @@ export const MainView = () => {
             setState((prev: AppState) => ({
                 ...prev,
                 ...defaultProps,
+                drawPath: prev.drawPath,
+                pathLength: prev.pathLength,
                 demo,
                 demoId,
             }));
@@ -155,6 +157,8 @@ export const MainView = () => {
         setState((prev: AppState) => ({
             ...prev,
             ...props,
+            drawPath: prev.drawPath,
+            pathLength: prev.pathLength,
             demo,
             demoId,
         }));
@@ -180,6 +184,8 @@ export const MainView = () => {
                 width: st.width,
                 height: st.height,
                 depth: st.depth,
+                drawPath: st.drawPath,
+                pathLength: st.pathLength,
                 scaleFactor: st.initialScale,
                 timeStep: st.timeStep,
             };
@@ -649,6 +655,36 @@ export const MainView = () => {
         }
     };
 
+    const onChangeDrawPath = (drawPath: boolean) => {
+        const st = getState();
+        const { paused } = st;
+
+        pause();
+
+        setState((prev: AppState) => ({ ...prev, drawPath }));
+
+        fieldRef.current?.setDrawPath(drawPath);
+
+        if (!paused) {
+            run();
+        }
+    };
+
+    const onChangePathLength = (pathLength: number) => {
+        const st = getState();
+        const { paused } = st;
+
+        pause();
+
+        setState((prev: AppState) => ({ ...prev, pathLength }));
+
+        fieldRef.current?.setPathLength(pathLength);
+
+        if (!paused) {
+            run();
+        }
+    };
+
     const onToggleRun = () => {
         if (state.paused) {
             run();
@@ -799,6 +835,8 @@ export const MainView = () => {
                     onZoom={onZoom}
                     onChangeGScale={onChangeGScale}
                     onChangeKScale={onChangeKScale}
+                    onChangeDrawPath={onChangeDrawPath}
+                    onChangePathLength={onChangePathLength}
                     onToggleRun={onToggleRun}
                 />
             </Offcanvas>

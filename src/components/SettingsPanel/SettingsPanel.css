@@ -29,3 +29,27 @@
 .data-footer {
   padding-bottom: 2rem;
 }
+
+/* Paths collapsible components */
+.settings-panel-paths-collapsible .collapse__content-wrapper {
+  display: grid;
+}
+
+/* Switch field */
+.settings-panel-paths-collapsible .switch {
+  --switch-label-order: -1;
+  --switch-text-color: var(--main-text-color);
+
+  justify-content: space-between;
+  width: 100%;
+  max-width: 300px;
+  padding: 1rem;
+}
+
+/* Path length input field */
+.settings-panel-paths-collapsible .range-input-field {
+  --input-disabled-bg: #202020;
+  --input-disabled-border: #202020;
+
+  padding: 0 1rem 1rem 1rem;
+}

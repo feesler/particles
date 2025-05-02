@@ -86,6 +86,7 @@ export const RangeInputField = (props: RangeInputFieldProps) => {
                         className="range-input__value"
                         value={state.strValue}
                         onChange={handleInputValue}
+                        disabled={props.disabled}
                     />
                 </div>
             </div>
