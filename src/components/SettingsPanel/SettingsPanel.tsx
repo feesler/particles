@@ -19,6 +19,7 @@ import { RangeInputField } from '../RangeInputField/RangeInputField.tsx';
 import { ReadOnlyField } from '../ReadOnlyField/ReadOnlyField.tsx';
 import { SelectField } from '../SelectField/SelectField.tsx';
 
+import { DrawPathCollapsible } from './components/DrawPathCollapsible/DrawPathCollapsible.tsx';
 import { RangeInputFieldsList } from './components/RangeInputFieldsList/RangeInputFieldsList.tsx';
 import { SettingsPanelCollapsible } from './components/SettingsPanelCollapsible/SettingsPanelCollapsible.tsx';
 
@@ -42,6 +43,8 @@ type Props = {
     onZoom: (value: number) => void;
     onChangeGScale: (value: number) => void;
     onChangeKScale: (value: number) => void;
+    onChangeDrawPath: (drawPath: boolean) => void;
+    onChangePathLength: (pathLength: number) => void;
     onToggleRun: () => void;
     onClose: () => void;
 };
@@ -63,6 +66,8 @@ export const SettingsPanel = (props: Props) => {
         onZoom,
         onChangeGScale,
         onChangeKScale,
+        onChangeDrawPath,
+        onChangePathLength,
     } = props;
 
     const { getState, setState } = useStore<AppState>();
@@ -79,6 +84,13 @@ export const SettingsPanel = (props: Props) => {
         setState((prev: AppState) => ({
             ...prev,
             rotationStepSettingsExpanded: !prev.rotationStepSettingsExpanded,
+        }));
+    }, []);
+
+    const onToggleDrawPathCollapsible = useCallback(() => {
+        setState((prev: AppState) => ({
+            ...prev,
+            drawPathSettingsExpanded: !prev.drawPathSettingsExpanded,
         }));
     }, []);
 
@@ -202,6 +214,19 @@ export const SettingsPanel = (props: Props) => {
                 animated
             >
                 <RangeInputFieldsList fields={rotationStepRangeInputFields} />
+            </SettingsPanelCollapsible>
+
+            <SettingsPanelCollapsible
+                className="settings-panel-paths-collapsible"
+                title="Paths"
+                onStateChange={onToggleDrawPathCollapsible}
+                expanded={state.rotationStepSettingsExpanded}
+                animated
+            >
+                <DrawPathCollapsible
+                    onChangeDrawPath={onChangeDrawPath}
+                    onChangePathLength={onChangePathLength}
+                />
             </SettingsPanelCollapsible>
 
             <RangeInputField

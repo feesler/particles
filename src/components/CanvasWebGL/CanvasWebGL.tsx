@@ -28,6 +28,8 @@ export type CanvasWebGLElement = {
     drawCircle: (x: number, y: number, _: number, color: RGBColor) => void;
 
     drawPoint: (pos: Vector, color: RGBColor) => void;
+
+    drawLine: (start: Vector, end: Vector, color: RGBColor) => void;
 };
 
 export type CanvasWebGLRef = CanvasWebGLElement | null;
@@ -61,7 +63,7 @@ export const CanvasWebGL = forwardRef<
     CanvasWebGLRef,
     CanvasWebGLProps
 >((props, ref) => {
-    const { state } = useStore<AppState>();
+    const { getState } = useStore<AppState>();
 
     const contextRef = useRef<WebGLRenderingContext | null>(null);
     const widthRef = useRef<number | null>(null);
@@ -261,9 +263,14 @@ export const CanvasWebGL = forwardRef<
             0, // start at the beginning of the buffer
         );
 
+        const state = getState();
+
         const drawOffset = 0;
-        const drawCount = positionsRef.current.length / 3;
-        context.drawArrays(context.POINTS, drawOffset, drawCount);
+        const drawItems = (state.drawPath) ? 6 : 3;
+        const drawCount = positionsRef.current.length / drawItems;
+        const drawMode = (state.drawPath) ? context.LINES : context.POINTS;
+
+        context.drawArrays(drawMode, drawOffset, drawCount);
     };
 
     const clear = () => {
@@ -281,6 +288,12 @@ export const CanvasWebGL = forwardRef<
         colorsRef.current.push(color.r, color.g, color.b);
     };
 
+    const drawLine = (start: Vector, end: Vector, color: RGBColor) => {
+        positionsRef.current.push(start.x, start.y, start.z);
+        positionsRef.current.push(end.x, end.y, end.z);
+        colorsRef.current.push(color.r, color.g, color.b);
+    };
+
     useImperativeHandle<
         CanvasWebGLElement,
         CanvasWebGLElement
@@ -291,6 +304,7 @@ export const CanvasWebGL = forwardRef<
         clear,
         drawCircle,
         drawPoint,
+        drawLine,
     }));
 
     useEffect(() => {
@@ -303,6 +317,8 @@ export const CanvasWebGL = forwardRef<
         heightRef.current = innerRef.current.height;
 
         init();
+
+        const state = getState();
 
         setMatrix(
             [state.width, state.height, state.depth],

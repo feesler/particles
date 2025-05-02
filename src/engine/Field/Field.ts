@@ -42,6 +42,9 @@ export interface FieldProps {
     height: number;
     depth: number;
 
+    drawPath: boolean;
+    pathLength: number;
+
     scaleFactor: number;
     timeStep: number;
 }
@@ -68,6 +71,8 @@ export class Field {
     K: number = K;
 
     drawAllPaths: boolean;
+
+    pathLength: number = 5;
 
     useCollide: boolean;
 
@@ -146,7 +151,9 @@ export class Field {
         this.DIST = 1000;
         this.Z_SHIFT = 0;
 
-        this.drawAllPaths = false; // true;
+        this.drawAllPaths = props.drawPath;
+        this.pathLength = props.pathLength;
+
         this.useCollide = true;
         this.restoreCollided = true;
         this.useSoftening = false;
@@ -234,7 +241,31 @@ export class Field {
                 continue;
             }
 
-            canvas.drawPoint(particle.pos, particle.color);
+            if (this.drawAllPaths || particle.drawPath) {
+                const path = [...particle.path].map((item) => item.copy());
+
+                let prevPos = path.pop();
+                if (!prevPos) {
+                    continue;
+                }
+
+                let pos;
+                while (path.length > 0) {
+                    pos = path.pop();
+                    if (!pos) {
+                        break;
+                    }
+
+                    canvas.drawLine(pos.copy(), prevPos.copy(), particle.color);
+                    prevPos = pos.copy();
+                }
+
+                if (pos) {
+                    canvas.drawLine(pos.copy(), pos.copy(), particle.color);
+                }
+            } else {
+                canvas.drawPoint(particle.pos, particle.color);
+            }
         }
 
         canvas.drawScene();
@@ -457,8 +488,32 @@ export class Field {
         this.K = 8.9 * (10 ** kScale);
     }
 
+    setDrawPath(drawPath: boolean) {
+        this.drawAllPaths = drawPath;
+        this.particles.forEach((particle) => {
+            particle.resetPath();
+            this.prepareParticle(particle);
+        });
+    }
+
+    setPathLength(pathLength: number) {
+        this.pathLength = pathLength;
+        this.particles.forEach((particle) => {
+            const p = particle;
+            p.pathLength = pathLength;
+        });
+    }
+
+    prepareParticle(particle: Particle) {
+        const p = particle;
+        p.drawPath = this.drawAllPaths;
+        p.pathLength = this.pathLength;
+    }
+
     /** Add particle */
     add(particle: Particle) {
+        this.prepareParticle(particle);
+
         if (this.addInstantly) {
             if (this.useBarnesHut) {
                 const validPos = this.tree?.isValidPosition(particle.pos);
@@ -477,6 +532,8 @@ export class Field {
     }
 
     push(particle: Particle) {
+        this.prepareParticle(particle);
+
         this.particles.push(particle);
     }
 
@@ -757,7 +814,7 @@ export class Field {
         const currentPos = new Vector();
         const destPos = new Vector();
 
-        if (this.drawAllPaths || particle.drawPath) {
+        if (!this.drawAllPaths) {
             particle.resetPath();
         }
 

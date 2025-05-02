@@ -83,6 +83,9 @@ export interface AppState {
     scaleStep: number;
     scaleFactor: number;
 
+    drawPath: boolean;
+    pathLength: number;
+
     paused: boolean;
     pausedBefore: boolean;
     updating: boolean;
@@ -102,6 +105,7 @@ export interface AppState {
 
     rotationSettingsExpanded: boolean;
     rotationStepSettingsExpanded: boolean;
+    drawPathSettingsExpanded: boolean;
 
     startPoint: Point | null;
     prevPoint: Point | null;

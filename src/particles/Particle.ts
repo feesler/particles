@@ -20,6 +20,8 @@ export class Particle {
 
     drawPath: boolean;
 
+    pathLength: number;
+
     path: Vector[];
 
     color: RGBColor;
@@ -39,6 +41,7 @@ export class Particle {
         this.type = 0;
         this.draw = true;
         this.drawPath = false;
+        this.pathLength = 5;
         this.path = [];
 
         this.color = { r: 0xFF, g: 0xFF, b: 0xFF };
@@ -83,7 +86,15 @@ export class Particle {
     }
 
     setPos(pos: Vector, usePath: boolean = false) {
+        if (this.pos.isEqual(pos)) {
+            return;
+        }
+
         if (usePath || this.drawPath) {
+            if (this.path.length >= this.pathLength) {
+                this.path = this.path.slice(-(this.pathLength - 1));
+            }
+
             this.path.push(this.pos.copy());
         }
         this.pos.set(pos);
