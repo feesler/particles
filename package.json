@@ -1,6 +1,6 @@
 {
     "name": "particles",
-    "version": "0.17.2",
+    "version": "0.18.0",
     "private": true,
     "description": "Fields and particles simulation",
     "type": "module",
