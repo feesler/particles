@@ -1,17 +1,50 @@
-import { DropDownSelectionParam, MenuItemProps, MenuItemType, minmax, Offcanvas, useStore } from '@jezvejs/react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+    DropDownSelectionParam,
+    MenuItemProps,
+    MenuItemType,
+    minmax,
+    Offcanvas,
+    useStore,
+} from '@jezvejs/react';
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+} from 'react';
 
-import { INITIAL_SCENE_MARGIN_RATIO, MAX_ZOOM, MIN_ZOOM, WHEEL_ZOOM_STEP } from '../../constants.ts';
+import {
+    INITIAL_SCENE_MARGIN_RATIO,
+    MAX_ZOOM,
+    MIN_ZOOM,
+    WHEEL_ZOOM_STEP,
+} from '../../constants.ts';
 import { Field } from '../../engine/Field/Field.ts';
-import { getEventPageCoordinates, getPointsDistance, getTouchPageCoordinates, mapItems } from '../../utils.ts';
-import { AppState, Canvas, Point, View } from '../../types.ts';
+import {
+    getEventPageCoordinates,
+    getPointsDistance,
+    getTouchPageCoordinates,
+    mapItems,
+} from '../../utils.ts';
+import {
+    AppState,
+    Canvas,
+    Point,
+    View,
+} from '../../types.ts';
 
 import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
 import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
 import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
 import { Toolbar } from '../Toolbar/Toolbar.tsx';
 
-import { DemoClass, DemoItem, DemoItemFunc, demos, findDemoById } from '../../demos/index.ts';
+import {
+    DemoClass,
+    DemoItem,
+    DemoItemFunc,
+    demos,
+    findDemoById,
+} from '../../demos/index.ts';
 
 import { defaultProps } from './initialState.ts';
 
@@ -143,14 +176,15 @@ export const MainView = () => {
         if (st.useField) {
             const fieldProps = {
                 canvas,
-                width: state.width,
-                height: state.height,
-                depth: state.depth,
-                scaleFactor: state.initialScale,
-                timeStep: state.timeStep,
+                useWebGL: st.useWebGL,
+                width: st.width,
+                height: st.height,
+                depth: st.depth,
+                scaleFactor: st.initialScale,
+                timeStep: st.timeStep,
             };
+
             fieldRef.current = new Field(fieldProps);
-            fieldRef.current.useWebGL = st.useWebGL;
         }
 
         const view: View = {
@@ -373,12 +407,12 @@ export const MainView = () => {
 
         let demo;
         if (demoItem.type === 'canvas') {
-            const DemoClass = demoItem.demo;
-            if (!DemoClass) {
+            const DemoItemClass = demoItem.demo;
+            if (!DemoItemClass) {
                 return;
             }
 
-            demo = new DemoClass();
+            demo = new DemoItemClass();
         } else if (demoItem.type === 'field') {
             demo = demoItem.init;
         }
@@ -426,8 +460,7 @@ export const MainView = () => {
 
     const onChangeTimeStep = (value: number) => {
         const timeStepScale = value;
-
-        const timeStep = Math.pow(10, timeStepScale);
+        const timeStep = 10 ** timeStepScale;
 
         setState((prev: AppState) => ({ ...prev, timeStep: timeStepScale }));
         fieldRef.current?.setTimeStep(timeStep);
@@ -630,7 +663,7 @@ export const MainView = () => {
             return;
         }
 
-        const currentItem =  {
+        const currentItem = {
             id: st.demoId,
             value: st.demoId,
         };
@@ -705,12 +738,10 @@ export const MainView = () => {
         return () => {
             observer.disconnect();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mainRef.current]);
 
     useEffect(() => {
         start();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const lstate = getState();
@@ -726,10 +757,9 @@ export const MainView = () => {
         onMouseUp,
         onWheel,
         className: 'app-canvas',
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }), [lstate.canvasWidth, lstate.canvasHeight]);
 
-    const canvas = (lstate.useField /* && lstate.useWebGL */)
+    const canvas = (lstate.useField && lstate.useWebGL)
         ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
         : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
 

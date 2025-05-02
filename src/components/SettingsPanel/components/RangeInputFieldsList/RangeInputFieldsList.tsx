@@ -12,3 +12,5 @@ export const RangeInputFieldsList = memo(({ fields }: RangeInputFieldsListProps)
         )))}
     </div>
 ));
+
+RangeInputFieldsList.displayName = 'RangeInputFieldsList';

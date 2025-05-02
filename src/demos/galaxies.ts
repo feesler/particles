@@ -1,8 +1,8 @@
-import { Vector } from '../engine/Vector/Vector.js';
-import { Star } from '../particles/Star.js';
-import { DarkParticle } from '../particles/DarkParticle.js';
-import { rand } from '../utils.js';
-import { View } from '../types.js';
+import { Vector } from '../engine/Vector/Vector.ts';
+import { Star } from '../particles/Star.ts';
+import { DarkParticle } from '../particles/DarkParticle.ts';
+import { rand } from '../utils.ts';
+import { View } from '../types.ts';
 
 const randExpo = (max: number, lambda: number): number => {
     const u = rand(0, max) / (max + 1);
@@ -59,7 +59,7 @@ export function initGalaxies(view: View) {
 
         const starMassDelta = d / Math.log(mass);
         const V_SCALE = 0.5;
-        particle.velocity.rotateAroundY(starMassDelta + (3 * Math.PI / 2));
+        particle.velocity.rotateAroundY(starMassDelta + (Math.PI * (3 / 2)));
         particle.velocity.multiplyByScalar(starMassDelta * V_SCALE);
 
         field.push(particle);

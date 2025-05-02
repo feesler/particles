@@ -1,4 +1,3 @@
-
 export const translation = (tx: number, ty: number, tz: number): number[] => ([
     1, 0, 0, 0,
     0, 1, 0, 0,

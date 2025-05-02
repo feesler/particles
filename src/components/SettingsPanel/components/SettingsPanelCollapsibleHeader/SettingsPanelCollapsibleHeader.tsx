@@ -6,11 +6,17 @@ export interface SettingsPanelCollapsibleHeaderProps {
     expanded?: boolean;
 }
 
-export const SettingsPanelCollapsibleHeader = ({ title, expanded }: SettingsPanelCollapsibleHeaderProps) => (
+export const SettingsPanelCollapsibleHeader = (
+    { title, expanded }: SettingsPanelCollapsibleHeaderProps,
+) => (
     <div className="settings-panel-collapsible__header">
         <span>
             {title}
         </span>
-        {expanded ? (<MinusIcon className="header__icon" />) : (<PlusIcon className="header__icon" />)}
+        {(
+            (expanded)
+                ? (<MinusIcon className="header__icon" />)
+                : (<PlusIcon className="header__icon" />)
+        )}
     </div>
 );

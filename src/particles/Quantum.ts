@@ -1,4 +1,4 @@
-import { Particle } from './Particle.js';
+import { Particle } from './Particle.ts';
 
 export class Quantum extends Particle {
 }

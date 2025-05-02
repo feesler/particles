@@ -1,17 +1,32 @@
 import { useStore } from '@jezvejs/react';
-import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import React, {
+    forwardRef,
+    useEffect,
+    useImperativeHandle,
+    useRef,
+} from 'react';
 
-import * as m4 from '../../engine/Matrix4.ts';
 import { Vector } from 'src/engine/Vector/Vector.ts';
 import { RGBColor } from 'src/particles/types.ts';
 import { AppState } from 'src/types.ts';
+import * as m4 from '../../engine/Matrix4.ts';
 
 export type CanvasWebGLElement = {
     elem: HTMLCanvasElement | null;
-    setMatrix: (scene: number[], translation: number[], rotation: number[], scale: number[]) => void;
+
+    setMatrix: (
+        scene: number[],
+        translation: number[],
+        rotation: number[],
+        scale: number[],
+    ) => void;
+
     drawScene: () => void;
+
     clear: () => void;
+
     drawCircle: (x: number, y: number, _: number, color: RGBColor) => void;
+
     drawPoint: (pos: Vector, color: RGBColor) => void;
 };
 
@@ -53,8 +68,8 @@ export const CanvasWebGL = forwardRef<
     const heightRef = useRef<number | null>(null);
 
     const programRef = useRef<WebGLProgram | null>(null);
-    const vertexShader = useRef<WebGLShader | null>(null);
-    const fragmentShader = useRef<WebGLShader | null>(null);
+    const vertexShaderRef = useRef<WebGLShader | null>(null);
+    const fragmentShaderRef = useRef<WebGLShader | null>(null);
     const matrixRef = useRef<number[]>([]);
 
     const positionBufferRef = useRef<WebGLBuffer | null>(null);
@@ -69,76 +84,83 @@ export const CanvasWebGL = forwardRef<
     const innerRef = useRef<HTMLCanvasElement | null>(null);
 
     const createShader = (type: number, source: string): WebGLShader | null => {
-        if (!contextRef.current) {
+        const context = contextRef.current;
+        if (!context) {
             return null;
         }
 
-        const shader = contextRef.current.createShader(type);
+        const shader = context.createShader(type);
         if (!shader) {
             return null;
         }
 
-        contextRef.current.shaderSource(shader, source);
-        contextRef.current.compileShader(shader);
-        const success = contextRef.current.getShaderParameter(shader, contextRef.current.COMPILE_STATUS);
+        context.shaderSource(shader, source);
+        context.compileShader(shader);
+        const success = context.getShaderParameter(shader, context.COMPILE_STATUS);
         if (success) {
             return shader;
         }
 
         /* eslint-disable-next-line no-console */
-        console.log(contextRef.current.getShaderInfoLog(shader));
-        contextRef.current.deleteShader(shader);
+        console.log(context.getShaderInfoLog(shader));
+        context.deleteShader(shader);
 
         return null;
     };
 
     const createProgram = (vertexShader: WebGLShader, fragmentShader: WebGLShader) => {
-        if (!contextRef.current) {
+        const context = contextRef.current;
+        if (!context) {
             return null;
         }
 
-        const program = contextRef.current.createProgram();
+        const program = context.createProgram();
         if (!program) {
             return null;
         }
 
-        contextRef.current.attachShader(program, vertexShader);
-        contextRef.current.attachShader(program, fragmentShader);
-        contextRef.current.linkProgram(program);
-        const success = contextRef.current.getProgramParameter(program, contextRef.current.LINK_STATUS);
+        context.attachShader(program, vertexShader);
+        context.attachShader(program, fragmentShader);
+        context.linkProgram(program);
+        const success = context.getProgramParameter(program, context.LINK_STATUS);
         if (success) {
             return program;
         }
 
         /* eslint-disable-next-line no-console */
-        console.log(contextRef.current.getProgramInfoLog(program));
-        contextRef.current.deleteProgram(program);
+        console.log(context.getProgramInfoLog(program));
+        context.deleteProgram(program);
 
         return null;
     };
 
     const init = () => {
-        if (!contextRef.current) {
-            return null;
-        }
-
-        vertexShader.current = createShader(contextRef.current.VERTEX_SHADER, vertexShaderSrc);
-        fragmentShader.current = createShader(contextRef.current.FRAGMENT_SHADER, fragmentShaderSrc);
-        if (!vertexShader.current || !fragmentShader.current) {
+        const context = contextRef.current;
+        if (!context) {
             return;
         }
 
-        programRef.current = createProgram(vertexShader.current, fragmentShader.current);
-        if (!programRef.current) {
-            return null;
+        const vertexShader = createShader(context.VERTEX_SHADER, vertexShaderSrc);
+        vertexShaderRef.current = vertexShader;
+
+        const fragmentShader = createShader(context.FRAGMENT_SHADER, fragmentShaderSrc);
+        fragmentShaderRef.current = fragmentShader;
+        if (!vertexShader || !fragmentShader) {
+            return;
         }
 
-        positionAttributeLocation.current = contextRef.current.getAttribLocation(programRef.current, 'a_position');
-        matrixUniformLocation.current = contextRef.current.getUniformLocation(programRef.current, 'u_matrix');
-        colorAttributeLocation.current = contextRef.current.getAttribLocation(programRef.current, 'a_color');
+        const program = createProgram(vertexShader, fragmentShader);
+        programRef.current = program;
+        if (!program) {
+            return;
+        }
 
-        positionBufferRef.current = contextRef.current.createBuffer();
-        colorBufferRef.current = contextRef.current.createBuffer();
+        positionAttributeLocation.current = context.getAttribLocation(program, 'a_position');
+        matrixUniformLocation.current = context.getUniformLocation(program, 'u_matrix');
+        colorAttributeLocation.current = context.getAttribLocation(program, 'a_color');
+
+        positionBufferRef.current = context.createBuffer();
+        colorBufferRef.current = context.createBuffer();
 
         positionsRef.current = [];
         colorsRef.current = [];
@@ -160,7 +182,12 @@ export const CanvasWebGL = forwardRef<
         return false;
     };
 
-    const setMatrix = (scene: number[], translation: number[], rotation: number[], scale: number[]) => {
+    const setMatrix = (
+        scene: number[],
+        translation: number[],
+        rotation: number[],
+        scale: number[],
+    ) => {
         let matrix = m4.projection(scene[0], scene[1], scene[2]);
         matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
         matrix = m4.xRotate(matrix, rotation[0]);
@@ -172,50 +199,63 @@ export const CanvasWebGL = forwardRef<
     };
 
     const drawScene = () => {
-        if (!contextRef.current) {
+        const context = contextRef.current;
+        if (!context) {
             return;
         }
 
         resizeCanvasToDisplaySize();
-        contextRef.current.viewport(0, 0, contextRef.current.canvas.width, contextRef.current.canvas.height);
+        context.viewport(0, 0, context.canvas.width, context.canvas.height);
 
         // Clear the canvas AND the depth buffer.
-        contextRef.current.clear(contextRef.current.COLOR_BUFFER_BIT | contextRef.current.DEPTH_BUFFER_BIT);
+        context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
         // Enable the depth buffer
-        contextRef.current.enable(contextRef.current.DEPTH_TEST);
+        context.enable(context.DEPTH_TEST);
 
-        contextRef.current.useProgram(programRef.current);
+        context.useProgram(programRef.current);
 
         // Transform matrix
         if (matrixRef.current) {
-            contextRef.current.uniformMatrix4fv(matrixUniformLocation.current, false, matrixRef.current);
+            context.uniformMatrix4fv(
+                matrixUniformLocation.current,
+                false,
+                matrixRef.current,
+            );
         }
 
-        contextRef.current.bindBuffer(contextRef.current.ARRAY_BUFFER, positionBufferRef.current);
-        contextRef.current.bufferData(contextRef.current.ARRAY_BUFFER, new Float32Array(positionsRef.current), contextRef.current.STATIC_DRAW);
+        context.bindBuffer(context.ARRAY_BUFFER, positionBufferRef.current);
+        context.bufferData(
+            context.ARRAY_BUFFER,
+            new Float32Array(positionsRef.current),
+            context.STATIC_DRAW,
+        );
 
-        contextRef.current.bindBuffer(contextRef.current.ARRAY_BUFFER, colorBufferRef.current);
-        contextRef.current.bufferData(contextRef.current.ARRAY_BUFFER, new Uint8Array(colorsRef.current), contextRef.current.STATIC_DRAW);
+        context.bindBuffer(context.ARRAY_BUFFER, colorBufferRef.current);
+        context.bufferData(
+            context.ARRAY_BUFFER,
+            new Uint8Array(colorsRef.current),
+            context.STATIC_DRAW,
+        );
 
         // Set up positions buffer
-        contextRef.current.enableVertexAttribArray(positionAttributeLocation.current);
-        contextRef.current.bindBuffer(contextRef.current.ARRAY_BUFFER, positionBufferRef.current);
-        contextRef.current.vertexAttribPointer(
+        context.enableVertexAttribArray(positionAttributeLocation.current);
+        context.bindBuffer(context.ARRAY_BUFFER, positionBufferRef.current);
+        context.vertexAttribPointer(
             positionAttributeLocation.current,
             3, // components per iteration
-            contextRef.current.FLOAT,
+            context.FLOAT,
             false, // data normalization
             0, // 0 = move forward size * sizeof(type) each iteration to get the next position
             0, // start at the beginning of the buffer
         );
 
         // Set up colors buffer
-        contextRef.current.enableVertexAttribArray(colorAttributeLocation.current);
-        contextRef.current.bindBuffer(contextRef.current.ARRAY_BUFFER, colorBufferRef.current);
-        contextRef.current.vertexAttribPointer(
+        context.enableVertexAttribArray(colorAttributeLocation.current);
+        context.bindBuffer(context.ARRAY_BUFFER, colorBufferRef.current);
+        context.vertexAttribPointer(
             colorAttributeLocation.current,
             3, // components per iteration
-            contextRef.current.UNSIGNED_BYTE,
+            context.UNSIGNED_BYTE,
             true, // normalize the data (convert from 0-255 to 0-1)
             0, // 0 = move forward size * sizeof(type) each iteration to get the next position
             0, // start at the beginning of the buffer
@@ -223,7 +263,7 @@ export const CanvasWebGL = forwardRef<
 
         const drawOffset = 0;
         const drawCount = positionsRef.current.length / 3;
-        contextRef.current.drawArrays(contextRef.current.POINTS, drawOffset, drawCount);
+        context.drawArrays(context.POINTS, drawOffset, drawCount);
     };
 
     const clear = () => {
@@ -270,7 +310,6 @@ export const CanvasWebGL = forwardRef<
             [state.rotation.alpha, state.rotation.beta, state.rotation.gamma],
             [1, 1, 1],
         );
-        /* eslint-disable-next-line react-hooks/exhaustive-deps */
     }, []);
 
     return (

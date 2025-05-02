@@ -2,7 +2,9 @@ import { Object3D } from '../types.ts';
 
 export class Vector implements Object3D<number> {
     x: number;
+
     y: number;
+
     z: number;
 
     constructor(x: number = 0, y: number = 0, z: number = 0) {

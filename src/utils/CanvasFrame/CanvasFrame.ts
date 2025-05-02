@@ -33,7 +33,7 @@ export class CanvasFrame {
         r: number,
         g: number,
         b: number,
-        a: number
+        a: number,
     ) {
         const steep = Math.abs(x0 - x1) < Math.abs(y0 - y1);
         let lx0 = steep ? y0 : x0;

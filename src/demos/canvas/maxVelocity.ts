@@ -1,4 +1,4 @@
-import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.ts';
+import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.tsx';
 import { DemoClass } from '../index.ts';
 import { View } from '../../types.ts';
 

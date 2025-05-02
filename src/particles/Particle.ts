@@ -3,20 +3,29 @@ import { RGBColor } from './types.ts';
 
 export class Particle {
     pos: Vector;
+
     force: Vector;
+
     velocity: Vector;
 
     m: number;
+
     charge: number;
+
     r: number;
+
     type: number;
 
     draw: boolean;
+
     drawPath: boolean;
+
     path: Vector[];
 
     color: RGBColor;
+
     removed: boolean;
+
     isQuantum: boolean;
 
     constructor(x: number, y: number, z: number, charge: number, m: number) {

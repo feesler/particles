@@ -1,3 +1,4 @@
+import { asArray } from '@jezvejs/types';
 import React from 'react';
 import { Axis3D } from './engine/types.ts';
 import { Vector } from './engine/Vector/Vector.ts';
@@ -196,18 +197,18 @@ export function mapItems<
         };
 
         if (isChildItemsAvailable(item)) {
-            const group = shouldIncludeParentItem(item, options as IncludeGroupItemsParam)
+            const groupItem = shouldIncludeParentItem(item, options as IncludeGroupItemsParam)
                 ? callback(item, index, items)
                 : item;
 
             res.push({
-                ...group,
+                ...groupItem,
                 items: mapItems<T, R>(
-                    ('items' in item && item.items || []) as T[],
+                    ('items' in item) ? asArray(item.items) : [],
                     callback,
                     {
                         ...(options ?? {}),
-                        group: group as T,
+                        group: groupItem as T,
                     },
                 ),
             } as R);
