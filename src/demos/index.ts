@@ -107,6 +107,11 @@ export const demosList = mapItems<DemoItem, MenuItemProps>(demos, (item) => ({
     items: item.items as MenuItemProps[],
 }));
 
+export const initialDemoItem = findDemoItem<DemoItem>(
+    demos,
+    (item: DemoItem) => item?.type !== 'group',
+);
+
 export const findDemoById = (id: string): DemoItem | null => (
     findDemoItem<DemoItem>(demos, (item: DemoItem) => item?.id === id)
 );

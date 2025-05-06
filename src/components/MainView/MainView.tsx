@@ -40,6 +40,7 @@ import {
     DemoItemFunc,
     demosList,
     findDemoById,
+    initialDemoItem,
 } from '../../demos/index.ts';
 
 import { defaultProps } from './initialState.ts';
@@ -767,6 +768,14 @@ export const MainView = () => {
 
     useEffect(() => {
         start();
+
+        if (!initialDemoItem?.id) {
+            return;
+        }
+
+        onChangeDemo({
+            id: initialDemoItem?.id,
+        });
     }, []);
 
     const lstate = getState();
