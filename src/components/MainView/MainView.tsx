@@ -1,7 +1,5 @@
 import {
     DropDownSelectionParam,
-    MenuItemProps,
-    MenuItemType,
     minmax,
     Offcanvas,
     useStore,
@@ -24,7 +22,6 @@ import {
     getEventPageCoordinates,
     getPointsDistance,
     getTouchPageCoordinates,
-    mapItems,
 } from '../../utils.ts';
 import {
     AppState,
@@ -40,20 +37,13 @@ import { Toolbar } from '../Toolbar/Toolbar.tsx';
 
 import {
     DemoClass,
-    DemoItem,
     DemoItemFunc,
-    demos,
+    demosList,
     findDemoById,
+    initialDemoItem,
 } from '../../demos/index.ts';
 
 import { defaultProps } from './initialState.ts';
-
-const demosList = mapItems<DemoItem, MenuItemProps>(demos, ({ type, ...item }) => ({
-    id: item.id,
-    title: item.id,
-    type: ((type === 'group') ? 'group' : 'button') as MenuItemType,
-    items: item.items as MenuItemProps[],
-}));
 
 export const MainView = () => {
     const { state, getState, setState } = useStore<AppState>();
@@ -778,6 +768,14 @@ export const MainView = () => {
 
     useEffect(() => {
         start();
+
+        if (!initialDemoItem?.id) {
+            return;
+        }
+
+        onChangeDemo({
+            id: initialDemoItem?.id,
+        });
     }, []);
 
     const lstate = getState();

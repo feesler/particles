@@ -1,14 +1,16 @@
-import { initStars } from './stars.ts';
+import { MenuItemProps, MenuItemType } from '@jezvejs/react';
+
+import { Box3dDemo } from './canvas/box3d.ts';
+import { MaxVelocityDemo } from './canvas/maxVelocity.ts';
 import { initGalaxies } from './galaxies.ts';
-import { initPlanetarySystem } from './planetary.ts';
 import { initGas } from './gas.ts';
 import { initParticles } from './particles.ts';
+import { initPlanetarySystem } from './planetary.ts';
+import { initStars } from './stars.ts';
 import { initVelocityTest } from './velocity.ts';
-import { MaxVelocityDemo } from './canvas/maxVelocity.ts';
-import { Box3dDemo } from './canvas/box3d.ts';
 
-import { findDemoItem } from '../utils.ts';
 import { View } from '../types.ts';
+import { findDemoItem, mapItems } from '../utils.ts';
 
 export type DemoItemFunc = (view: View) => void;
 
@@ -44,31 +46,37 @@ export const demos: DemoItem[] = [
     {
         id: 'planetarySystem',
         type: 'field',
+        title: 'Planetary system',
         init: initPlanetarySystem,
     },
     {
         id: 'stars',
         type: 'field',
+        title: 'Stars',
         init: initStars,
     },
     {
         id: 'galaxies',
         type: 'field',
+        title: 'Galaxy',
         init: initGalaxies,
     },
     {
         id: 'gas',
         type: 'field',
+        title: 'Gas',
         init: initGas,
     },
     {
         id: 'particles',
         type: 'field',
+        title: 'Particles',
         init: initParticles,
     },
     {
         id: 'velocityTest',
         type: 'field',
+        title: 'Velocity test',
         init: initVelocityTest,
     },
     {
@@ -79,16 +87,30 @@ export const demos: DemoItem[] = [
             {
                 id: 'maxVelocity',
                 type: 'canvas',
+                title: 'Maximum velocity test',
                 demo: MaxVelocityDemo,
             },
             {
                 id: 'cube',
                 type: 'canvas',
+                title: 'Cube',
                 demo: Box3dDemo,
             },
         ],
     },
 ];
+
+export const demosList = mapItems<DemoItem, MenuItemProps>(demos, (item) => ({
+    id: item.id,
+    title: item.title,
+    type: ((item.type === 'group') ? 'group' : 'button') as MenuItemType,
+    items: item.items as MenuItemProps[],
+}));
+
+export const initialDemoItem = findDemoItem<DemoItem>(
+    demos,
+    (item: DemoItem) => item?.type !== 'group',
+);
 
 export const findDemoById = (id: string): DemoItem | null => (
     findDemoItem<DemoItem>(demos, (item: DemoItem) => item?.id === id)
