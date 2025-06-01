@@ -1,16 +1,19 @@
-import { createSlice, StoreProvider } from '@jezvejs/react';
+import { StoreProvider } from '@jezvejs/react';
+
 import { MainView } from './components/MainView/MainView.tsx';
 import { getInitialState } from './components/MainView/initialState.ts';
-import './App.css';
 
-const slice = createSlice({});
-const { reducer } = slice;
+import { reducer } from './store/reducer.ts';
+
+import { AppState } from './types.ts';
+
+import './App.css';
 
 export function App() {
     const initialState = getInitialState();
 
     return (
-        <StoreProvider
+        <StoreProvider<AppState>
             reducer={reducer}
             initialState={initialState}
         >
