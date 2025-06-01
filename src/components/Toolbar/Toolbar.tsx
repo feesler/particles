@@ -1,11 +1,12 @@
 import { CloseButton, useStore } from '@jezvejs/react';
 import { useCallback } from 'react';
 
+import { actions } from 'src/store/reducer.ts';
 import { AppState } from 'src/types.ts';
 
-import { ToggleRunButton } from '../ToggleRunButton/ToggleRunButton.tsx';
 import { MenuButton } from '../MenuButton/MenuButton.tsx';
 import { ResetButton } from '../ResetButton/ResetButton.tsx';
+import { ToggleRunButton } from '../ToggleRunButton/ToggleRunButton.tsx';
 
 import './Toolbar.css';
 
@@ -27,13 +28,13 @@ export const Toolbar = (props: ToolbarProps) => {
         ...rest
     } = props;
 
-    const { getState, setState } = useStore<AppState>();
+    const { getState, dispatch } = useStore<AppState>();
     const state = getState();
     const showCloseBtn = !!state.settingsVisible;
     const showMenuBtn = !state.settingsVisible;
 
     const showOffcanvas = useCallback((settingsVisible: boolean) => {
-        setState((prev) => ({ ...prev, settingsVisible }));
+        dispatch(actions.showOffcanvas(settingsVisible));
     }, []);
 
     const onMenuBtnClick = useCallback(() => {

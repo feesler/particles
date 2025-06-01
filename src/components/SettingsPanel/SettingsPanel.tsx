@@ -5,6 +5,19 @@ import {
 } from '@jezvejs/react';
 import { useCallback, useMemo } from 'react';
 
+import {
+    changeDrawPath,
+    changeDrawPathLength,
+    changeGScale,
+    changeKScale,
+    changeZoom,
+    MainViewActionsAPI,
+    rotateAroundXAxis,
+    rotateAroundYAxis,
+    rotateAroundZAxis,
+} from 'src/store/actions.ts';
+import { actions } from 'src/store/reducer.ts';
+
 import { Field } from 'src/engine/Field/Field.ts';
 import { AppState } from 'src/types.ts';
 import {
@@ -30,23 +43,23 @@ type Props = {
 
     demosList: MenuItemProps[];
 
+    viewAPI: MainViewActionsAPI;
+
     onChangeDemo: (selected: DropDownSelectionParam) => void;
-    onScale: (value: number) => void;
-    onChangeScaleStep: (value: number) => void;
-    onChangeTimeStep: (value: number) => void;
-    onXRotate: (value: number) => void;
-    onYRotate: (value: number) => void;
-    onZRotate: (value: number) => void;
-    onChangeXRotationStep: (value: number) => void;
-    onChangeYRotationStep: (value: number) => void;
-    onChangeZRotationStep: (value: number) => void;
-    onZoom: (value: number) => void;
-    onChangeGScale: (value: number) => void;
-    onChangeKScale: (value: number) => void;
-    onChangeDrawPath: (drawPath: boolean) => void;
-    onChangePathLength: (pathLength: number) => void;
     onToggleRun: () => void;
     onClose: () => void;
+};
+
+const rotationFieldsCommon = {
+    min: ROTATION_FIELD_MIN_VALUE,
+    max: ROTATION_FIELD_MAX_VALUE,
+    step: ROTATION_FIELD_VALUE_STEP,
+};
+
+const rotationStepFieldsCommon = {
+    min: -1,
+    max: 1,
+    step: 0.00001,
 };
 
 export const SettingsPanel = (props: Props) => {
@@ -54,51 +67,69 @@ export const SettingsPanel = (props: Props) => {
         fieldRef,
         demosList,
         onChangeDemo,
-        onScale,
-        onChangeScaleStep,
-        onChangeTimeStep,
-        onXRotate,
-        onYRotate,
-        onZRotate,
-        onChangeXRotationStep,
-        onChangeYRotationStep,
-        onChangeZRotationStep,
-        onZoom,
-        onChangeGScale,
-        onChangeKScale,
-        onChangeDrawPath,
-        onChangePathLength,
+        viewAPI,
     } = props;
 
-    const { getState, setState } = useStore<AppState>();
+    const { getState, dispatch } = useStore<AppState>();
     const state = getState();
 
+    // Scale
+    const onScale = useCallback((value: number) => {
+        dispatch(actions.setScaleFactor(value));
+    }, []);
+
+    // Scale step
+    const onChangeScaleStep = useCallback((scaleStep: number) => {
+        dispatch(actions.setScaleStep(scaleStep));
+    }, []);
+
+    // Time step
+    const onChangeTimeStep = useCallback((value: number) => {
+        dispatch(actions.setTimeStep(value));
+    }, []);
+
+    // Scene zoom
+    const onZoom = useCallback((value: number) => {
+        dispatch(changeZoom(value, viewAPI));
+    }, []);
+
+    // Draw path
+    const onChangeDrawPath = useCallback((value: boolean) => {
+        dispatch(changeDrawPath(value, viewAPI));
+    }, []);
+
+    // Draw path length
+    const onChangePathLength = useCallback((value: number) => {
+        dispatch(changeDrawPathLength(value, viewAPI));
+    }, []);
+
+    // Scene rotation collapsible block
     const onToggleRotationCollapsible = useCallback(() => {
-        setState((prev: AppState) => ({
-            ...prev,
-            rotationSettingsExpanded: !prev.rotationSettingsExpanded,
-        }));
+        dispatch(actions.toggleRotationCollapsible());
     }, []);
 
+    // Scene rotation step collapsible block
     const onToggleRotationStepCollapsible = useCallback(() => {
-        setState((prev: AppState) => ({
-            ...prev,
-            rotationStepSettingsExpanded: !prev.rotationStepSettingsExpanded,
-        }));
+        dispatch(actions.toggleRotationStepCollapsible());
     }, []);
 
+    // 'Draw paths' option collapsible block
     const onToggleDrawPathCollapsible = useCallback(() => {
-        setState((prev: AppState) => ({
-            ...prev,
-            drawPathSettingsExpanded: !prev.drawPathSettingsExpanded,
-        }));
+        dispatch(actions.toggleDragPathCollapsible());
     }, []);
 
-    const rotationFieldsCommon = {
-        min: ROTATION_FIELD_MIN_VALUE,
-        max: ROTATION_FIELD_MAX_VALUE,
-        step: ROTATION_FIELD_VALUE_STEP,
-    };
+    // Rotation
+    const onXRotate = useCallback((value: number) => {
+        dispatch(rotateAroundXAxis(value, viewAPI));
+    }, []);
+
+    const onYRotate = useCallback((value: number) => {
+        dispatch(rotateAroundYAxis(value, viewAPI));
+    }, []);
+
+    const onZRotate = useCallback((value: number) => {
+        dispatch(rotateAroundZAxis(value, viewAPI));
+    }, []);
 
     const rotationRangeInputFields = useMemo(() => ([{
         ...rotationFieldsCommon,
@@ -120,11 +151,18 @@ export const SettingsPanel = (props: Props) => {
         onChange: onZRotate,
     }]), [state.rotation.alpha, state.rotation.beta, state.rotation.gamma]);
 
-    const rotationStepFieldsCommon = {
-        min: -1,
-        max: 1,
-        step: 0.00001,
-    };
+    // Rotation step
+    const onChangeXRotationStep = useCallback((alpha: number) => {
+        dispatch(actions.setRotationStepAlpha(alpha));
+    }, []);
+
+    const onChangeYRotationStep = useCallback((beta: number) => {
+        dispatch(actions.setRotationStepBeta(beta));
+    }, []);
+
+    const onChangeZRotationStep = useCallback((gamma: number) => {
+        dispatch(actions.setRotationStepGamme(gamma));
+    }, []);
 
     const rotationStepRangeInputFields = useMemo(() => ([{
         ...rotationStepFieldsCommon,
@@ -145,6 +183,16 @@ export const SettingsPanel = (props: Props) => {
         value: state.rotationStep.gamma,
         onChange: onChangeZRotationStep,
     }]), [state.rotationStep.alpha, state.rotationStep.beta, state.rotationStep.gamma]);
+
+    // Order of magnitude of the gravitational constant
+    const onChangeGScale = useCallback((value: number) => {
+        dispatch(changeGScale(value, viewAPI));
+    }, []);
+
+    // Order of magnitude of the Coulomb constant
+    const onChangeKScale = useCallback((value: number) => {
+        dispatch(changeKScale(value, viewAPI));
+    }, []);
 
     return (
         <section className="data-section">
@@ -220,7 +268,7 @@ export const SettingsPanel = (props: Props) => {
                 className="settings-panel-paths-collapsible"
                 title="Paths"
                 onStateChange={onToggleDrawPathCollapsible}
-                expanded={state.rotationStepSettingsExpanded}
+                expanded={state.drawPathSettingsExpanded}
                 animated
             >
                 <DrawPathCollapsible

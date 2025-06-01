@@ -1,6 +1,5 @@
 import {
     DropDownSelectionParam,
-    minmax,
     Offcanvas,
     useStore,
 } from '@jezvejs/react';
@@ -11,24 +10,25 @@ import {
     useRef,
 } from 'react';
 
+import { changeZoom, pause } from 'src/store/actions.ts';
+import { actions } from 'src/store/reducer.ts';
+
 import {
     INITIAL_SCENE_MARGIN_RATIO,
-    MAX_ZOOM,
-    MIN_ZOOM,
+    ROTATION_SPEED,
     WHEEL_ZOOM_STEP,
 } from '../../constants.ts';
 import { Field } from '../../engine/Field/Field.ts';
+import {
+    AppState,
+    Canvas,
+    View,
+} from '../../types.ts';
 import {
     getEventPageCoordinates,
     getPointsDistance,
     getTouchPageCoordinates,
 } from '../../utils.ts';
-import {
-    AppState,
-    Canvas,
-    Point,
-    View,
-} from '../../types.ts';
 
 import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
 import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
@@ -46,7 +46,7 @@ import {
 import { defaultProps } from './initialState.ts';
 
 export const MainView = () => {
-    const { state, getState, setState } = useStore<AppState>();
+    const { state, getState, dispatch } = useStore<AppState>();
 
     const updateTimeout = useRef<number>(0);
     const rotationTimeout = useRef<number>(0);
@@ -77,23 +77,20 @@ export const MainView = () => {
         }
 
         let st = getState();
-        if (st.rotating || st.paused) {
+        if (st.rotating || st.paused || st.updating) {
             return;
         }
 
-        setState((prev: AppState) => ({ ...prev, updating: true }));
+        dispatch(actions.setUpdating(true));
         const pBefore = performance.now();
 
         const dt = (st.timestamp) ? (timestamp - st.timestamp) : 0;
-        setState((prev: AppState) => ({ ...prev, timestamp }));
+        dispatch(actions.setTimestamp(timestamp));
 
         field.calculate(dt);
         field.drawFrame();
         if (st.scaleStep !== 0) {
-            setState((prev: AppState) => ({
-                ...prev,
-                scaleFactor: prev.scaleFactor + prev.scaleStep,
-            }));
+            dispatch(actions.stepScaleFactor());
 
             st = getState();
             field.setScaleFactor(st.scaleFactor);
@@ -101,22 +98,13 @@ export const MainView = () => {
         processRotationStep();
 
         const perfValue = Math.round(performance.now() - pBefore);
-        setState((prev: AppState) => ({ ...prev, perfValue }));
+        dispatch(actions.setPerformance(perfValue));
 
         if (!st.paused) {
             scheduleUpdate();
         }
 
-        setState((prev: AppState) => ({ ...prev, updating: false }));
-    };
-
-    const pause = () => {
-        const st = getState();
-        if (st.paused) {
-            return;
-        }
-
-        setState((prev: AppState) => ({ ...prev, paused: true }));
+        dispatch(actions.setUpdating(false));
     };
 
     const run = () => {
@@ -125,37 +113,20 @@ export const MainView = () => {
             return;
         }
 
-        setState((prev: AppState) => ({ ...prev, paused: false }));
+        dispatch(actions.run());
         scheduleUpdate();
     };
 
     const initDemo = (demo: DemoClass | DemoItemFunc, demoId: string) => {
-        if (typeof demo === 'function') {
-            setState((prev: AppState) => ({
-                ...prev,
-                ...defaultProps,
-                drawPath: prev.drawPath,
-                pathLength: prev.pathLength,
-                demo,
-                demoId,
-            }));
-
-            return;
-        }
-
-        const props = demo.getProps();
-        setState((prev: AppState) => ({
-            ...prev,
-            ...props,
-            drawPath: prev.drawPath,
-            pathLength: prev.pathLength,
+        dispatch(actions.initDemo({
+            props: (typeof demo === 'function') ? defaultProps : demo.getProps(),
             demo,
             demoId,
         }));
     };
 
     const setScaleStep = (scaleStep: number) => {
-        setState((prev: AppState) => ({ ...prev, scaleStep }));
+        dispatch(actions.setScaleStep(scaleStep));
     };
 
     const start = () => {
@@ -221,11 +192,13 @@ export const MainView = () => {
             return;
         }
 
-        setState((prev: AppState) => ({ ...prev, rotating: true }));
+        dispatch(actions.setRotating(true));
 
         const canvas = getCanvas();
         if (st.useWebGL && canvas?.elem) {
-            const { clientWidth, clientHeight } = canvas.elem;
+            // const { clientWidth, clientHeight } = canvas.elem;
+            const clientWidth = st.canvasWidth;
+            const clientHeight = st.canvasHeight;
 
             const webGLCanvas = canvas as CanvasWebGLRef;
             webGLCanvas?.setMatrix(
@@ -240,48 +213,15 @@ export const MainView = () => {
 
         fieldRef.current?.drawFrame();
 
-        setState((prev: AppState) => ({ ...prev, rotating: false }));
+        dispatch(actions.setRotating(false));
     };
 
     const onMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
-        const st = getState();
-        if (st.dragging) {
-            return;
-        }
-
-        const startPoint = getEventPageCoordinates(e);
-
-        setState((prev: AppState) => ({
-            ...prev,
-            startPoint,
-            prevPoint: null,
-            dragging: true,
-            pausedBefore: prev.paused,
-        }));
+        dispatch(actions.mouseDown(e));
     };
 
     const onTouchStart = (e: React.TouchEvent) => {
-        if (e.touches.length === 1) {
-            onMouseDown(e);
-            return;
-        }
-
-        const touches = getTouchPageCoordinates(e);
-        setState((prev: AppState) => ({
-            ...prev,
-            prevTouches: touches,
-            dragging: true,
-            pausedBefore: prev.paused,
-        }));
-    };
-
-    const setPrevTouches = (prevTouches: Point[] | null) => {
-        setState((prev: AppState) => ({
-            ...prev,
-            prevTouches,
-            dragging: true,
-            pausedBefore: prev.paused,
-        }));
+        dispatch(actions.touchStart(e));
     };
 
     const onTouchMove = (e: React.TouchEvent) => {
@@ -296,7 +236,7 @@ export const MainView = () => {
 
         const st = getState();
         const newTouches = getTouchPageCoordinates(e);
-        setPrevTouches(newTouches);
+        dispatch(actions.setPrevTouches(newTouches));
 
         const prevDistance = getPointsDistance(st.prevTouches ?? []);
         if (prevDistance === 0) {
@@ -312,41 +252,25 @@ export const MainView = () => {
     const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
         const st = getState();
         const { dragging, startPoint, pausedBefore } = st;
-        const canvas = getCanvas();
-        if (!dragging || !startPoint || !canvas) {
+        if (!dragging || !startPoint || st.canvasWidth === 0 || st.canvasHeight === 0) {
             return;
         }
 
         const newPoint = getEventPageCoordinates(e);
         const prevPoint = st.prevPoint ?? st.startPoint;
-        if (!newPoint || !prevPoint || !canvas.elem) {
+        if (!newPoint || !prevPoint) {
             return;
         }
 
-        const rect = canvas.elem.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) {
-            return;
-        }
-
-        const containerSize = Math.min(rect.width, rect.height);
+        const containerSize = Math.min(st.canvasWidth, st.canvasHeight);
         const deltaX = (prevPoint.x - newPoint.x) / containerSize;
         const deltaY = (prevPoint.y - newPoint.y) / containerSize;
+        const beta = Math.PI * deltaX * ROTATION_SPEED;
+        const alpha = Math.PI * deltaY * ROTATION_SPEED;
 
-        const rotationSpeed = 0.75;
-        const beta = Math.PI * deltaX * rotationSpeed;
-        const alpha = Math.PI * deltaY * rotationSpeed;
+        dispatch(pause());
 
-        pause();
-
-        setState((prev: AppState) => ({
-            ...prev,
-            prevPoint: { ...newPoint },
-            rotation: {
-                ...prev.rotation,
-                alpha: prev.rotation.alpha + alpha,
-                beta: prev.rotation.beta + beta,
-            },
-        }));
+        dispatch(actions.mouseMove(e));
 
         processRotation(alpha, beta, 0);
 
@@ -359,12 +283,7 @@ export const MainView = () => {
         const st = getState();
         const { pausedBefore } = st;
 
-        setState((prev: AppState) => ({
-            ...prev,
-            dragging: false,
-            startPoint: null,
-            prevTouches: null,
-        }));
+        dispatch(actions.resetTouchDrag());
 
         if (!pausedBefore) {
             run();
@@ -397,7 +316,7 @@ export const MainView = () => {
             return;
         }
 
-        pause();
+        dispatch(pause());
 
         clearDemo();
 
@@ -416,19 +335,7 @@ export const MainView = () => {
             return;
         }
 
-        setState((prev: AppState) => ({
-            ...prev,
-            paused: true,
-            updating: false,
-            rotating: false,
-            rotation: { alpha: 0, beta: 0, gamma: 0 },
-            timestamp: undefined,
-            perfValue: 0,
-            dragging: false,
-            startPoint: null,
-            demo: null,
-            demoId: null,
-        }));
+        dispatch(actions.resetDemo());
 
         fitToScreen();
 
@@ -439,131 +346,6 @@ export const MainView = () => {
         });
     };
 
-    const showOffcanvas = (settingsVisible: boolean) => {
-        setState((prev) => ({ ...prev, settingsVisible }));
-    };
-
-    const onScale = (value: number) => {
-        const scaleFactor = value;
-
-        setState((prev: AppState) => ({ ...prev, scaleFactor }));
-        fieldRef.current?.setScaleFactor(scaleFactor);
-    };
-
-    const onChangeScaleStep = (value: number) => {
-        setScaleStep(value);
-    };
-
-    const onChangeTimeStep = (value: number) => {
-        const timeStepScale = value;
-        const timeStep = 10 ** timeStepScale;
-
-        setState((prev: AppState) => ({ ...prev, timeStep: timeStepScale }));
-        fieldRef.current?.setTimeStep(timeStep);
-    };
-
-    const onXRotate = (value: number) => {
-        const st = getState();
-        const { paused } = st;
-
-        pause();
-
-        const val = value;
-        const delta = val - st.rotation.alpha;
-
-        setState((prev: AppState) => ({
-            ...prev,
-            rotation: {
-                ...prev.rotation,
-                alpha: val,
-            },
-        }));
-
-        processRotation(delta, 0, 0);
-
-        if (!paused) {
-            run();
-        }
-    };
-
-    const onYRotate = (value: number) => {
-        const st = getState();
-        const { paused } = st;
-
-        pause();
-
-        const val = value;
-        const delta = val - st.rotation.beta;
-
-        setState((prev: AppState) => ({
-            ...prev,
-            rotation: {
-                ...prev.rotation,
-                beta: val,
-            },
-        }));
-
-        processRotation(0, delta, 0);
-
-        if (!paused) {
-            run();
-        }
-    };
-
-    const onZRotate = (value: number) => {
-        const st = getState();
-        const { paused } = st;
-
-        pause();
-
-        const val = value;
-        const delta = val - st.rotation.gamma;
-
-        setState((prev: AppState) => ({
-            ...prev,
-            rotation: {
-                ...prev.rotation,
-                gamma: val,
-            },
-        }));
-
-        processRotation(0, 0, delta);
-
-        if (!paused) {
-            run();
-        }
-    };
-
-    const onChangeXRotationStep = (alpha: number) => {
-        setState((prev: AppState) => ({
-            ...prev,
-            rotationStep: {
-                ...prev.rotationStep,
-                alpha,
-            },
-        }));
-    };
-
-    const onChangeYRotationStep = (beta: number) => {
-        setState((prev: AppState) => ({
-            ...prev,
-            rotationStep: {
-                ...prev.rotationStep,
-                beta,
-            },
-        }));
-    };
-
-    const onChangeZRotationStep = (gamma: number) => {
-        setState((prev: AppState) => ({
-            ...prev,
-            rotationStep: {
-                ...prev.rotationStep,
-                gamma,
-            },
-        }));
-    };
-
     const processRotationStep = () => {
         const st = getState();
         const { paused } = st;
@@ -572,16 +354,8 @@ export const MainView = () => {
             return;
         }
 
-        pause();
-
-        setState((prev: AppState) => ({
-            ...prev,
-            rotation: {
-                alpha: prev.rotation.alpha + alpha,
-                beta: prev.rotation.beta + beta,
-                gamma: prev.rotation.gamma + gamma,
-            },
-        }));
+        dispatch(pause());
+        dispatch(actions.stepRotation());
 
         processRotation(alpha, beta, gamma);
 
@@ -591,95 +365,43 @@ export const MainView = () => {
     };
 
     const onZoom = (value: number) => {
-        const st = getState();
-        const { paused } = st;
+        dispatch(changeZoom(value, viewAPI));
+    };
 
-        const zoom = minmax(MIN_ZOOM, MAX_ZOOM, value);
-        if (zoom === st.zoom) {
-            return;
-        }
-
-        pause();
-
-        setState((prev: AppState) => ({ ...prev, zoom }));
-
-        fieldRef.current?.setZoom(zoom);
+    useEffect(() => {
+        fieldRef.current?.setZoom(state.zoom);
         fieldRef.current?.drawFrame();
+    }, [state.zoom]);
 
-        processRotation(0, 0, 0);
+    useEffect(() => {
+        fieldRef.current?.setGScale(state.gScale);
+    }, [state.gScale]);
 
-        if (!paused) {
-            run();
-        }
-    };
+    useEffect(() => {
+        fieldRef.current?.setKScale(state.kScale);
+    }, [state.kScale]);
 
-    const onChangeGScale = (value: number) => {
-        const st = getState();
-        const { paused } = st;
+    useEffect(() => {
+        fieldRef.current?.setTimeStep(10 ** state.timeStep);
+    }, [state.timeStep]);
 
-        pause();
+    useEffect(() => {
+        fieldRef.current?.setScaleFactor(state.scaleFactor);
+    }, [state.scaleFactor]);
 
-        const gScale = value;
-        setState((prev: AppState) => ({ ...prev, gScale }));
+    useEffect(() => {
+        fieldRef.current?.setDrawPath(state.drawPath);
+    }, [state.drawPath]);
 
-        fieldRef.current?.setGScale(gScale);
-
-        if (!paused) {
-            run();
-        }
-    };
-
-    const onChangeKScale = (value: number) => {
-        const st = getState();
-        const { paused } = st;
-
-        pause();
-
-        const kScale = value;
-        setState((prev: AppState) => ({ ...prev, kScale }));
-
-        fieldRef.current?.setKScale(kScale);
-
-        if (!paused) {
-            run();
-        }
-    };
-
-    const onChangeDrawPath = (drawPath: boolean) => {
-        const st = getState();
-        const { paused } = st;
-
-        pause();
-
-        setState((prev: AppState) => ({ ...prev, drawPath }));
-
-        fieldRef.current?.setDrawPath(drawPath);
-
-        if (!paused) {
-            run();
-        }
-    };
-
-    const onChangePathLength = (pathLength: number) => {
-        const st = getState();
-        const { paused } = st;
-
-        pause();
-
-        setState((prev: AppState) => ({ ...prev, pathLength }));
-
-        fieldRef.current?.setPathLength(pathLength);
-
-        if (!paused) {
-            run();
-        }
-    };
+    useEffect(() => {
+        fieldRef.current?.setPathLength(state.pathLength);
+    }, [state.pathLength]);
 
     const onToggleRun = () => {
         if (state.paused) {
             run();
         } else {
-            pause();
+            dispatch(pause());
         }
     };
 
@@ -691,7 +413,6 @@ export const MainView = () => {
 
         const currentItem = {
             id: st.demoId,
-            value: st.demoId,
         };
 
         onChangeDemo(currentItem);
@@ -729,17 +450,13 @@ export const MainView = () => {
         }
 
         const pausedBefore = st.paused;
-        pause();
+        dispatch(pause());
 
         if (canvasHeight > 0) {
             canvasHeight -= 1;
         }
 
-        setState((prev: AppState) => ({
-            ...prev,
-            canvasWidth,
-            canvasHeight,
-        }));
+        dispatch(actions.setCanvasSize({ canvasWidth, canvasHeight }));
 
         setTimeout(() => {
             fieldRef.current?.drawFrame();
@@ -798,8 +515,13 @@ export const MainView = () => {
         : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
 
     const onClose = useCallback(() => {
-        showOffcanvas(false);
+        dispatch(actions.showOffcanvas(false));
     }, []);
+
+    const viewAPI = useMemo(() => ({
+        scheduleUpdate,
+        processRotation,
+    }), []);
 
     return (
         <div id="maincontainer" className="container">
@@ -821,21 +543,8 @@ export const MainView = () => {
                     demosList={demosList}
                     onChangeDemo={onChangeDemo}
                     onClose={onClose}
-                    onScale={onScale}
-                    onChangeScaleStep={onChangeScaleStep}
-                    onChangeTimeStep={onChangeTimeStep}
-                    onXRotate={onXRotate}
-                    onYRotate={onYRotate}
-                    onZRotate={onZRotate}
-                    onChangeXRotationStep={onChangeXRotationStep}
-                    onChangeYRotationStep={onChangeYRotationStep}
-                    onChangeZRotationStep={onChangeZRotationStep}
-                    onZoom={onZoom}
-                    onChangeGScale={onChangeGScale}
-                    onChangeKScale={onChangeKScale}
-                    onChangeDrawPath={onChangeDrawPath}
-                    onChangePathLength={onChangePathLength}
                     onToggleRun={onToggleRun}
+                    viewAPI={viewAPI}
                 />
             </Offcanvas>
         </div>

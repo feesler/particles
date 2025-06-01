@@ -14,3 +14,6 @@ export const ROTATION_FIELD_MAX_VALUE = Math.PI;
 
 /** Rotation field value step */
 export const ROTATION_FIELD_VALUE_STEP = 0.01;
+
+/** Rotation speed ratio by touch/mouse move */
+export const ROTATION_SPEED = 0.75;
