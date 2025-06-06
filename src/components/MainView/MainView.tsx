@@ -427,6 +427,14 @@ export const MainView = () => {
         const st = getState();
         const canvasSize = Math.min(st.canvasWidth, st.canvasHeight);
         const sceneSize = Math.max(st.width, st.height, st.depth);
+
+        const notResized = canvasSize === 0;
+        dispatch(actions.requestFitToScreen(notResized));
+
+        if (notResized) {
+            return;
+        }
+
         const sceneMargin = sceneSize * INITIAL_SCENE_MARGIN_RATIO;
         const newZoom = canvasSize / (sceneSize + sceneMargin);
         onZoom(newZoom);
@@ -457,6 +465,10 @@ export const MainView = () => {
         }
 
         dispatch(actions.setCanvasSize({ canvasWidth, canvasHeight }));
+
+        if (st.fitToScreenRequested) {
+            fitToScreen();
+        }
 
         setTimeout(() => {
             fieldRef.current?.drawFrame();

@@ -21,6 +21,7 @@ export const defaultProps = {
 
 export const initialState: AppState = {
     ...defaultProps,
+    fitToScreenRequested: false,
     paused: true,
     pausedBefore: true,
     settingsVisible: false,

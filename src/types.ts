@@ -78,6 +78,8 @@ export interface AppState {
     height: number;
     depth: number;
 
+    fitToScreenRequested: boolean;
+
     initialScale: number;
     timeStep: number;
     scaleStep: number;

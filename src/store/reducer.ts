@@ -52,6 +52,10 @@ const slice = createSlice<AppState>({
         demoId,
     }),
 
+    requestFitToScreen: (state: AppState, fitToScreenRequested: boolean = true) => ({
+        ...state, fitToScreenRequested,
+    }),
+
     setCanvasSize: (
         state: AppState,
         { canvasWidth, canvasHeight }: SetCanvasSizeProps,
