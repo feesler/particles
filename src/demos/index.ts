@@ -44,12 +44,6 @@ export type DemoItem = {
 
 export const demos: DemoItem[] = [
     {
-        id: 'planetarySystem',
-        type: 'field',
-        title: 'Planetary system',
-        init: initPlanetarySystem,
-    },
-    {
         id: 'stars',
         type: 'field',
         title: 'Stars',
@@ -66,6 +60,12 @@ export const demos: DemoItem[] = [
         type: 'field',
         title: 'Gas',
         init: initGas,
+    },
+    {
+        id: 'planetarySystem',
+        type: 'field',
+        title: 'Planetary system',
+        init: initPlanetarySystem,
     },
     {
         id: 'particles',

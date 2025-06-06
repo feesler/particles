@@ -1,7 +1,6 @@
 import { createSlice } from '@jezvejs/react';
-import { ROTATION_SPEED } from 'src/constants.ts';
 import { DemoClass, DemoItemFunc, DemoProps } from 'src/demos/index.ts';
-import { AppState, Point } from 'src/types.ts';
+import { AppState, Point, Rotation } from 'src/types.ts';
 import { getEventPageCoordinates, getTouchPageCoordinates } from 'src/utils.ts';
 
 const mouseDown = (state: AppState, e: React.MouseEvent | React.TouchEvent): AppState => (
@@ -52,6 +51,10 @@ const slice = createSlice<AppState>({
         demoId,
     }),
 
+    requestFitToScreen: (state: AppState, fitToScreenRequested: boolean = true) => ({
+        ...state, fitToScreenRequested,
+    }),
+
     setCanvasSize: (
         state: AppState,
         { canvasWidth, canvasHeight }: SetCanvasSizeProps,
@@ -59,6 +62,7 @@ const slice = createSlice<AppState>({
         ...state,
         canvasWidth,
         canvasHeight,
+        translation: { x: canvasWidth / 2, y: canvasHeight / 2 },
     }),
 
     setTimestamp: (state: AppState, timestamp: number): AppState => ({ ...state, timestamp }),
@@ -101,29 +105,19 @@ const slice = createSlice<AppState>({
         pausedBefore: prev.paused,
     }),
 
-    mouseMove: (state: AppState, e: React.MouseEvent | React.TouchEvent) => {
-        const newPoint = getEventPageCoordinates(e);
-        const prevPoint = state.prevPoint ?? state.startPoint;
-        if (!newPoint || !prevPoint) {
-            return state;
-        }
+    setPrevPoint: (state: AppState, newPoint: Point) => ({
+        ...state,
+        prevPoint: { ...newPoint },
+    }),
 
-        const containerSize = Math.min(state.canvasWidth, state.canvasHeight);
-        const deltaX = (prevPoint.x - newPoint.x) / containerSize;
-        const deltaY = (prevPoint.y - newPoint.y) / containerSize;
-        const beta = Math.PI * deltaX * ROTATION_SPEED;
-        const alpha = Math.PI * deltaY * ROTATION_SPEED;
-
-        return {
-            ...state,
-            prevPoint: { ...newPoint },
-            rotation: {
-                ...state.rotation,
-                alpha: state.rotation.alpha + alpha,
-                beta: state.rotation.beta + beta,
-            },
-        };
-    },
+    addTranslation: (state: AppState, { x, y }: Partial<Point>) => ({
+        ...state,
+        translation: {
+            ...state.translation,
+            x: state.translation.x + (x ?? 0),
+            y: state.translation.y + (y ?? 0),
+        },
+    }),
 
     resetTouchDrag: (state: AppState) => ({
         ...state,
@@ -153,6 +147,15 @@ const slice = createSlice<AppState>({
     toggleRotationCollapsible: (state: AppState): AppState => ({
         ...state,
         rotationSettingsExpanded: !state.rotationSettingsExpanded,
+    }),
+
+    addRotation: (state: AppState, { alpha, beta, gamma }: Partial<Rotation>): AppState => ({
+        ...state,
+        rotation: {
+            alpha: state.rotation.alpha + (alpha ?? 0),
+            beta: state.rotation.beta + (beta ?? 0),
+            gamma: state.rotation.gamma + (gamma ?? 0),
+        },
     }),
 
     stepRotation: (state: AppState): AppState => ({
