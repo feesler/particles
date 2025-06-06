@@ -93,6 +93,7 @@ export interface AppState {
     updating: boolean;
     rotating: boolean;
 
+    translation: Point;
     rotation: Rotation;
     rotationStep: Rotation;
     zoom: number;

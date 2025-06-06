@@ -95,15 +95,66 @@ export function getEventClientCoordinates(e: React.TouchEvent | React.MouseEvent
     return getClientCoordinates(coords);
 }
 
-export function getPointsDistance(points: Point[]) {
-    const [a, b] = points;
-    if (!a || !b) {
+/**
+ * Returns coordinates of top left and bottom right corners of rectangle bounding specified points
+ * @param {Point[]} points
+ * @returns {[Point, Point] | null}
+ */
+function getPointsBoundingRect(points: Point[]): [Point, Point] | null {
+    if (points.length < 2) {
+        return null;
+    }
+
+    const [first] = points;
+    const topLeft = { ...first };
+    const bottomRight = { ...first };
+
+    for (let i = 1; i < points.length; i++) {
+        const { x, y } = points[i];
+
+        topLeft.x = Math.min(x, topLeft.x);
+        topLeft.y = Math.min(y, topLeft.y);
+
+        bottomRight.x = Math.max(x, bottomRight.x);
+        bottomRight.y = Math.max(y, bottomRight.y);
+    }
+
+    return [topLeft, bottomRight];
+}
+
+/**
+ * Returns distance between two points
+ * @param {Point[]} points
+ * @returns {number}
+ */
+export function getPointsDistance(points: Point[]): number {
+    const rect = getPointsBoundingRect(points);
+    if (!rect) {
         return 0;
     }
 
-    const width = a.x - b.x;
-    const height = a.y - b.y;
+    const [topLeft, bottomRight] = rect;
+    const width = topLeft.x - bottomRight.x;
+    const height = topLeft.y - bottomRight.y;
     return Math.sqrt(width * width + height * height);
+}
+
+/**
+ * Returns the point midway between specified points or null if input is invalid
+ * @param {Point[]} points
+ * @returns {Point|null}
+ */
+export function getMiddlePoint(points: Point[]): Point | null {
+    const rect = getPointsBoundingRect(points);
+    if (!rect) {
+        return null;
+    }
+
+    const [topLeft, bottomRight] = rect;
+    return {
+        x: (topLeft.x + bottomRight.x) / 2,
+        y: (topLeft.y + bottomRight.y) / 2,
+    };
 }
 
 /**

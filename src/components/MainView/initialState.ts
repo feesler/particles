@@ -30,6 +30,7 @@ export const initialState: AppState = {
     drawPathSettingsExpanded: false,
     updating: false,
     rotating: false,
+    translation: { x: 0, y: 0 },
     rotation: { alpha: 0, beta: 0, gamma: 0 },
     rotationStep: { alpha: 0, beta: 0, gamma: 0 },
     timestamp: 0,
