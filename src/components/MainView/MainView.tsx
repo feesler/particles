@@ -453,11 +453,15 @@ export const MainView = () => {
             return;
         }
 
-        const currentItem = {
-            id: st.demoId,
-        };
+        const demoItem = findDemoById(st.demoId);
+        if (!demoItem) {
+            return;
+        }
 
-        onChangeDemo(currentItem);
+        onChangeDemo({
+            id: demoItem.id,
+            value: demoItem.title ?? '',
+        });
     };
 
     const mainRef = useRef<HTMLElement | null>(null);
@@ -545,7 +549,8 @@ export const MainView = () => {
         }
 
         onChangeDemo({
-            id: initialDemoItem?.id,
+            id: initialDemoItem.id,
+            value: initialDemoItem.title ?? '',
         });
     }, []);
 
