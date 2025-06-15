@@ -5,7 +5,8 @@
     "description": "Fields and particles simulation",
     "type": "module",
     "scripts": {
-        "build": "tsc -b && vite build",
+        "prebuild": "tsc -b",
+        "build": "vite build",
         "lint-src": "eslint --quiet ./src/",
         "lint-style": "npx stylelint src/**/*.*css",
         "lint-ts": "npx tsc -b ./ --noEmit",
