@@ -10,7 +10,7 @@ import {
     useRef,
 } from 'react';
 
-import { changeZoom, pause } from 'src/store/actions.ts';
+import { changeZoom, pause, rotateAroundZAxis } from 'src/store/actions.ts';
 import { actions } from 'src/store/reducer.ts';
 
 import {
@@ -26,6 +26,7 @@ import {
     View,
 } from '../../types.ts';
 import {
+    getAngleBetweenPoints,
     getEventPageCoordinates,
     getMiddlePoint,
     getPointsDistance,
@@ -233,16 +234,28 @@ export const MainView = () => {
         }
 
         const st = getState();
+        const prevTouches = st.prevTouches ?? [];
         const newTouches = getTouchPageCoordinates(e);
         dispatch(actions.setPrevTouches(newTouches));
 
-        const prevMiddle = getMiddlePoint(st.prevTouches ?? []);
+        // Translate
+        const prevMiddle = getMiddlePoint(prevTouches);
         const newMiddle = getMiddlePoint(newTouches);
         if (prevMiddle && newMiddle) {
             handleTranslateByPoint(prevMiddle, newMiddle);
         }
 
-        const prevDistance = getPointsDistance(st.prevTouches ?? []);
+        // Rotation around z-axis
+        const prevAngle = getAngleBetweenPoints(prevTouches);
+        const newAngle = getAngleBetweenPoints(newTouches);
+        const deltaAngle = (prevAngle && newAngle) ? newAngle - prevAngle : 0;
+        if (deltaAngle !== 0) {
+            const gamma = st.rotation.gamma + deltaAngle;
+            dispatch(rotateAroundZAxis(gamma, viewAPI));
+        }
+
+        // Zoom
+        const prevDistance = getPointsDistance(prevTouches);
         if (prevDistance === 0) {
             return;
         }
