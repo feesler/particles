@@ -158,6 +158,22 @@ export function getMiddlePoint(points: Point[]): Point | null {
 }
 
 /**
+ * Returns the anlge between two specified points or null if input is invalid
+ * @param {Point[]} points
+ * @returns {number|null}
+ */
+export function getAngleBetweenPoints(points: Point[]): number | null {
+    const [p1, p2] = points;
+    if (!p1 || !p2) {
+        return null;
+    }
+
+    const width = p2.x - p1.x;
+    const height = p2.y - p1.y;
+    return Math.atan2(height, width);
+}
+
+/**
  * Returns true if specified item support child items
  *
  * @param {DemoItem} item
