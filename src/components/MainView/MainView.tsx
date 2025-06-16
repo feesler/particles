@@ -6,37 +6,23 @@ import {
 import {
     useCallback,
     useEffect,
-    useMemo,
     useRef,
 } from 'react';
 
-import { changeZoom, pause, rotateAroundZAxis } from 'src/store/actions.ts';
+import { changeZoom, pause, run } from 'src/store/actions.ts';
 import { actions } from 'src/store/reducer.ts';
 
 import {
     INITIAL_SCENE_MARGIN_RATIO,
-    ROTATION_SPEED,
-    WHEEL_ZOOM_STEP,
-} from '../../constants.ts';
-import { Field } from '../../engine/Field/Field.ts';
+} from 'src/constants.ts';
+import { Field } from 'src/engine/Field/Field.ts';
 import {
     AppState,
     Canvas,
-    Point,
     View,
-} from '../../types.ts';
-import {
-    getAngleBetweenPoints,
-    getEventPageCoordinates,
-    getMiddlePoint,
-    getPointsDistance,
-    getTouchPageCoordinates,
-} from '../../utils.ts';
+} from 'src/types.ts';
 
-import { Canvas2D, Canvas2DRef } from '../Canvas2D/Canvas2D.tsx';
-import { CanvasWebGL, CanvasWebGLRef } from '../CanvasWebGL/CanvasWebGL.tsx';
-import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
-import { Toolbar } from '../Toolbar/Toolbar.tsx';
+import { useAppContext } from 'src/context/AppContextProvider.tsx';
 
 import {
     DemoClass,
@@ -44,81 +30,18 @@ import {
     demosList,
     findDemoById,
     initialDemoItem,
-} from '../../demos/index.ts';
+} from 'src/demos/index.ts';
+
+import { SceneCanvas } from '../SceneCanvas/SceneCanvas.tsx';
+import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
+import { Toolbar } from '../Toolbar/Toolbar.tsx';
 
 import { defaultProps } from './initialState.ts';
 
 export const MainView = () => {
     const { state, getState, dispatch } = useStore<AppState>();
-
-    const updateTimeout = useRef<number>(0);
-    const rotationTimeout = useRef<number>(0);
-    const fieldRef = useRef<Field | null>(null);
-    const canvas2DRef = useRef<Canvas2DRef | null>(null);
-    const canvasWebGlRef = useRef<CanvasWebGLRef | null>(null);
-
-    const getCanvas = () => {
-        const st = getState();
-        return (st.useField && st.useWebGL) ? canvasWebGlRef.current : canvas2DRef.current;
-    };
-
-    const scheduleUpdate = () => {
-        if (updateTimeout.current) {
-            clearTimeout(updateTimeout.current);
-        }
-
-        updateTimeout.current = setTimeout(() => {
-            updateTimeout.current = 0;
-            requestAnimationFrame((t) => update(t));
-        }, 10);
-    };
-
-    const update = (timestamp: number) => {
-        const field = fieldRef.current;
-        if (!field) {
-            return;
-        }
-
-        let st = getState();
-        if (st.rotating || st.paused || st.updating) {
-            return;
-        }
-
-        dispatch(actions.setUpdating(true));
-        const pBefore = performance.now();
-
-        const dt = (st.timestamp) ? (timestamp - st.timestamp) : 0;
-        dispatch(actions.setTimestamp(timestamp));
-
-        field.calculate(dt);
-        field.drawFrame();
-        if (st.scaleStep !== 0) {
-            dispatch(actions.stepScaleFactor());
-
-            st = getState();
-            field.setScaleFactor(st.scaleFactor);
-        }
-        processRotationStep();
-
-        const perfValue = Math.round(performance.now() - pBefore);
-        dispatch(actions.setPerformance(perfValue));
-
-        if (!st.paused) {
-            scheduleUpdate();
-        }
-
-        dispatch(actions.setUpdating(false));
-    };
-
-    const run = () => {
-        const st = getState();
-        if (!st.paused) {
-            return;
-        }
-
-        dispatch(actions.run());
-        scheduleUpdate();
-    };
+    const context = useAppContext();
+    const { fieldRef, getCanvas, processRotation } = context;
 
     const initDemo = (demo: DemoClass | DemoItemFunc, demoId: string) => {
         dispatch(actions.initDemo({
@@ -137,7 +60,7 @@ export const MainView = () => {
         const { demo } = st;
 
         const canvas = getCanvas() as Canvas;
-        if (!canvas) {
+        if (!fieldRef || !canvas) {
             return;
         }
 
@@ -176,181 +99,8 @@ export const MainView = () => {
         }
 
         if (st.useField && st.autoStart) {
-            run();
+            dispatch(run(context));
         }
-    };
-
-    const scheduleRotation = (func: () => void) => {
-        if (rotationTimeout.current) {
-            clearTimeout(rotationTimeout.current);
-        }
-
-        rotationTimeout.current = setTimeout(func, 10);
-    };
-
-    const processRotation = (a: number, b: number, g: number) => {
-        const st = getState();
-        if (st.updating) {
-            scheduleRotation(() => processRotation(a, b, g));
-            return;
-        }
-
-        dispatch(actions.setRotating(true));
-
-        const canvas = getCanvas();
-        if (st.useWebGL && canvas?.elem) {
-            const webGLCanvas = canvas as CanvasWebGLRef;
-            webGLCanvas?.setMatrix(
-                [st.canvasWidth, st.canvasHeight, st.depth],
-                [st.translation.x, st.translation.y, 0],
-                [st.rotation.alpha, st.rotation.beta, st.rotation.gamma],
-                [st.zoom, st.zoom, st.zoom],
-            );
-        } else if (!st.useWebGL) {
-            fieldRef.current?.rotate(a, b, g);
-        }
-
-        fieldRef.current?.drawFrame();
-
-        dispatch(actions.setRotating(false));
-    };
-
-    const onMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
-        dispatch(actions.mouseDown(e));
-    };
-
-    const onTouchStart = (e: React.TouchEvent) => {
-        dispatch(actions.touchStart(e));
-    };
-
-    const onTouchMove = (e: React.TouchEvent) => {
-        if (e.touches.length === 1) {
-            onMouseMove(e);
-            return;
-        }
-
-        if (e.cancelable) {
-            e.preventDefault();
-        }
-
-        const st = getState();
-        const prevTouches = st.prevTouches ?? [];
-        const newTouches = getTouchPageCoordinates(e);
-        dispatch(actions.setPrevTouches(newTouches));
-
-        // Translate
-        const prevMiddle = getMiddlePoint(prevTouches);
-        const newMiddle = getMiddlePoint(newTouches);
-        if (prevMiddle && newMiddle) {
-            handleTranslateByPoint(prevMiddle, newMiddle);
-        }
-
-        // Rotation around z-axis
-        const prevAngle = getAngleBetweenPoints(prevTouches);
-        const newAngle = getAngleBetweenPoints(newTouches);
-        const deltaAngle = (prevAngle && newAngle) ? newAngle - prevAngle : 0;
-        if (deltaAngle !== 0) {
-            const gamma = st.rotation.gamma + deltaAngle;
-            dispatch(rotateAroundZAxis(gamma, viewAPI));
-        }
-
-        // Zoom
-        const prevDistance = getPointsDistance(prevTouches);
-        if (prevDistance === 0) {
-            return;
-        }
-
-        const newDistance = getPointsDistance(newTouches);
-        const distanceRatio = newDistance / prevDistance;
-
-        onZoom(st.zoom * distanceRatio);
-    };
-
-    const handleTranslateByPoint = (prevPoint: Point, newPoint: Point) => {
-        if (!newPoint || !prevPoint) {
-            return;
-        }
-
-        const st = getState();
-        const { pausedBefore } = st;
-        const x = (newPoint.x - prevPoint.x);
-        const y = (newPoint.y - prevPoint.y);
-
-        dispatch(pause());
-
-        dispatch(actions.setPrevPoint(newPoint));
-        dispatch(actions.addTranslation({ x, y }));
-
-        processRotation(0, 0, 0);
-
-        if (!pausedBefore) {
-            run();
-        }
-    };
-
-    const handleRotateByPoint = (prevPoint: Point, newPoint: Point) => {
-        const st = getState();
-        if (!newPoint || !prevPoint) {
-            return;
-        }
-
-        const { pausedBefore } = st;
-        const containerSize = Math.min(st.canvasWidth, st.canvasHeight);
-        const deltaX = (prevPoint.x - newPoint.x) / containerSize;
-        const deltaY = (prevPoint.y - newPoint.y) / containerSize;
-        const beta = Math.PI * deltaX * ROTATION_SPEED;
-        const alpha = Math.PI * deltaY * ROTATION_SPEED;
-
-        dispatch(pause());
-
-        dispatch(actions.setPrevPoint(newPoint));
-        dispatch(actions.addRotation({ alpha, beta }));
-
-        processRotation(alpha, beta, 0);
-
-        if (!pausedBefore) {
-            run();
-        }
-    };
-
-    const onMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
-        const st = getState();
-        const { dragging, startPoint } = st;
-        if (!dragging || !startPoint || st.canvasWidth === 0 || st.canvasHeight === 0) {
-            return;
-        }
-
-        const newPoint = getEventPageCoordinates(e);
-        const prevPoint = st.prevPoint ?? st.startPoint;
-        if (!newPoint || !prevPoint) {
-            return;
-        }
-
-        if (e.type === 'mousemove' && !e.ctrlKey) {
-            handleTranslateByPoint(prevPoint, newPoint);
-            return;
-        }
-
-        handleRotateByPoint(prevPoint, newPoint);
-    };
-
-    const onMouseUp = () => {
-        const st = getState();
-        const { pausedBefore } = st;
-
-        dispatch(actions.resetTouchDrag());
-
-        if (!pausedBefore) {
-            run();
-        }
-    };
-
-    const onWheel = (e: React.WheelEvent) => {
-        const st = getState();
-        const step = WHEEL_ZOOM_STEP / ((e.altKey) ? 10 : 1);
-        const zoomDelta = (e.deltaY / 100) * step;
-
-        onZoom(st.zoom - zoomDelta);
     };
 
     const clearDemo = () => {
@@ -401,60 +151,9 @@ export const MainView = () => {
         });
     };
 
-    const processRotationStep = () => {
-        const st = getState();
-        const { paused } = st;
-        const { alpha, beta, gamma } = st.rotationStep;
-        if (alpha === 0 && beta === 0 && gamma === 0) {
-            return;
-        }
-
-        dispatch(pause());
-        dispatch(actions.stepRotation());
-
-        processRotation(alpha, beta, gamma);
-
-        if (!paused) {
-            run();
-        }
-    };
-
-    const onZoom = (value: number) => {
-        dispatch(changeZoom(value, viewAPI));
-    };
-
-    useEffect(() => {
-        fieldRef.current?.setZoom(state.zoom);
-        fieldRef.current?.drawFrame();
-    }, [state.zoom]);
-
-    useEffect(() => {
-        fieldRef.current?.setGScale(state.gScale);
-    }, [state.gScale]);
-
-    useEffect(() => {
-        fieldRef.current?.setKScale(state.kScale);
-    }, [state.kScale]);
-
-    useEffect(() => {
-        fieldRef.current?.setTimeStep(10 ** state.timeStep);
-    }, [state.timeStep]);
-
-    useEffect(() => {
-        fieldRef.current?.setScaleFactor(state.scaleFactor);
-    }, [state.scaleFactor]);
-
-    useEffect(() => {
-        fieldRef.current?.setDrawPath(state.drawPath);
-    }, [state.drawPath]);
-
-    useEffect(() => {
-        fieldRef.current?.setPathLength(state.pathLength);
-    }, [state.pathLength]);
-
     const onToggleRun = () => {
         if (state.paused) {
-            run();
+            dispatch(run(context));
         } else {
             dispatch(pause());
         }
@@ -496,7 +195,7 @@ export const MainView = () => {
 
         const sceneMargin = sceneSize * INITIAL_SCENE_MARGIN_RATIO;
         const newZoom = canvasSize / (sceneSize + sceneMargin);
-        onZoom(newZoom);
+        dispatch(changeZoom(newZoom, context));
     };
 
     const resizeHandler = () => {
@@ -530,13 +229,13 @@ export const MainView = () => {
         }
 
         setTimeout(() => {
-            fieldRef.current?.drawFrame();
+            fieldRef?.current?.drawFrame();
         }, 10);
 
         processRotation(0, 0, 0);
 
         if (!pausedBefore) {
-            run();
+            dispatch(run(context));
         }
     };
 
@@ -567,38 +266,14 @@ export const MainView = () => {
         });
     }, []);
 
-    const lstate = getState();
-
-    const canvasProps = useMemo(() => ({
-        width: lstate.canvasWidth,
-        height: lstate.canvasHeight,
-        onTouchStart,
-        onTouchMove,
-        onTouchEnd: onMouseUp,
-        onMouseDown,
-        onMouseMove,
-        onMouseUp,
-        onWheel,
-        className: 'app-canvas',
-    }), [lstate.canvasWidth, lstate.canvasHeight]);
-
-    const canvas = (lstate.useField && lstate.useWebGL)
-        ? (<CanvasWebGL {...canvasProps} ref={canvasWebGlRef} />)
-        : (<Canvas2D {...canvasProps} ref={canvas2DRef} />);
-
     const onClose = useCallback(() => {
         dispatch(actions.showOffcanvas(false));
     }, []);
 
-    const viewAPI = useMemo(() => ({
-        scheduleUpdate,
-        processRotation,
-    }), []);
-
     return (
         <div id="maincontainer" className="container">
             <main className="main-container" ref={mainRef}>
-                {canvas}
+                <SceneCanvas />
             </main>
 
             <Toolbar onToggleRun={onToggleRun} onReset={onReset} onClose={onClose} />
@@ -606,17 +281,15 @@ export const MainView = () => {
             <Offcanvas
                 className="settings"
                 placement="right"
-                closed={!lstate.settingsVisible}
+                closed={!state.settingsVisible}
                 onClosed={onClose}
                 usePortal={false}
             >
                 <SettingsPanel
-                    fieldRef={fieldRef.current}
                     demosList={demosList}
                     onChangeDemo={onChangeDemo}
                     onClose={onClose}
                     onToggleRun={onToggleRun}
-                    viewAPI={viewAPI}
                 />
             </Offcanvas>
         </div>

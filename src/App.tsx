@@ -2,6 +2,7 @@ import { StoreProvider } from '@jezvejs/react';
 
 import { MainView } from './components/MainView/MainView.tsx';
 import { getInitialState } from './components/MainView/initialState.ts';
+import { AppContextProvider } from './context/AppContextProvider.tsx';
 
 import { reducer } from './store/reducer.ts';
 
@@ -17,7 +18,9 @@ export function App() {
             reducer={reducer}
             initialState={initialState}
         >
-            <MainView />
+            <AppContextProvider>
+                <MainView />
+            </AppContextProvider>
         </StoreProvider>
     );
 }
