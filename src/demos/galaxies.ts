@@ -1,8 +1,8 @@
-import { Vector } from '../engine/Vector/Vector.ts';
-import { Star } from '../particles/Star.ts';
-import { DarkParticle } from '../particles/DarkParticle.ts';
-import { rand } from '../utils.ts';
-import { View } from '../types.ts';
+import { Vector } from 'engine/Vector/Vector.ts';
+import { DarkParticle } from 'particles/DarkParticle.ts';
+import { Star } from 'particles/Star.ts';
+import { View } from 'shared/types.ts';
+import { rand } from 'shared/utils/utils.ts';
 
 const randExpo = (max: number, lambda: number): number => {
     const u = rand(0, max) / (max + 1);

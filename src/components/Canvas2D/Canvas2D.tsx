@@ -5,8 +5,8 @@ import {
     useRef,
 } from 'react';
 
-import { CanvasFrame } from '../../utils/CanvasFrame/CanvasFrame.ts';
-import { RGBColor } from '../../particles/types.ts';
+import { CanvasFrame } from 'shared/utils/CanvasFrame/CanvasFrame.ts';
+import { RGBColor } from 'particles/types.ts';
 
 export type Canvas2DElement = {
     elem: HTMLCanvasElement | null;

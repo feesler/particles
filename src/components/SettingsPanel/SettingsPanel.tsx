@@ -5,32 +5,32 @@ import {
 } from '@jezvejs/react';
 import { useCallback, useMemo } from 'react';
 
+import { AppState } from 'shared/types.ts';
+
+import { useAppContext } from 'context/AppContextProvider.tsx';
 import {
     changeDrawPath,
     changeDrawPathLength,
     changeGScale,
     changeKScale,
     changeZoom,
-    MainViewActionsAPI,
     rotateAroundXAxis,
     rotateAroundYAxis,
     rotateAroundZAxis,
-} from 'src/store/actions.ts';
-import { actions } from 'src/store/reducer.ts';
+} from 'store/actions.ts';
+import { actions } from 'store/reducer.ts';
 
-import { Field } from 'src/engine/Field/Field.ts';
-import { AppState } from 'src/types.ts';
 import {
     MAX_ZOOM,
     MIN_ZOOM,
     ROTATION_FIELD_MAX_VALUE,
     ROTATION_FIELD_MIN_VALUE,
     ROTATION_FIELD_VALUE_STEP,
-} from '../../constants.ts';
+} from 'shared/constants.ts';
 
-import { RangeInputField } from '../RangeInputField/RangeInputField.tsx';
-import { ReadOnlyField } from '../ReadOnlyField/ReadOnlyField.tsx';
-import { SelectField } from '../SelectField/SelectField.tsx';
+import { RangeInputField } from './components/RangeInputField/RangeInputField.tsx';
+import { ReadOnlyField } from './components/ReadOnlyField/ReadOnlyField.tsx';
+import { SelectField } from './components/SelectField/SelectField.tsx';
 
 import { DrawPathCollapsible } from './components/DrawPathCollapsible/DrawPathCollapsible.tsx';
 import { RangeInputFieldsList } from './components/RangeInputFieldsList/RangeInputFieldsList.tsx';
@@ -39,11 +39,7 @@ import { SettingsPanelCollapsible } from './components/SettingsPanelCollapsible/
 import './SettingsPanel.css';
 
 type Props = {
-    fieldRef: Field | null;
-
     demosList: MenuItemProps[];
-
-    viewAPI: MainViewActionsAPI;
 
     onChangeDemo: (selected: DropDownSelectionParam) => void;
     onToggleRun: () => void;
@@ -64,12 +60,12 @@ const rotationStepFieldsCommon = {
 
 export const SettingsPanel = (props: Props) => {
     const {
-        fieldRef,
         demosList,
         onChangeDemo,
-        viewAPI,
     } = props;
 
+    const context = useAppContext();
+    const { fieldRef } = context;
     const { getState, dispatch } = useStore<AppState>();
     const state = getState();
 
@@ -90,17 +86,17 @@ export const SettingsPanel = (props: Props) => {
 
     // Scene zoom
     const onZoom = useCallback((value: number) => {
-        dispatch(changeZoom(value, viewAPI));
+        dispatch(changeZoom(value, context));
     }, []);
 
     // Draw path
     const onChangeDrawPath = useCallback((value: boolean) => {
-        dispatch(changeDrawPath(value, viewAPI));
+        dispatch(changeDrawPath(value, context));
     }, []);
 
     // Draw path length
     const onChangePathLength = useCallback((value: number) => {
-        dispatch(changeDrawPathLength(value, viewAPI));
+        dispatch(changeDrawPathLength(value, context));
     }, []);
 
     // Scene rotation collapsible block
@@ -120,15 +116,15 @@ export const SettingsPanel = (props: Props) => {
 
     // Rotation
     const onXRotate = useCallback((value: number) => {
-        dispatch(rotateAroundXAxis(value, viewAPI));
+        dispatch(rotateAroundXAxis(value, context));
     }, []);
 
     const onYRotate = useCallback((value: number) => {
-        dispatch(rotateAroundYAxis(value, viewAPI));
+        dispatch(rotateAroundYAxis(value, context));
     }, []);
 
     const onZRotate = useCallback((value: number) => {
-        dispatch(rotateAroundZAxis(value, viewAPI));
+        dispatch(rotateAroundZAxis(value, context));
     }, []);
 
     const rotationRangeInputFields = useMemo(() => ([{
@@ -186,12 +182,12 @@ export const SettingsPanel = (props: Props) => {
 
     // Order of magnitude of the gravitational constant
     const onChangeGScale = useCallback((value: number) => {
-        dispatch(changeGScale(value, viewAPI));
+        dispatch(changeGScale(value, context));
     }, []);
 
     // Order of magnitude of the Coulomb constant
     const onChangeKScale = useCallback((value: number) => {
-        dispatch(changeKScale(value, viewAPI));
+        dispatch(changeKScale(value, context));
     }, []);
 
     return (
@@ -238,7 +234,7 @@ export const SettingsPanel = (props: Props) => {
             <ReadOnlyField
                 id="particlescount"
                 title="Particles"
-                value={fieldRef?.particles.length ?? 0}
+                value={fieldRef?.current?.particles.length ?? 0}
             />
             <ReadOnlyField
                 id="perfvalue"

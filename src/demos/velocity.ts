@@ -1,5 +1,5 @@
-import { Star } from '../particles/Star.ts';
-import { View } from '../types.ts';
+import { Star } from 'particles/Star.ts';
+import { View } from 'shared/types.ts';
 
 export function initVelocityTest(view: View) {
     const { field } = view;

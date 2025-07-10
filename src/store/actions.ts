@@ -1,6 +1,7 @@
 import { minmax, StoreActionAPI, StoreActionFunction } from '@jezvejs/react';
-import { MAX_ZOOM, MIN_ZOOM } from 'src/constants.ts';
-import { AppState } from 'src/types.ts';
+import { MAX_ZOOM, MIN_ZOOM } from 'shared/constants.ts';
+import { AppContext } from 'context/AppContextProvider.tsx';
+import { AppState } from 'shared/types.ts';
 import { actions } from './reducer.ts';
 
 export type MainViewActionsAPI = {
@@ -17,7 +18,7 @@ export const pause = (): StoreActionFunction<AppState> => ({ getState, dispatch 
     dispatch(actions.pause());
 };
 
-export const run = (scheduleUpdate: () => void) => ({
+export const run = ({ scheduleUpdate }: AppContext) => ({
     getState,
     dispatch,
 }: StoreActionAPI<AppState>) => {
@@ -30,12 +31,12 @@ export const run = (scheduleUpdate: () => void) => ({
     scheduleUpdate();
 };
 
-export const rotateAroundXAxis = (value: number, viewAPI: MainViewActionsAPI) => (
+export const rotateAroundXAxis = (value: number, context: AppContext) => (
     { getState, dispatch }: StoreActionAPI<AppState>,
 ) => {
     const st = getState();
     const { paused } = st;
-    const { scheduleUpdate, processRotation } = viewAPI;
+    const { processRotation } = context;
 
     dispatch(pause());
 
@@ -47,16 +48,16 @@ export const rotateAroundXAxis = (value: number, viewAPI: MainViewActionsAPI) =>
     processRotation(delta, 0, 0);
 
     if (!paused) {
-        dispatch(run(scheduleUpdate));
+        dispatch(run(context));
     }
 };
 
-export const rotateAroundYAxis = (value: number, viewAPI: MainViewActionsAPI) => (
+export const rotateAroundYAxis = (value: number, context: AppContext) => (
     { getState, dispatch }: StoreActionAPI<AppState>,
 ) => {
     const st = getState();
     const { paused } = st;
-    const { scheduleUpdate, processRotation } = viewAPI;
+    const { processRotation } = context;
 
     dispatch(pause());
 
@@ -67,16 +68,16 @@ export const rotateAroundYAxis = (value: number, viewAPI: MainViewActionsAPI) =>
     processRotation(0, delta, 0);
 
     if (!paused) {
-        dispatch(run(scheduleUpdate));
+        dispatch(run(context));
     }
 };
 
-export const rotateAroundZAxis = (value: number, viewAPI: MainViewActionsAPI) => (
+export const rotateAroundZAxis = (value: number, context: AppContext) => (
     { getState, dispatch }: StoreActionAPI<AppState>,
 ) => {
     const st = getState();
     const { paused } = st;
-    const { scheduleUpdate, processRotation } = viewAPI;
+    const { processRotation } = context;
 
     dispatch(pause());
 
@@ -87,48 +88,46 @@ export const rotateAroundZAxis = (value: number, viewAPI: MainViewActionsAPI) =>
     processRotation(0, 0, delta);
 
     if (!paused) {
-        dispatch(run(scheduleUpdate));
+        dispatch(run(context));
     }
 };
 
-export const changeGScale = (gScale: number, viewAPI: MainViewActionsAPI) => (
+export const changeGScale = (gScale: number, context: AppContext) => (
     { getState, dispatch }: StoreActionAPI<AppState>,
 ) => {
     const st = getState();
     const { paused } = st;
-    const { scheduleUpdate } = viewAPI;
 
     dispatch(pause());
 
     dispatch(actions.setGScale(gScale));
 
     if (!paused) {
-        dispatch(run(scheduleUpdate));
+        dispatch(run(context));
     }
 };
 
-export const changeKScale = (kScale: number, viewAPI: MainViewActionsAPI) => (
+export const changeKScale = (kScale: number, context: AppContext) => (
     { getState, dispatch }: StoreActionAPI<AppState>,
 ) => {
     const st = getState();
     const { paused } = st;
-    const { scheduleUpdate } = viewAPI;
 
     dispatch(pause());
 
     dispatch(actions.setKScale(kScale));
 
     if (!paused) {
-        dispatch(run(scheduleUpdate));
+        dispatch(run(context));
     }
 };
 
-export const changeZoom = (value: number, viewAPI: MainViewActionsAPI) => (
+export const changeZoom = (value: number, context: AppContext) => (
     { getState, dispatch }: StoreActionAPI<AppState>,
 ) => {
     const st = getState();
     const { paused } = st;
-    const { scheduleUpdate, processRotation } = viewAPI;
+    const { processRotation } = context;
 
     const zoom = minmax(MIN_ZOOM, MAX_ZOOM, value);
     if (zoom === st.zoom) {
@@ -142,38 +141,36 @@ export const changeZoom = (value: number, viewAPI: MainViewActionsAPI) => (
     processRotation(0, 0, 0);
 
     if (!paused) {
-        dispatch(run(scheduleUpdate));
+        dispatch(run(context));
     }
 };
 
-export const changeDrawPath = (drawPath: boolean, viewAPI: MainViewActionsAPI) => (
+export const changeDrawPath = (drawPath: boolean, context: AppContext) => (
     { getState, dispatch }: StoreActionAPI<AppState>,
 ) => {
     const st = getState();
     const { paused } = st;
-    const { scheduleUpdate } = viewAPI;
 
     dispatch(pause());
 
     dispatch(actions.setDrawPath(drawPath));
 
     if (!paused) {
-        dispatch(run(scheduleUpdate));
+        dispatch(run(context));
     }
 };
 
-export const changeDrawPathLength = (pathLength: number, viewAPI: MainViewActionsAPI) => (
+export const changeDrawPathLength = (pathLength: number, context: AppContext) => (
     { getState, dispatch }: StoreActionAPI<AppState>,
 ) => {
     const st = getState();
     const { paused } = st;
-    const { scheduleUpdate } = viewAPI;
 
     dispatch(pause());
 
     dispatch(actions.setDrawPathLength(pathLength));
 
     if (!paused) {
-        dispatch(run(scheduleUpdate));
+        dispatch(run(context));
     }
 };

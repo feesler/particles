@@ -1,13 +1,13 @@
-import { Box } from '../Box/Box.ts';
-import { Particle } from '../../particles/Particle.ts';
-import { Star } from '../../particles/Star.ts';
-import { Vector } from '../Vector/Vector.ts';
-import { Planet } from '../../particles/Planet.ts';
-import { rand } from '../../utils.ts';
-import { Photon } from '../../particles/Photon.ts';
-import { Electron } from '../../particles/Electron.ts';
-import { Positron } from '../../particles/Positron.ts';
-import { Gluon } from '../../particles/Gluon.ts';
+import { Canvas2DRef } from 'components/Canvas2D/Canvas2D.tsx';
+import { CanvasWebGLRef } from 'components/CanvasWebGL/CanvasWebGL.tsx';
+
+import { Electron } from 'particles/Electron.ts';
+import { Gluon } from 'particles/Gluon.ts';
+import { Particle } from 'particles/Particle.ts';
+import { Photon } from 'particles/Photon.ts';
+import { Planet } from 'particles/Planet.ts';
+import { Positron } from 'particles/Positron.ts';
+import { Star } from 'particles/Star.ts';
 import {
     DARK_TYPE,
     ELECTRON_TYPE,
@@ -18,13 +18,17 @@ import {
     POSITRON_TYPE,
     PROTON_TYPE,
     STAR_TYPE,
-} from '../../particles/types.ts';
+} from 'particles/types.ts';
+
+import { Canvas } from 'shared/types.ts';
+import { CanvasFrame } from 'shared/utils/CanvasFrame/CanvasFrame.ts';
+import { rand } from 'shared/utils/utils.ts';
+
+import { Box } from '../Box/Box.ts';
 import { OctTree, OctTreeChild } from '../OctTree/OctTree.ts';
-import { Canvas } from '../../types.ts';
+import { Vector } from '../Vector/Vector.ts';
+
 import { Object3D, Rotation } from '../types.ts';
-import { CanvasWebGLRef } from '../../components/CanvasWebGL/CanvasWebGL.tsx';
-import { CanvasFrame } from '../../utils/CanvasFrame/CanvasFrame.ts';
-import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.tsx';
 
 const K = 8.9 * 10;
 const G = 6.67 * 0.0000001;

@@ -1,7 +1,8 @@
 import { asArray } from '@jezvejs/types';
 import React from 'react';
-import { Axis3D } from './engine/types.ts';
-import { Vector } from './engine/Vector/Vector.ts';
+
+import { Axis3D } from 'engine/types.ts';
+import { Vector } from 'engine/Vector/Vector.ts';
 import {
     IdObject,
     IncludeGroupItemsParam,
@@ -9,7 +10,7 @@ import {
     MenuLoopParam,
     Point,
     ToFlatListParam,
-} from './types.ts';
+} from 'shared/types.ts';
 
 export const EPSILON = 0.00000001;
 export const AXES: Axis3D[] = ['x', 'y', 'z'];

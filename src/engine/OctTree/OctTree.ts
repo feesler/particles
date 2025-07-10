@@ -1,4 +1,4 @@
-import { Particle } from '../../particles/Particle.ts';
+import { Particle } from 'particles/Particle.ts';
 import { Vector } from '../Vector/Vector.ts';
 
 export type OctTreeChild = Particle | OctTree | OctTreeNode;

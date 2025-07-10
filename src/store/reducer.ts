@@ -1,7 +1,7 @@
 import { createSlice } from '@jezvejs/react';
-import { DemoClass, DemoItemFunc, DemoProps } from 'src/demos/index.ts';
-import { AppState, Point, Rotation } from 'src/types.ts';
-import { getEventPageCoordinates, getTouchPageCoordinates } from 'src/utils.ts';
+import { AppState, Point, Rotation } from 'shared/types.ts';
+import { getEventPageCoordinates, getTouchPageCoordinates } from 'shared/utils/utils.ts';
+import { DemoClass, DemoItemFunc, DemoProps } from 'demos/index.ts';
 
 const mouseDown = (state: AppState, e: React.MouseEvent | React.TouchEvent): AppState => (
     (state.dragging)

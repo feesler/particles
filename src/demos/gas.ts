@@ -1,7 +1,7 @@
-import { Planet } from '../particles/Planet.ts';
-import { DarkParticle } from '../particles/DarkParticle.ts';
-import { rand } from '../utils.ts';
-import { View } from '../types.ts';
+import { Planet } from 'particles/Planet.ts';
+import { DarkParticle } from 'particles/DarkParticle.ts';
+import { rand } from 'shared/utils/utils.ts';
+import { View } from 'shared/types.ts';
 
 export function initGas(view: View) {
     const PARTICLES_COUNT = 2000;

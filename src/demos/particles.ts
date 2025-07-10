@@ -1,7 +1,7 @@
-import { Proton } from '../particles/Proton.ts';
-import { Electron } from '../particles/Electron.ts';
-import { rand } from '../utils.ts';
-import { View } from '../types.ts';
+import { Proton } from 'particles/Proton.ts';
+import { Electron } from 'particles/Electron.ts';
+import { rand } from 'shared/utils/utils.ts';
+import { View } from 'shared/types.ts';
 
 export function initParticles(view: View) {
     const PARTICLES_COUNT = 150;

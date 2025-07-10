@@ -1,5 +1,8 @@
 import { MenuItemProps, MenuItemType } from '@jezvejs/react';
 
+import { View } from 'shared/types.ts';
+import { findDemoItem, mapItems } from 'shared/utils/utils.ts';
+
 import { Box3dDemo } from './canvas/box3d.ts';
 import { MaxVelocityDemo } from './canvas/maxVelocity.ts';
 import { initGalaxies } from './galaxies.ts';
@@ -8,9 +11,6 @@ import { initParticles } from './particles.ts';
 import { initPlanetarySystem } from './planetary.ts';
 import { initStars } from './stars.ts';
 import { initVelocityTest } from './velocity.ts';
-
-import { View } from '../types.ts';
-import { findDemoItem, mapItems } from '../utils.ts';
 
 export type DemoItemFunc = (view: View) => void;
 

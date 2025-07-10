@@ -1,7 +1,7 @@
 import { Switch, useStore } from '@jezvejs/react';
 import { useCallback } from 'react';
-import { RangeInputField } from 'src/components/RangeInputField/RangeInputField.tsx';
-import { AppState } from 'src/types.ts';
+import { RangeInputField } from 'components/SettingsPanel/components/RangeInputField/RangeInputField.tsx';
+import { AppState } from 'shared/types.ts';
 
 export interface DrawPathCollapsibleProps {
     onChangeDrawPath: (drawPath: boolean) => void;
