@@ -1,7 +1,10 @@
-import { Vector } from '../../engine/Vector/Vector.ts';
-import { Box } from '../../engine/Box/Box.ts';
-import { View } from '../../types.ts';
-import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.tsx';
+import { View } from 'shared/types.ts';
+
+import { Vector } from 'engine/Vector/Vector.ts';
+import { Box } from 'engine/Box/Box.ts';
+
+import { Canvas2DRef } from 'components/Canvas2D/Canvas2D.tsx';
+
 import { DemoClass } from '../index.ts';
 
 export class Box3dDemo implements DemoClass {

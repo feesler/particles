@@ -1,6 +1,6 @@
-import { Star } from '../particles/Star.ts';
-import { Planet } from '../particles/Planet.ts';
-import { View } from '../types.ts';
+import { Star } from 'particles/Star.ts';
+import { Planet } from 'particles/Planet.ts';
+import { View } from 'shared/types.ts';
 
 export function initPlanetarySystem(view: View) {
     const AU = 150;

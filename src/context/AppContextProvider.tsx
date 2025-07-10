@@ -6,13 +6,13 @@ import {
     useMemo,
     useRef,
 } from 'react';
-import { Canvas2DRef } from 'src/components/Canvas2D/Canvas2D.tsx';
-import { CanvasWebGLRef } from 'src/components/CanvasWebGL/CanvasWebGL.tsx';
+import { Canvas2DRef } from 'components/Canvas2D/Canvas2D.tsx';
+import { CanvasWebGLRef } from 'components/CanvasWebGL/CanvasWebGL.tsx';
 
-import { Field } from 'src/engine/Field/Field.ts';
-import { pause, run } from 'src/store/actions.ts';
-import { actions } from 'src/store/reducer.ts';
-import { AppState } from 'src/types.ts';
+import { Field } from 'engine/Field/Field.ts';
+import { pause, run } from 'store/actions.ts';
+import { actions } from 'store/reducer.ts';
+import { AppState } from 'shared/types.ts';
 
 export interface AppContext {
     fieldRef: React.MutableRefObject<Field | null>;

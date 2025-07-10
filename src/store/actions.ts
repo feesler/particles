@@ -1,7 +1,7 @@
 import { minmax, StoreActionAPI, StoreActionFunction } from '@jezvejs/react';
-import { MAX_ZOOM, MIN_ZOOM } from 'src/constants.ts';
-import { AppContext } from 'src/context/AppContextProvider.tsx';
-import { AppState } from 'src/types.ts';
+import { MAX_ZOOM, MIN_ZOOM } from 'shared/constants.ts';
+import { AppContext } from 'context/AppContextProvider.tsx';
+import { AppState } from 'shared/types.ts';
 import { actions } from './reducer.ts';
 
 export type MainViewActionsAPI = {

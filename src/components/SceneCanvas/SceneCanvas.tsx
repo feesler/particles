@@ -1,17 +1,17 @@
 import { useStore } from '@jezvejs/react';
 import { useEffect, useMemo } from 'react';
 
-import { ROTATION_SPEED, WHEEL_ZOOM_STEP } from 'src/constants.ts';
-import { AppState, Point } from 'src/types.ts';
+import { ROTATION_SPEED, WHEEL_ZOOM_STEP } from 'shared/constants.ts';
+import { AppState, Point } from 'shared/types.ts';
 
-import { useAppContext } from 'src/context/AppContextProvider.tsx';
+import { useAppContext } from 'context/AppContextProvider.tsx';
 import {
     changeZoom,
     pause,
     rotateAroundZAxis,
     run,
-} from 'src/store/actions.ts';
-import { actions } from 'src/store/reducer.ts';
+} from 'store/actions.ts';
+import { actions } from 'store/reducer.ts';
 
 import {
     getAngleBetweenPoints,
@@ -19,7 +19,7 @@ import {
     getMiddlePoint,
     getPointsDistance,
     getTouchPageCoordinates,
-} from 'src/utils.ts';
+} from 'shared/utils/utils.ts';
 
 import { Canvas2D } from '../Canvas2D/Canvas2D.tsx';
 import { CanvasWebGL } from '../CanvasWebGL/CanvasWebGL.tsx';

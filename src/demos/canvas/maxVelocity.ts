@@ -1,6 +1,6 @@
-import { Canvas2DRef } from '../../components/Canvas2D/Canvas2D.tsx';
+import { View } from 'shared/types.ts';
+import { Canvas2DRef } from 'components/Canvas2D/Canvas2D.tsx';
 import { DemoClass } from '../index.ts';
-import { View } from '../../types.ts';
 
 export class MaxVelocityDemo implements DemoClass {
     getProps() {

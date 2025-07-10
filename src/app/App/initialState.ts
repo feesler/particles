@@ -1,5 +1,5 @@
-import { SCENE_SIZE } from 'src/constants.ts';
-import { AppState } from 'src/types.ts';
+import { SCENE_SIZE } from 'shared/constants.ts';
+import { AppState } from 'shared/types.ts';
 
 export const defaultProps = {
     autoStart: false,

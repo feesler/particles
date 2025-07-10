@@ -9,20 +9,20 @@ import {
     useRef,
 } from 'react';
 
-import { changeZoom, pause, run } from 'src/store/actions.ts';
-import { actions } from 'src/store/reducer.ts';
+import { changeZoom, pause, run } from 'store/actions.ts';
+import { actions } from 'store/reducer.ts';
 
 import {
     INITIAL_SCENE_MARGIN_RATIO,
-} from 'src/constants.ts';
-import { Field } from 'src/engine/Field/Field.ts';
+} from 'shared/constants.ts';
+import { Field } from 'engine/Field/Field.ts';
 import {
     AppState,
     Canvas,
     View,
-} from 'src/types.ts';
+} from 'shared/types.ts';
 
-import { useAppContext } from 'src/context/AppContextProvider.tsx';
+import { useAppContext } from 'context/AppContextProvider.tsx';
 
 import {
     DemoClass,
@@ -30,13 +30,13 @@ import {
     demosList,
     findDemoById,
     initialDemoItem,
-} from 'src/demos/index.ts';
+} from 'demos/index.ts';
 
 import { SceneCanvas } from '../SceneCanvas/SceneCanvas.tsx';
 import { SettingsPanel } from '../SettingsPanel/SettingsPanel.tsx';
 import { Toolbar } from '../Toolbar/Toolbar.tsx';
 
-import { defaultProps } from './initialState.ts';
+import { defaultProps } from '../../app/App/initialState.ts';
 
 export const MainView = () => {
     const { state, getState, dispatch } = useStore<AppState>();

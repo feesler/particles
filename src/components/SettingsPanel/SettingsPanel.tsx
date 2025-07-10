@@ -5,9 +5,9 @@ import {
 } from '@jezvejs/react';
 import { useCallback, useMemo } from 'react';
 
-import { AppState } from 'src/types.ts';
+import { AppState } from 'shared/types.ts';
 
-import { useAppContext } from 'src/context/AppContextProvider.tsx';
+import { useAppContext } from 'context/AppContextProvider.tsx';
 import {
     changeDrawPath,
     changeDrawPathLength,
@@ -17,8 +17,8 @@ import {
     rotateAroundXAxis,
     rotateAroundYAxis,
     rotateAroundZAxis,
-} from 'src/store/actions.ts';
-import { actions } from 'src/store/reducer.ts';
+} from 'store/actions.ts';
+import { actions } from 'store/reducer.ts';
 
 import {
     MAX_ZOOM,
@@ -26,11 +26,11 @@ import {
     ROTATION_FIELD_MAX_VALUE,
     ROTATION_FIELD_MIN_VALUE,
     ROTATION_FIELD_VALUE_STEP,
-} from 'src/constants.ts';
+} from 'shared/constants.ts';
 
-import { RangeInputField } from '../RangeInputField/RangeInputField.tsx';
-import { ReadOnlyField } from '../ReadOnlyField/ReadOnlyField.tsx';
-import { SelectField } from '../SelectField/SelectField.tsx';
+import { RangeInputField } from './components/RangeInputField/RangeInputField.tsx';
+import { ReadOnlyField } from './components/ReadOnlyField/ReadOnlyField.tsx';
+import { SelectField } from './components/SelectField/SelectField.tsx';
 
 import { DrawPathCollapsible } from './components/DrawPathCollapsible/DrawPathCollapsible.tsx';
 import { RangeInputFieldsList } from './components/RangeInputFieldsList/RangeInputFieldsList.tsx';

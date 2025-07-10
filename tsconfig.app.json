@@ -24,8 +24,29 @@
         "jsx": "react-jsx",
         "baseUrl": ".",
         "paths": {
-            "src/*": [
-                "./src/*"
+            "app/*": [
+                "./src/app/*"
+            ],
+            "components/*": [
+                "./src/components/*"
+            ],
+            "context/*": [
+                "./src/context/*"
+            ],
+            "demos/*": [
+                "./src/demos/*"
+            ],
+            "engine/*": [
+                "./src/engine/*"
+            ],
+            "particles/*": [
+                "./src/particles/*"
+            ],
+            "shared/*": [
+                "./src/shared/*"
+            ],
+            "store/*": [
+                "./src/store/*"
             ]
         },
         /* Linting */

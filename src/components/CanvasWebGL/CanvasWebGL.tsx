@@ -6,9 +6,9 @@ import React, {
     useRef,
 } from 'react';
 
-import { Vector } from 'src/engine/Vector/Vector.ts';
-import { RGBColor } from 'src/particles/types.ts';
-import { AppState } from 'src/types.ts';
+import { Vector } from 'engine/Vector/Vector.ts';
+import { RGBColor } from 'particles/types.ts';
+import { AppState } from 'shared/types.ts';
 import * as m4 from '../../engine/Matrix4.ts';
 
 export type CanvasWebGLElement = {
