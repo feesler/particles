@@ -1,5 +1,5 @@
 import { useStore } from '@jezvejs/react';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import { ROTATION_SPEED, WHEEL_ZOOM_STEP } from 'shared/constants.ts';
 import { AppState, Point } from 'shared/types.ts';
@@ -26,7 +26,13 @@ import { CanvasWebGL } from '../CanvasWebGL/CanvasWebGL.tsx';
 
 export const SceneCanvas = () => {
     const context = useAppContext();
-    const { fieldRef, processRotation, isUseWebGL } = context;
+    const {
+        fieldRef,
+        processRotation,
+        isUseWebGL,
+        getCanvas,
+    } = context;
+    const canvas = getCanvas();
 
     const { getState, dispatch } = useStore<AppState>();
 
@@ -161,7 +167,10 @@ export const SceneCanvas = () => {
         }
     };
 
-    const onWheel = (e: React.WheelEvent) => {
+    const onWheel = useCallback((e: WheelEvent) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+
         const st = getState();
         const step = WHEEL_ZOOM_STEP / ((e.altKey) ? 10 : 1);
         const zoomDelta = (e.deltaY / 100) * step;
@@ -169,7 +178,7 @@ export const SceneCanvas = () => {
         const newZoom = st.zoom - zoomDelta;
 
         dispatch(changeZoom(newZoom, context));
-    };
+    }, []);
 
     const state = getState();
 
@@ -202,6 +211,18 @@ export const SceneCanvas = () => {
         fieldRef.current?.setPathLength(state.pathLength);
     }, [state.pathLength]);
 
+    useEffect(() => {
+        if (!canvas) {
+            return undefined;
+        }
+
+        canvas?.elem?.addEventListener('wheel', onWheel, { passive: false, capture: true });
+
+        return () => {
+            canvas?.elem?.removeEventListener('wheel', onWheel, { capture: true });
+        };
+    }, [canvas]);
+
     const canvasProps = useMemo(() => ({
         width: state.canvasWidth,
         height: state.canvasHeight,
@@ -211,7 +232,6 @@ export const SceneCanvas = () => {
         onMouseDown,
         onMouseMove,
         onMouseUp,
-        onWheel,
         className: 'app-canvas',
     }), [state.canvasWidth, state.canvasHeight]);
 
